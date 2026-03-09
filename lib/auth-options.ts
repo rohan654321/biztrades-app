@@ -2,13 +2,35 @@
 import CredentialsProvider from "next-auth/providers/credentials"
 import GoogleProvider from "next-auth/providers/google"
 import LinkedInProvider from "next-auth/providers/linkedin"
-import type { NextAuthOptions } from "next-auth"
+import type { NextAuthOptions, Profile } from "next-auth"
 import bcrypt from "bcryptjs"
 
 // Import Prisma (legacy Mongo client; may be null if DATABASE_URL is not set)
 import { prisma } from "@/lib/prisma"
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000"
+
+const providers: NextAuthOptions["providers"] = []
+
+// Only enable Google if env vars are present (otherwise production will 500)
+if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+  providers.push(
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    })
+  )
+}
+
+// Only enable LinkedIn if env vars are present
+if (process.env.LINKEDIN_CLIENT_ID && process.env.LINKEDIN_CLIENT_SECRET) {
+  providers.push(
+    LinkedInProvider({
+      clientId: process.env.LINKEDIN_CLIENT_ID,
+      clientSecret: process.env.LINKEDIN_CLIENT_SECRET,
+    })
+  )
+}
 
 // Safe Prisma wrapper
 const safePrisma = {
@@ -85,14 +107,7 @@ const safePrisma = {
 
 export const authOptions: NextAuthOptions = {
   providers: [
-    GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-    }),
-    LinkedInProvider({
-      clientId: process.env.LINKEDIN_CLIENT_ID!,
-      clientSecret: process.env.LINKEDIN_CLIENT_SECRET!,
-    }),
+    ...providers,
     CredentialsProvider({
       name: "Credentials",
       credentials: {

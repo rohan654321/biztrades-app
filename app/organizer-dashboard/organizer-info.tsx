@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -53,9 +53,10 @@ interface OrganizerData {
 
 interface OrganizerInfoProps {
   organizerData: OrganizerData
+  onOrganizerUpdated?: (data: OrganizerData) => void
 }
 
-export default function OrganizerInfo({ organizerData: initialData }: OrganizerInfoProps) {
+export default function OrganizerInfo({ organizerData: initialData, onOrganizerUpdated }: OrganizerInfoProps) {
   const [isEditing, setIsEditing] = useState<string | null>(null)
   const [showImageUpload, setShowImageUpload] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -65,6 +66,11 @@ export default function OrganizerInfo({ organizerData: initialData }: OrganizerI
   const [newCertification, setNewCertification] = useState("")
 
   const [organizerData, setOrganizerData] = useState<OrganizerData>(initialData)
+
+  // Keep local state in sync if parent data changes (e.g. after refetch)
+  useEffect(() => {
+    setOrganizerData(initialData)
+  }, [initialData])
 
   type Section = "basic" | "contact" | "company" | "specialties" | "achievements" | "certifications"
 
@@ -94,19 +100,15 @@ export default function OrganizerInfo({ organizerData: initialData }: OrganizerI
 
     try {
       setLoading(true)
-      const res = await fetch(`/api/organizers/${organizerData.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+      await apiFetch(`/api/organizers/${organizerData.id}`, {
+        method: "PATCH",
+        body: payload,
+        auth: true,
       })
-
-      if (!res.ok) {
-        const errorText = await res.text()
-        throw new Error(errorText || "Failed to save changes")
-      }
 
       toast.success("Changes saved successfully ✅")
       setIsEditing(null)
+      onOrganizerUpdated?.(organizerData)
     } catch (error: any) {
       console.error("Save error:", error)
       toast.error(error.message || "An error occurred while saving changes ❌")
@@ -210,19 +212,19 @@ export default function OrganizerInfo({ organizerData: initialData }: OrganizerI
         avatar: uploadData.url,
       }))
 
-      // Save to database
-      const saveResponse = await fetch(`/api/organizers/${organizerData.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ avatar: uploadData.url }),
+      // Save to database via backend
+      await apiFetch(`/api/organizers/${organizerData.id}`, {
+        method: "PATCH",
+        body: { avatar: uploadData.url },
+        auth: true,
       })
-
-      if (!saveResponse.ok) {
-        throw new Error("Failed to save avatar")
-      }
 
       toast.success("Avatar updated successfully ✅")
       setShowImageUpload(false)
+      onOrganizerUpdated?.({
+        ...organizerData,
+        avatar: uploadData.url,
+      })
     } catch (error: any) {
       console.error("Avatar upload error:", error)
       toast.error(error.message || "Failed to upload avatar ❌")

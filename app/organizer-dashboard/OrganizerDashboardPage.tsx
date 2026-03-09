@@ -315,7 +315,12 @@ export default function OrganizerDashboardSimplified({ organizerId }: OrganizerD
           />
         )
       case "info":
-        return <OrganizerInfo organizerData={organizerData} />
+        return (
+          <OrganizerInfo
+            organizerData={organizerData}
+            onOrganizerUpdated={(updated) => setOrganizerData(updated)}
+          />
+        )
       case "venue-booking":
         return <MyAppointments userId={organizerId} />
       case "events":

@@ -456,7 +456,7 @@ export default function EventsPageContent() {
     }
 
     try {
-      const response = await fetch(`/api/events/${eventId}/leads`, {
+      const response = await fetch(`/api/event/${eventId}/leads`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ type: "attendee", userId, eventId }),
@@ -1380,7 +1380,7 @@ export default function EventsPageContent() {
                   </div>
                 ) : (
                   paginatedEvents.map((event) => (
-                    <Link href={`/events/${event.id}`} key={event.id} className="block">
+                    <Link href={`/event/${event.id}`} key={event.id} className="block">
                       <div className="relative bg-white border border-gray-300 rounded-lg overflow-hidden w-full hover:shadow-lg transition-shadow duration-300">
 
                         <div className="flex flex-col md:flex-row">
