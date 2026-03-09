@@ -1,10 +1,6 @@
 import mongoose from "mongoose";
 
-const MONGODB_URI = process.env.DATABASE_URL as string;
-
-if (!MONGODB_URI) {
-  throw new Error("Please define the MONGODB_URI environment variable inside .env.local");
-}
+const MONGODB_URI = process.env.DATABASE_URL;
 
 let cached = (global as any).mongoose;
 
@@ -13,6 +9,10 @@ if (!cached) {
 }
 
 export default async function dbConnect() {
+  if (!MONGODB_URI) {
+    throw new Error("DATABASE_URL is not set; cannot connect to MongoDB");
+  }
+
   if (cached.conn) return cached.conn;
 
   if (!cached.promise) {
