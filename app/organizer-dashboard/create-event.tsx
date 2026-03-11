@@ -1033,14 +1033,16 @@ const handlePublishEvent = async () => {
 }
 
   // Upload helpers use Next.js Cloudinary route, which relies on NextAuth
-  // session instead of backend JWT. This avoids 401s when organizers are
-  // logged in via NextAuth only...
+  // session instead of backend JWT. This avoids 401s when organizers are ...
+  // logged in via NextAuth only......
   const uploadToCloudinary = async (file: File, type: "image" | "brochure" | "layout") => {
     const formData = new FormData()
     formData.append("file", file)
     formData.append("type", type === "image" ? "image" : type === "brochure" ? "brochure" : "image")
 
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/upload/cloudinary`, {
+    // Use Next.js API route on the same origin (works on Vercel),
+    // authenticated via NextAuth session instead of backend JWT.
+    const res = await fetch("/api/upload/cloudinary", {
       method: "POST",
       body: formData,
     })
