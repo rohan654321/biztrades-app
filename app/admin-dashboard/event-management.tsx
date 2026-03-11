@@ -998,7 +998,7 @@ export function EditEventForm({
                       <input
                         type="checkbox"
                         id="featured"
-                        checked={formData.featured}
+                        checked={!!formData.featured}
                         onChange={(e) => setFormData({ ...formData, featured: e.target.checked })}
                         className="rounded border-gray-300"
                       />
@@ -1009,7 +1009,7 @@ export function EditEventForm({
                       <input
                         type="checkbox"
                         id="vip"
-                        checked={formData.vip}
+                        checked={!!formData.vip}
                         onChange={(e) => setFormData({ ...formData, vip: e.target.checked })}
                         className="rounded border-gray-300"
                       />
@@ -1020,7 +1020,7 @@ export function EditEventForm({
                       <input
                         type="checkbox"
                         id="verified"
-                        checked={formData.isVerified}
+                        checked={!!formData.isVerified}
                         onChange={(e) => setFormData({ ...formData, isVerified: e.target.checked })}
                         className="rounded border-gray-300"
                       />
