@@ -151,15 +151,18 @@ export default function EventHero({ event, onImagesUpdate }: EventHeroProps) {
       formData.append("file", file)
       formData.append("type", "image")
 
-      const uploadData = await apiFetch<{ success: boolean; url: string; publicId?: string }>(
-        "/api/upload/cloudinary",
-        {
-          method: "POST",
-          body: formData,
-          auth: true,
-        },
-      )
+      // Use Next.js Cloudinary route (NextAuth-based), no backend JWT needed
+      const res = await fetch("/api/upload/cloudinary", {
+        method: "POST",
+        body: formData,
+      })
 
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}))
+        throw new Error(err.error || "Failed to upload image")
+      }
+
+      const uploadData = (await res.json()) as { url: string }
       const updatedImages = [...images, uploadData.url]
 
       const response = await fetch(`/api/events/${event.id}`, {
@@ -168,16 +171,17 @@ export default function EventHero({ event, onImagesUpdate }: EventHeroProps) {
         body: JSON.stringify({ images: updatedImages }),
       })
 
-      if (response.ok) {
-        setImages(updatedImages)
-        onImagesUpdate?.(updatedImages)
-        toast({
-          title: "Success",
-          description: "Image uploaded successfully",
-        })
-      } else {
-        throw new Error("Failed to save image")
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}))
+        throw new Error(err.error || "Failed to save image")
       }
+
+      setImages(updatedImages)
+      onImagesUpdate?.(updatedImages)
+      toast({
+        title: "Success",
+        description: "Image uploaded successfully",
+      })
     } catch (error) {
       console.error("Error uploading image:", error)
       toast({

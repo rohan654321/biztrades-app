@@ -17,6 +17,7 @@ interface EventActionsProps {
   onStatusChange: (eventId: string, status: Event["status"]) => void
   onFeatureToggle: (eventId: string, current: boolean) => void
   onVipToggle: (eventId: string, current: boolean) => void
+  onPublicToggle: (eventId: string, current: boolean) => void
   onDelete: (eventId: string) => void
   onPromote: (event: Event) => void
   onVerify: (event: Event) => void
@@ -27,6 +28,7 @@ export function EventActions({
   onStatusChange,
   onFeatureToggle,
   onVipToggle,
+  onPublicToggle,
   onDelete,
   onPromote,
   onVerify,
@@ -58,6 +60,9 @@ export function EventActions({
         <DropdownMenuItem onClick={() => onVipToggle(event.id, event.vip)}>
           <Crown className="w-4 h-4 mr-2" />
           {event.vip ? "Remove VIP" : "Mark VIP"}
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => onPublicToggle(event.id, !!event.isPublic)}>
+          {event.isPublic ? "Make Private" : "Make Public"}
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => onVerify(event)}>
           <ShieldCheck className="w-4 h-4 mr-2" />

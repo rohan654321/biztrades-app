@@ -56,6 +56,8 @@ export interface Event {
   verifiedAt: string | null
   verifiedBy: string | null
   verifiedBadgeImage: string | null
+  /** Whether event is visible on public listings; from DB isPublic */
+  isPublic?: boolean
 }
 
 export interface Category {

@@ -72,28 +72,35 @@ export default function ExhibitorManagement({ eventId }: ExhibitorManagementProp
       const data = await response.json()
       console.log('API Response data:', data)
 
-      if (data.success && data.attendeeLeads) {
-        // Transform the lead data to match exhibitor structure
-        const transformedExhibitors = data.attendeeLeads.map((lead: any) => ({
-          id: lead.id,
-          firstName: lead.user?.firstName || "Unknown",
-          lastName: lead.user?.lastName || "",
-          email: lead.user?.email || "No email",
-          phone: lead.user?.phone || "",
-          company: lead.user?.company || "No company",
-          jobTitle: lead.user?.jobTitle || "",
-          avatar: lead.user?.avatar,
-          event: {
-            id: lead.event?.id || eventId,
-            title: lead.event?.title || "Event",
-            startDate: lead.event?.startDate || new Date().toISOString(),
-          },
-          registration: {
-            id: lead.id,
-            status: lead.status || "NEW",
-            registeredAt: lead.createdAt || new Date().toISOString(),
-          },
-        }))
+      // Backend /api/events/:id/exhibitors returns { success, data: { exhibitors } }
+      const rawExhibitors = data.data?.exhibitors ?? data.exhibitors ?? []
+
+      if (data.success !== false && Array.isArray(rawExhibitors)) {
+        const transformedExhibitors = rawExhibitors.map((item: any) => {
+          const user = item.exhibitor || item.user || {}
+          const event = item.event || {}
+
+          return {
+            id: user.id || item.id || "",
+            firstName: user.firstName || "Unknown",
+            lastName: user.lastName || "",
+            email: user.email || "No email",
+            phone: user.phone || "",
+            company: user.company || "No company",
+            jobTitle: user.jobTitle || "",
+            avatar: user.avatar,
+            event: {
+              id: event.id || eventId,
+              title: event.title || "Event",
+              startDate: event.startDate || new Date().toISOString(),
+            },
+            registration: {
+              id: item.id || "",
+              status: item.status || "NEW",
+              registeredAt: item.createdAt || new Date().toISOString(),
+            },
+          } as Exhibitor
+        })
 
         console.log('Transformed exhibitors:', transformedExhibitors)
         setExhibitors(transformedExhibitors)

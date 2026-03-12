@@ -407,6 +407,7 @@ export function EditEventForm({
     brochure: event.brochure || "",
     layout: event.layout || "",
     isVerified: event.isVerified || false,
+    isPublic: event.isPublic ?? true,
     verifiedBadgeImage: event.verifiedBadgeImage || null,
     verifiedAt: event.verifiedAt || null,
     verifiedBy: event.verifiedBy || null,
@@ -523,6 +524,7 @@ export function EditEventForm({
         currentAttendees: formData.attendees,
         featured: formData.featured,
         vip: formData.vip,
+        isPublic: formData.isPublic,
         category: formData.category,
         tags: formData.tags || [],
         eventType: formData.eventType,
@@ -1019,6 +1021,17 @@ export function EditEventForm({
                     <div className="flex items-center gap-2">
                       <input
                         type="checkbox"
+                        id="public"
+                        checked={!!formData.isPublic}
+                        onChange={(e) => setFormData({ ...formData, isPublic: e.target.checked })}
+                        className="rounded border-gray-300"
+                      />
+                      <Label htmlFor="public" className="cursor-pointer">Public Event</Label>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
                         id="verified"
                         checked={!!formData.isVerified}
                         onChange={(e) => setFormData({ ...formData, isVerified: e.target.checked })}
@@ -1509,6 +1522,32 @@ export default function EventManagement() {
     }
   }
 
+  const handlePublicToggle = async (eventId: string, current: boolean) => {
+    try {
+      const result = await apiFetch<{ event?: any }>(`/api/admin/events/${eventId}`, {
+        method: "PATCH",
+        body: { isPublic: !current },
+        auth: true,
+      })
+
+      const updated = result.data ?? result.event
+      setEvents((prev) =>
+        prev.map((e) =>
+          e.id === eventId
+            ? {
+                ...e,
+                isPublic: !current,
+                isVerified: updated?.isVerified ?? e.isVerified,
+                verifiedBadgeImage: updated?.verifiedBadgeImage ?? e.verifiedBadgeImage,
+              }
+            : e,
+        ),
+      )
+    } catch (error) {
+      console.error("Failed to toggle public flag:", error)
+    }
+  }
+
 const handleVerifyToggle = async (event: Event, verify: boolean, _customBadge?: File) => {
   try {
     setVerifying(true)
@@ -1635,6 +1674,7 @@ const handleVerifyToggle = async (event: Event, verify: boolean, _customBadge?: 
         onStatusChange={handleStatusChange}
         onFeatureToggle={handleFeatureToggle}
         onVipToggle={handleVipToggle}
+        onPublicToggle={handlePublicToggle}
         onDelete={handleDeleteEvent}
         onPromote={(event) => {
           setSelectedEvent(event)

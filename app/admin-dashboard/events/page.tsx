@@ -28,6 +28,7 @@ export default function EventManagementPage() {
     handleStatusChange,
     handleFeatureToggle,
     handleVipToggle,
+    handlePublicToggle,
     handleVerifyToggle,
     handleDeleteEvent,
     handleEditEvent,
@@ -69,6 +70,7 @@ export default function EventManagementPage() {
         onStatusChange={handleStatusChange}
         onFeatureToggle={handleFeatureToggle}
         onVipToggle={handleVipToggle}
+        onPublicToggle={handlePublicToggle}
         onDelete={handleDeleteEvent}
         onPromote={() => {}}
         onVerify={handleVerifyEvent}

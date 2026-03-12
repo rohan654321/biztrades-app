@@ -15,6 +15,7 @@ interface EventRowProps {
   onStatusChange: (eventId: string, status: Event["status"]) => void
   onFeatureToggle: (eventId: string, current: boolean) => void
   onVipToggle: (eventId: string, current: boolean) => void
+  onPublicToggle: (eventId: string, current: boolean) => void
   onDelete: (eventId: string) => void
   onPromote: (event: Event) => void
   onVerify: (event: Event) => void
@@ -27,6 +28,7 @@ export function EventRow({
   onStatusChange,
   onFeatureToggle,
   onVipToggle,
+  onPublicToggle,
   onDelete,
   onPromote,
   onVerify,
@@ -99,6 +101,7 @@ export function EventRow({
               onStatusChange={onStatusChange}
               onFeatureToggle={onFeatureToggle}
               onVipToggle={onVipToggle}
+              onPublicToggle={onPublicToggle}
               onDelete={onDelete}
               onPromote={onPromote}
               onVerify={onVerify}

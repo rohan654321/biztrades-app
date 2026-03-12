@@ -201,39 +201,51 @@ export default function EventPage({ params }: EventPageProps) {
 
     try {
       const formData = new FormData()
-      formData.append('brochure', file)
+      formData.append('file', file)
+      formData.append('type', 'brochure')
 
-      const response = await fetch(`/api/events/${event.id}/brochure`, {
-        method: 'PUT',
+      // Reuse Next.js Cloudinary route (NextAuth-based)
+      const uploadRes = await fetch('/api/upload/cloudinary', {
+        method: 'POST',
         body: formData,
       })
 
-      if (response.ok) {
-        const updatedEvent = await response.json()
+      if (!uploadRes.ok) {
+        const err = await uploadRes.json().catch(() => ({}))
+        throw new Error(err.error || 'Failed to upload brochure')
+      }
 
-        // Update the event state with cache busting
-        setEvent((prev: any) => ({
-          ...prev,
-          brochure: `${updatedEvent.brochure}?t=${Date.now()}`
-        }))
+      const uploadData = await uploadRes.json()
+      const brochureUrl = uploadData.url as string
 
-        toast({
-          title: "Success",
-          description: "Brochure updated successfully",
-        })
+      const saveRes = await fetch(`/api/events/${event.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ brochure: brochureUrl }),
+      })
 
-        // Clear the file input
-        e.target.value = ''
-      } else {
-        const errorData = await response.json()
+      if (!saveRes.ok) {
+        const errorData = await saveRes.json().catch(() => ({}))
         throw new Error(errorData.error || 'Failed to update brochure')
       }
+
+      setEvent((prev: any) => ({
+        ...prev,
+        brochure: `${brochureUrl}?t=${Date.now()}`,
+      }))
+
+      toast({
+        title: 'Success',
+        description: 'Brochure updated successfully',
+      })
+
+      e.target.value = ''
     } catch (error) {
       console.error('Error updating brochure:', error)
       toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to update brochure",
-        variant: "destructive",
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to update brochure',
+        variant: 'destructive',
       })
     } finally {
       setUpdatingBrochure(false)
@@ -296,36 +308,48 @@ export default function EventPage({ params }: EventPageProps) {
 
     try {
       const formData = new FormData()
-      formData.append('layout', file)
+      formData.append('file', file)
+      formData.append('type', 'layout')
 
-      const updatedEvent = await apiFetch<any>(`/api/events/${event.id}/layout`, {
-        method: 'PUT',
+      const uploadRes = await fetch('/api/upload/cloudinary', {
+        method: 'POST',
         body: formData,
-        auth: true,
       })
-      if (updatedEvent != null) {
 
-        // Update the event state with the new layout
-        setEvent((prev: any) => ({
-          ...prev,
-          layoutPlan: updatedEvent.layoutPlan
-        }))
-
-        toast({
-          title: "Success",
-          description: "Layout plan updated successfully",
-        })
-        // Clear the file input
-        e.target.value = ''
-      } else {
-        throw new Error('Failed to update layout plan')
+      if (!uploadRes.ok) {
+        const err = await uploadRes.json().catch(() => ({}))
+        throw new Error(err.error || 'Failed to upload layout plan')
       }
+
+      const uploadData = await uploadRes.json()
+      const layoutUrl = uploadData.url as string
+
+      const saveRes = await fetch(`/api/events/${event.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ layoutPlan: layoutUrl }),
+      })
+      if (!saveRes.ok) {
+        const err = await saveRes.json().catch(() => ({}))
+        throw new Error(err.error || 'Failed to update layout plan')
+      }
+
+      setEvent((prev: any) => ({
+        ...prev,
+        layoutPlan: layoutUrl,
+      }))
+
+      toast({
+        title: 'Success',
+        description: 'Layout plan updated successfully',
+      })
+      e.target.value = ''
     } catch (error) {
       console.error('Error updating layout plan:', error)
       toast({
-        title: "Error",
-        description: "Failed to update layout plan",
-        variant: "destructive",
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to update layout plan',
+        variant: 'destructive',
       })
     }
   }
@@ -420,15 +444,9 @@ export default function EventPage({ params }: EventPageProps) {
     if (!confirm("Are you sure you want to delete the layout plan?")) return
 
     try {
-      await apiFetch(`/api/events/${event.id}/layout`, {
-        method: "DELETE",
-        auth: true,
-      })
-      // Update the event state to remove layout plan
-      setEvent((prev: any) => ({
-        ...prev,
-        layoutPlan: null
-      }))
+      const res = await fetch(`/api/events/${event.id}/layout`, { method: "DELETE" })
+      if (!res.ok) throw new Error("Failed to delete layout")
+      setEvent((prev: any) => ({ ...prev, layoutPlan: null }))
       toast({
         title: "Success",
         description: "Layout plan removed successfully",

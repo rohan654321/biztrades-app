@@ -138,8 +138,7 @@ interface ValidationErrors {
   startDate?: string
   endDate?: string
   venue?: string
-  city?: string
-  address?: string
+  venueId?: string
   tags?: string
 }
 
@@ -375,6 +374,10 @@ export default function CreateEvent({ organizerId }: { organizerId: string }) {
   ]
   const handleVenueSelect = (venueId: string) => {
     setSelectedVenueId(venueId)
+    setFormData((prev) => ({
+      ...prev,
+      venueId,
+    }))
   }
   const handleVenueChange = (venueData: {
     venueId?: string
@@ -384,10 +387,11 @@ export default function CreateEvent({ organizerId }: { organizerId: string }) {
     state?: string
     country?: string
   }) => {
-    setSelectedVenueId(venueData.venueId || "")
+    const id = venueData.venueId || ""
+    setSelectedVenueId(id)
     setFormData((prev) => ({
       ...prev,
-      venueId: venueData.venueId || "",
+      venueId: id,
       venue: venueData.venueName,
       address: venueData.venueAddress,
       city: venueData.city,
@@ -634,8 +638,7 @@ const handlePublishEvent = async () => {
   if (!formData.startDate.trim()) newValidationErrors.startDate = "Start date is required"
   if (!formData.endDate.trim()) newValidationErrors.endDate = "End date is required"
   if (!formData.venue.trim()) newValidationErrors.venue = "Venue is required"
-  if (!formData.city.trim()) newValidationErrors.city = "City is required"
-  if (!formData.address.trim()) newValidationErrors.address = "Address is required"
+  if (!formData.venueId.trim()) newValidationErrors.venueId = "Please select a venue before creating the event"
   if (formData.tags.length === 0) newValidationErrors.tags = "Add at least one tag for better discoverability"
 
   // Date validation
@@ -815,12 +818,7 @@ const handlePublishEvent = async () => {
       registrationEnd: endDateWithTime,
       timezone: formData.timezone,
       isVirtual: false,
-      venue: formData.venueId || null,
-      venueName: formData.venue,
-      address: formData.address,
-      city: formData.city,
-      state: "",
-      country: "India",
+      venueId: formData.venueId || null,
       currency: formData.currency,
       images: formData.images,
       documents: [formData.brochure, formData.layoutPlan].filter(Boolean),

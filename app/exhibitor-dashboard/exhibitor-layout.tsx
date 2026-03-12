@@ -32,6 +32,7 @@ import {
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
 import { useDashboard } from "@/contexts/dashboard-context"
+import { apiFetch } from "@/lib/api"
 
 import CompanyInfo from "./company-info"
 import EventParticipation from "./event-participation"
@@ -142,21 +143,13 @@ export function ExhibitorLayout({ userId }: UserDashboardProps) {
       setError(null)
 
       // Fetch user data and product count in parallel
-      const [userResponse, productCount] = await Promise.all([
-        fetch(`/api/users/${userId}`, {
+      const [userData, productCount] = await Promise.all([
+        apiFetch<{ success: boolean; user: any }>(`/api/users/${userId}`, {
           method: "GET",
-          headers: { "Content-Type": "application/json" },
+          auth: false,
         }),
-        fetchProductCount(userId)
+        fetchProductCount(userId),
       ])
-
-      if (!userResponse.ok) {
-        if (userResponse.status === 404) throw new Error("User not found")
-        if (userResponse.status === 403) throw new Error("Access denied")
-        throw new Error("Failed to fetch user data")
-      }
-
-      const userData = await userResponse.json()
       
       // Combine user data with product count
       setExhibitor({

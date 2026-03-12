@@ -20,6 +20,9 @@ function normalizeEvent(raw: any): Event {
     status: raw.status ?? "Draft",
     attendees: raw.currentAttendees ?? raw.attendees ?? 0,
     maxCapacity: raw.maxAttendees ?? raw.maxCapacity ?? 0,
+    featured: raw.featured ?? raw.isFeatured ?? false,
+    vip: raw.vip ?? raw.isVIP ?? false,
+    isPublic: raw.isPublic ?? true,
     isVerified: !!raw.isVerified,
     verifiedAt: raw.verifiedAt ?? null,
     verifiedBy: raw.verifiedBy ?? null,
@@ -122,6 +125,15 @@ export function useEvents() {
     }
   }, [])
 
+  const handlePublicToggle = useCallback(async (eventId: string, current: boolean) => {
+    try {
+      await api.updateEvent(eventId, { isPublic: !current })
+      setEvents((prev) => prev.map((e) => (e.id === eventId ? { ...e, isPublic: !current } : e)))
+    } catch (error) {
+      console.error("Failed to toggle public flag:", error)
+    }
+  }, [])
+
   const handleVerifyToggle = useCallback(async (event: Event, verify: boolean) => {
     try {
       setVerifying(true)
@@ -199,6 +211,7 @@ export function useEvents() {
     handleStatusChange,
     handleFeatureToggle,
     handleVipToggle,
+    handlePublicToggle,
     handleVerifyToggle,
     handleDeleteEvent,
     handleEditEvent,
