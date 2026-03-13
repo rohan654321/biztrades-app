@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Search, Plus, User, Mail, Phone, Building, Globe, Linkedin, Twitter } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import { apiFetch } from "@/lib/api"
 
 interface Speaker {
   id: string
@@ -98,11 +99,10 @@ export default function AddSpeaker({ eventId }: AddSpeakerProps) {
 
   const fetchSpeakers = async () => {
     try {
-      const response = await fetch("/api/speakers")
-      if (response.ok) {
-        const data = await response.json()
-        setSpeakers(data.speakers || [])
-      }
+      const data = await apiFetch<{ success?: boolean; speakers?: Speaker[] }>("/api/speakers", {
+        auth: false,
+      })
+      setSpeakers(data.speakers || [])
     } catch (error) {
       console.error("Error fetching speakers:", error)
     }
@@ -111,9 +111,9 @@ export default function AddSpeaker({ eventId }: AddSpeakerProps) {
   const filteredSpeakers = speakers.filter(
     (speaker) =>
       `${speaker.firstName} ${speaker.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      speaker.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      speaker.company?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      speaker.specialties.some((specialty) => specialty.toLowerCase().includes(searchTerm.toLowerCase())),
+      (speaker.email ?? "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (speaker.company ?? "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (speaker.specialties ?? []).some((s) => String(s).toLowerCase().includes(searchTerm.toLowerCase())),
   )
 
   const handleCreateSpeaker = async () => {
@@ -128,20 +128,19 @@ export default function AddSpeaker({ eventId }: AddSpeakerProps) {
 
     setLoading(true)
     try {
-      const response = await fetch("/api/speakers", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newSpeaker),
-      })
-
-      if (response.ok) {
-        const data = await response.json()
+      const data = await apiFetch<{ success?: boolean; speaker?: Speaker; error?: string }>(
+        "/api/speakers",
+        {
+          method: "POST",
+          body: newSpeaker,
+          auth: true,
+        },
+      )
+      if (data.success && data.speaker) {
         toast({
           title: "Success",
           description: "Speaker created successfully.",
         })
-
-        // Reset form and refresh speakers list
         setNewSpeaker({
           firstName: "",
           lastName: "",
@@ -163,8 +162,7 @@ export default function AddSpeaker({ eventId }: AddSpeakerProps) {
         setActiveTab("existing")
         setSelectedSpeaker(data.speaker)
       } else {
-        const errorData = await response.json()
-        throw new Error(errorData.error || "Failed to create speaker")
+        throw new Error(data.error || "Failed to create speaker")
       }
     } catch (error) {
       toast({
@@ -189,45 +187,50 @@ export default function AddSpeaker({ eventId }: AddSpeakerProps) {
 
     setLoading(true)
     try {
-      const response = await fetch("/api/events/speakers", {
+      await apiFetch("/api/events/speakers", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          eventId: eventId,
+        body: {
+          eventId,
           speakerId: selectedSpeaker.id,
-          ...sessionDetails,
-        }),
+          title: sessionDetails.title,
+          description: sessionDetails.description,
+          sessionType: sessionDetails.sessionType,
+          duration: sessionDetails.duration || 60,
+          startTime: sessionDetails.startTime || new Date().toISOString(),
+          endTime: sessionDetails.endTime || new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+          room: sessionDetails.room,
+          abstract: sessionDetails.abstract,
+          learningObjectives: sessionDetails.learningObjectives || [],
+          targetAudience: sessionDetails.targetAudience,
+        },
+        auth: true,
       })
 
-      if (response.ok) {
-        toast({
-          title: "Success",
-          description: "Speaker added to event successfully.",
-        })
+      toast({
+        title: "Success",
+        description: "Speaker added to event successfully.",
+      })
 
-        // Reset form
-        setSelectedSpeaker(null)
-        setSessionDetails({
-          title: "",
-          description: "",
-          sessionType: "",
-          duration: "",
-          startTime: "",
-          endTime: "",
-          room: "",
-          abstract: "",
-          learningObjectives: [],
-          targetAudience: "",
-          materials: [],
-        })
-      } else {
-        const errorData = await response.json()
-        throw new Error(errorData.error || "Failed to add speaker to event")
-      }
+      setSelectedSpeaker(null)
+      setSessionDetails({
+        title: "",
+        description: "",
+        sessionType: "",
+        duration: "",
+        startTime: "",
+        endTime: "",
+        room: "",
+        abstract: "",
+        learningObjectives: [],
+        targetAudience: "",
+        materials: [],
+      })
     } catch (error) {
+      const err = error as { body?: { error?: string }; message?: string }
+      const message = err?.body?.error || err?.message || (error instanceof Error ? error.message : "Failed to add speaker to event")
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to add speaker to event.",
+        description: message,
         variant: "destructive",
       })
     } finally {

@@ -17,33 +17,32 @@ export default function SpeakersTab({ eventId }: { eventId: string }) {
   const [speakers, setSpeakers] = useState<Speaker[]>([])
   const [loading, setLoading] = useState(true)
 
- useEffect(() => {
-  async function fetchSpeakers() {
-    try {
-      const res = await fetch(`/api/events/speakers?eventId=${eventId}`)
-      const data = await res.json()
-
-      if (data.success && Array.isArray(data.sessions)) {
-        // map the API response to your Speaker interface
-        const mappedSpeakers: Speaker[] = data.sessions.map((session: any) => ({
-          id: session.speaker.id,
-          name: `${session.speaker.firstName} ${session.speaker.lastName}`,
-          company: session.speaker.company || "N/A",
-          designation: session.speaker.jobTitle || "",
-          imageUrl: session.speaker.avatar || "",
-        }))
-        setSpeakers(mappedSpeakers)
-      } else {
+  useEffect(() => {
+    async function fetchSpeakers() {
+      try {
+        const res = await fetch(`/api/events/speakers?eventId=${eventId}`)
+        const data = await res.json().catch(() => ({ success: false, sessions: [] }))
+        if (data.success && Array.isArray(data.sessions)) {
+          const mappedSpeakers: Speaker[] = data.sessions.map((session: any) => ({
+            id: session.speaker?.id ?? "",
+            name: [session.speaker?.firstName, session.speaker?.lastName].filter(Boolean).join(" ") || "Speaker",
+            company: session.speaker?.company || "N/A",
+            designation: session.speaker?.jobTitle || "",
+            imageUrl: session.speaker?.avatar || "",
+          }))
+          setSpeakers(mappedSpeakers)
+        } else {
+          setSpeakers([])
+        }
+      } catch (err) {
+        console.error("Error loading speakers", err)
         setSpeakers([])
+      } finally {
+        setLoading(false)
       }
-    } catch (err) {
-      console.error("Error loading speakers", err)
-    } finally {
-      setLoading(false)
     }
-  }
-  fetchSpeakers()
-}, [eventId])
+    fetchSpeakers()
+  }, [eventId])
 
 
   if (loading) {

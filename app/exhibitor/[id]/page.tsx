@@ -177,27 +177,23 @@ function ReviewCard({ review, exhibitorId, onReplyAdded }: {
 
     setIsSubmittingReply(true)
     try {
-      const res = await fetch(`/api/exhibitors/${exhibitorId}/reviews`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          reviewId: review.id, 
-          content: replyContent 
-        }),
+      await apiFetch(`/api/exhibitors/${exhibitorId}/reviews/${review.id}/replies`, {
+        method: "POST",
+        body: { content: replyContent },
       })
-
-      if (res.ok) {
-        const newReply = await res.json()
-        onReplyAdded(review.id, newReply)
-        setReplyContent("")
-        setShowReplyForm(false)
-      } else {
-        const error = await res.json()
-        alert(`❌ ${error.error || "Failed to add reply"}`)
+      const newReply: ReviewReply = {
+        id: crypto.randomUUID(),
+        content: replyContent,
+        createdAt: new Date().toISOString(),
+        isOrganizerReply: false,
+        user: { id: "", firstName: "You", lastName: "", avatar: undefined },
       }
+      onReplyAdded(review.id, newReply)
+      setReplyContent("")
+      setShowReplyForm(false)
     } catch (err) {
       console.error(err)
-      alert("⚠️ Something went wrong")
+      alert("⚠️ Replies are not available yet. Please try again later.")
     } finally {
       setIsSubmittingReply(false)
     }
@@ -362,31 +358,19 @@ function AddReview({ exhibitorId, onReviewAdded }: { exhibitorId: string; onRevi
 
     setIsSubmitting(true)
     try {
-      const res = await fetch(`/api/exhibitors/${exhibitorId}/reviews`, {
+      const newReview = await apiFetch<Review>(`/api/exhibitors/${exhibitorId}/reviews`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ rating, title, comment }),
+        body: { rating, title, comment },
       })
-
-      if (res.ok) {
-        const newReview = await res.json()
-        onReviewAdded(newReview)
-        setShowSuccessMessage(true)
-        setRating(0)
-        setTitle("")
-        setComment("")
-
-        // Hide success message after 3 seconds
-        setTimeout(() => {
-          setShowSuccessMessage(false)
-        }, 3000)
-      } else {
-        const error = await res.json()
-        alert(`❌ ${error.error || "Failed to add review"}`)
-      }
+      onReviewAdded(newReview)
+      setShowSuccessMessage(true)
+      setRating(0)
+      setTitle("")
+      setComment("")
+      setTimeout(() => setShowSuccessMessage(false), 3000)
     } catch (err) {
       console.error(err)
-      alert("⚠️ Something went wrong")
+      alert("⚠️ Failed to add review. Please try again.")
     } finally {
       setIsSubmitting(false)
     }
@@ -545,21 +529,89 @@ export default function ExhibitorPage() {
     }
   }, [exhibitorId])
 
-  // Fetch exhibitor booths data
+  // Fetch exhibitor booths (events) from backend
   useEffect(() => {
     async function fetchExhibitorBooths() {
       if (!exhibitorId) return;
 
       setEventsLoading(true);
       try {
-        const response = await fetch(`/api/events/exhibitors/${exhibitorId}`);
-        const data = await response.json();
-        console.log("Booths API Response:", data);
+        const data = await apiFetch<{ success?: boolean; events?: Array<{
+          id: string
+          eventId: string
+          eventName: string
+          boothNumber: string
+          rawStartDate: string
+          rawEndDate: string
+          venue: string
+          organizer?: { id: string; firstName: string; lastName: string; company?: string }
+          currency?: string
+          invoiceAmount?: number
+          status?: string
+        }> }>(`/api/exhibitors/${exhibitorId}/events`);
 
-        if (data.success && data.booths) {
-          setBooths(data.booths);
+        if (data?.events && Array.isArray(data.events)) {
+          const mapped: Booth[] = data.events.map((e) => ({
+            id: e.id,
+            eventId: e.eventId,
+            exhibitorId,
+            spaceId: "",
+            spaceReference: "",
+            boothNumber: e.boothNumber ?? "",
+            companyName: "",
+            description: "",
+            additionalPower: 0,
+            compressedAir: 0,
+            setupRequirements: { requirements: "" },
+            specialRequests: "",
+            totalCost: e.invoiceAmount ?? 0,
+            currency: e.currency ?? "USD",
+            status: e.status ?? "BOOKED",
+            createdAt: "",
+            updatedAt: "",
+            exhibitor: null,
+            event: {
+              id: e.eventId,
+              title: e.eventName,
+              description: "",
+              shortDescription: undefined,
+              slug: "",
+              status: "PUBLISHED",
+              category: "",
+              tags: [],
+              isFeatured: false,
+              isVIP: false,
+              startDate: e.rawStartDate,
+              endDate: e.rawEndDate,
+              registrationStart: "",
+              registrationEnd: "",
+              timezone: "",
+              venueId: null,
+              isVirtual: false,
+              virtualLink: null,
+              maxAttendees: null,
+              currentAttendees: 0,
+              currency: e.currency ?? "USD",
+              bannerImage: null,
+              thumbnailImage: null,
+              isPublic: true,
+              requiresApproval: false,
+              allowWaitlist: false,
+              refundPolicy: null,
+              metaTitle: null,
+              metaDescription: null,
+              organizerId: e.organizer?.id ?? "",
+              createdAt: "",
+              updatedAt: "",
+              averageRating: 0,
+              totalReviews: 0,
+              organizer: e.organizer
+                ? { id: e.organizer.id, firstName: e.organizer.firstName, lastName: e.organizer.lastName, company: e.organizer.company ?? "" }
+                : { id: "", firstName: "", lastName: "", company: "" },
+            },
+          }));
+          setBooths(mapped);
         } else {
-          console.error("Failed to fetch exhibitor booths:", data.message);
           setBooths([]);
         }
       } catch (error) {
@@ -575,22 +627,18 @@ export default function ExhibitorPage() {
     }
   }, [exhibitorId]);
 
-  // Fetch reviews data with replies
+  // Fetch reviews from backend
   useEffect(() => {
     async function fetchReviews() {
       if (!exhibitorId) return;
 
       setReviewsLoading(true);
       try {
-        const res = await fetch(`/api/exhibitors/${exhibitorId}/reviews`)
-        if (res.ok) {
-          const data = await res.json()
-          setReviews(data.reviews || [])
-        } else {
-          console.error("Failed to fetch reviews")
-        }
+        const data = await apiFetch<{ reviews?: Review[] }>(`/api/exhibitors/${exhibitorId}/reviews`);
+        setReviews(data?.reviews ?? []);
       } catch (error) {
-        console.error("Error fetching reviews:", error)
+        console.error("Error fetching reviews:", error);
+        setReviews([]);
       } finally {
         setReviewsLoading(false);
       }

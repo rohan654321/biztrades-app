@@ -13,7 +13,7 @@ import ScheduleMeetingButton from "@/components/ScheduleMeetingButton"
 import { apiFetch } from "@/lib/api"
 
 interface Exhibitor {
-  id: string
+  exhibitorId: string
   boothId: string
   company: string
   name: string
@@ -118,12 +118,12 @@ export default function ExhibitorsTab({ eventId }: ExhibitorsTabProps) {
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mt-6">
         {displayExhibitors?.map((exhibitor) => (
           <Card
-            key={exhibitor.id}
+            key={exhibitor.exhibitorId}
             className="relative border border-gray-200 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 p-4 flex flex-col items-center text-center group cursor-pointer hover:border-blue-300"
           >
             {/* Clickable area covering the entire card */}
             <Link 
-              href={`/exhibitor/${exhibitor.id}`}
+              href={`/exhibitor/${exhibitor.exhibitorId}`}
               className="absolute inset-0 z-10"
               aria-label={`View ${exhibitor.company} details`}
             />
@@ -182,7 +182,7 @@ export default function ExhibitorsTab({ eventId }: ExhibitorsTabProps) {
               {/* Schedule Meeting Button - positioned above the link */}
               <div className="mt-4 relative z-20" onClick={(e) => e.stopPropagation()}>
                 <ScheduleMeetingButton 
-                  exhibitor={exhibitor} 
+                  exhibitor={{ id: exhibitor.exhibitorId, companyName: exhibitor.company, isSample: false }} 
                   eventId={eventId}
                 />
               </div>

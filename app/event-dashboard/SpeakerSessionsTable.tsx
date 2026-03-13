@@ -53,16 +53,16 @@ export default function SpeakerSessionsTable({
     async function fetchSessions() {
       try {
         setLoading(true)
-        const res = await fetch(`/api/organizers/speakerByEvent?eventId=${eventId}`)
-        const data = await res.json()
-
-        if (data.success) {
-          setSessions(data.sessions || [])
+        const res = await fetch(`/api/events/speakers?eventId=${eventId}`)
+        const data = await res.json().catch(() => ({ success: false, sessions: [] }))
+        if (data.success && Array.isArray(data.sessions)) {
+          setSessions(data.sessions)
         } else {
-          console.error("Error:", data.error)
+          setSessions([])
         }
       } catch (error) {
         console.error("Failed to fetch sessions:", error)
+        setSessions([])
       } finally {
         setLoading(false)
       }

@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { useState, useEffect } from "react"
-import { usePathname, useRouter } from "next/navigation"
+import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import {
   LayoutDashboard,   // Dashboard
@@ -64,6 +64,7 @@ interface SidebarItem {
 
 export default function EventSidebar({ eventId }: EventLayoutProps) {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [expandedGroups, setExpandedGroups] = useState<string[]>(["main", "lead-management"])
   const [activeSection, setActiveSection] = useState("dashboard")
@@ -78,6 +79,13 @@ export default function EventSidebar({ eventId }: EventLayoutProps) {
     setActiveTab("list")
     setRefreshKey((prev) => prev + 1)
   }
+
+  useEffect(() => {
+    const tab = searchParams.get("tab")
+    if (tab === "space-cost") {
+      setActiveSection("dashboard")
+    }
+  }, [searchParams])
 
   useEffect(() => {
     // Simulate async params resolution

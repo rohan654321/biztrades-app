@@ -2,6 +2,7 @@
 
 import type React from "react"
 import { useState, useEffect } from "react"
+import { apiFetch } from "@/lib/api"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -233,19 +234,10 @@ export default function ProductListing({ exhibitorId }: ProductListingProps) {
       setLoading(true)
       setError(null)
 
-      const response = await fetch(`/api/exhibitors/${exhibitorId}/products`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      })
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch products")
-      }
-
-      const data = await response.json()
-      setProducts(data.products || [])
+      const data = await apiFetch<{ products?: Product[] }>(
+        `/api/exhibitors/${exhibitorId}/products`
+      )
+      setProducts(data?.products ?? [])
     } catch (err) {
       console.error("Error fetching products:", err)
       setError(err instanceof Error ? err.message : "An error occurred")
@@ -290,28 +282,22 @@ export default function ProductListing({ exhibitorId }: ProductListingProps) {
       const imageUrls = formData.imageFiles.length > 0 ? await uploadFiles(formData.imageFiles, "image") : []
       const brochureUrls = formData.brochureFiles.length > 0 ? await uploadFiles(formData.brochureFiles, "pdf") : []
 
-      const response = await fetch(`/api/exhibitors/${exhibitorId}/products`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: formData.name,
-          category: formData.category,
-          description: formData.description,
-          youtube: formData.youtube,
-          price: formData.price ? Number.parseFloat(formData.price) : undefined,
-          currency: formData.currency,
-          images: imageUrls,
-          brochure: brochureUrls,
-        }),
-      })
-
-      if (!response.ok) {
-        throw new Error("Failed to add product")
-      }
-
-      const data = await response.json()
+      const data = await apiFetch<{ product: Product }>(
+        `/api/exhibitors/${exhibitorId}/products`,
+        {
+          method: "POST",
+          body: {
+            name: formData.name,
+            category: formData.category,
+            description: formData.description,
+            youtube: formData.youtube,
+            price: formData.price ? Number.parseFloat(formData.price) : undefined,
+            currency: formData.currency,
+            images: imageUrls,
+            brochure: brochureUrls,
+          },
+        }
+      )
       setProducts((prev) => [data.product, ...prev])
       setIsAddProductOpen(false)
 
@@ -340,28 +326,22 @@ export default function ProductListing({ exhibitorId }: ProductListingProps) {
       const newImageUrls = formData.imageFiles.length > 0 ? await uploadFiles(formData.imageFiles, "image") : []
       const newBrochureUrls = formData.brochureFiles.length > 0 ? await uploadFiles(formData.brochureFiles, "pdf") : []
 
-      const response = await fetch(`/api/exhibitors/${exhibitorId}/products/${editingProduct.id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: formData.name,
-          category: formData.category,
-          description: formData.description,
-          youtube: formData.youtube,
-          price: formData.price ? Number.parseFloat(formData.price) : undefined,
-          currency: formData.currency,
-          images: [...editingProduct.images, ...newImageUrls],
-          brochure: [...editingProduct.brochure, ...newBrochureUrls],
-        }),
-      })
-
-      if (!response.ok) {
-        throw new Error("Failed to update product")
-      }
-
-      const data = await response.json()
+      const data = await apiFetch<{ product: Product }>(
+        `/api/exhibitors/${exhibitorId}/products/${editingProduct.id}`,
+        {
+          method: "PUT",
+          body: {
+            name: formData.name,
+            category: formData.category,
+            description: formData.description,
+            youtube: formData.youtube,
+            price: formData.price ? Number.parseFloat(formData.price) : undefined,
+            currency: formData.currency,
+            images: [...editingProduct.images, ...newImageUrls],
+            brochure: [...editingProduct.brochure, ...newBrochureUrls],
+          },
+        }
+      )
       setProducts((prev) => prev.map((p) => (p.id === editingProduct.id ? data.product : p)))
       setIsEditProductOpen(false)
       setEditingProduct(null)
@@ -386,14 +366,9 @@ export default function ProductListing({ exhibitorId }: ProductListingProps) {
     if (!confirm("Are you sure you want to delete this product?")) return
 
     try {
-      const response = await fetch(`/api/exhibitors/${exhibitorId}/products/${productId}`, {
+      await apiFetch(`/api/exhibitors/${exhibitorId}/products/${productId}`, {
         method: "DELETE",
       })
-
-      if (!response.ok) {
-        throw new Error("Failed to delete product")
-      }
-
       setProducts((prev) => prev.filter((p) => p.id !== productId))
 
       toast({
@@ -422,19 +397,10 @@ export default function ProductListing({ exhibitorId }: ProductListingProps) {
 
       const updatedImages = product.images.filter((img) => img !== imageUrl)
 
-      const response = await fetch(`/api/exhibitors/${exhibitorId}/products/${productId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          images: updatedImages,
-        }),
-      })
-
-      if (!response.ok) {
-        throw new Error("Failed to remove image")
-      }
+      const data = await apiFetch<{ product: Product }>(
+        `/api/exhibitors/${exhibitorId}/products/${productId}`,
+        { method: "PUT", body: { images: updatedImages } }
+      )
 
       await fetch("/api/upload/cloudinary", {
         method: "DELETE",
@@ -444,7 +410,6 @@ export default function ProductListing({ exhibitorId }: ProductListingProps) {
         body: JSON.stringify({ url: imageUrl }),
       })
 
-      const data = await response.json()
       setProducts((prev) => prev.map((p) => (p.id === productId ? data.product : p)))
 
       toast({

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { apiFetch } from "@/lib/api"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -125,55 +126,14 @@ export default function EventParticipation({ exhibitorId }: EventParticipationPr
       setLoading(true)
       setError(null)
 
-      const response = await fetch(`/api/events/exhibitors/${exhibitorId}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      })
+      const data = await apiFetch<{ success?: boolean; events?: Event[] }>(
+        `/api/exhibitors/${exhibitorId}/events`
+      )
 
-      if (!response.ok) {
-        throw new Error("Failed to fetch events")
-      }
-
-      const data = await response.json()
-      console.log("EventParticipation - API Response:", data)
-
-      if (data.success && data.booths) {
-        const transformedEvents = data.booths.map((booth: Booth) => ({
-          id: booth.id,
-          eventId: booth.event.id,
-          eventName: booth.event.title,
-          date: new Date(booth.event.startDate).toLocaleDateString(),
-          endDate: new Date(booth.event.endDate).toLocaleDateString(),
-          venue: booth.event.venue?.venueName || booth.event.venue?.venueAddress || "TBD",
-          boothSize: "Standard",
-          boothNumber: booth.boothNumber,
-          paymentStatus: booth.status === "BOOKED" ? "PAID" : "PENDING",
-          setupTime: "2 hours before event",
-          dismantleTime: "1 hour after event",
-          passes: 2,
-          passesUsed: 0,
-          invoiceAmount: booth.totalCost,
-          currency: booth.currency,
-          status: booth.event.status,
-          specialRequests: booth.specialRequests,
-          organizer: booth.event.organizer
-            ? {
-                id: booth.event.organizer.id,
-                firstName: booth.event.organizer.firstName,
-                lastName: booth.event.organizer.lastName,
-                company: booth.event.organizer.company || "",
-              }
-            : undefined,
-          // Store raw dates for proper comparison
-          rawStartDate: booth.event.startDate,
-          rawEndDate: booth.event.endDate,
-        }))
-        console.log("EventParticipation - Transformed events:", transformedEvents)
-        setEvents(transformedEvents)
+      if (data?.success && Array.isArray(data.events)) {
+        const list = data.events as Event[]
+        setEvents(list)
       } else {
-        console.log("EventParticipation - No booths found")
         setEvents([])
       }
     } catch (err) {

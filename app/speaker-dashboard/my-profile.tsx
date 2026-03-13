@@ -96,21 +96,16 @@ export default function MyProfile({ speakerId }: { speakerId: string }) {
     if (!profile) return
     try {
       setLoading(true)
-      const response = await fetch(`/api/speakers/${speakerId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
+      const data = await apiFetch<{ success: boolean; profile: SpeakerProfile; error?: string }>(
+        `/api/speakers/${speakerId}`,
+        {
+          method: "PUT",
+          body: profile,
+          auth: true,
         },
-        body: JSON.stringify(profile),
-      })
+      )
 
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || data.message || "Failed to update speaker")
-      }
-
-      if (data.success) {
+      if (data.success && data.profile) {
         setProfile(data.profile)
         toast({
           title: "Success",

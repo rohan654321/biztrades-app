@@ -3,10 +3,10 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Mail, Edit2, Trash2, Save, X } from "lucide-react"
+import { Mail, Edit2, Trash2, Save, X, Plus } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useSession } from "next-auth/react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -20,6 +20,10 @@ interface EventPageProps {
 }
 
 export default function EventPage({ params }: EventPageProps) {
+  const searchParams = useSearchParams()
+  const tabFromUrl = searchParams.get("tab")
+  const [eventTab, setEventTab] = useState(tabFromUrl || "about")
+
   const [event, setEvent] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -35,10 +39,26 @@ export default function EventPage({ params }: EventPageProps) {
   const [editingSpaceId, setEditingSpaceId] = useState<string | null>(null)
   const [editingSpaceData, setEditingSpaceData] = useState<any>({})
   const [updatingBrochure, setUpdatingBrochure] = useState(false)
+  const [addingSpace, setAddingSpace] = useState(false)
+  const [newSpaceForm, setNewSpaceForm] = useState({
+    name: "",
+    spaceType: "RAW_SPACE",
+    description: "",
+    dimensions: "",
+    area: 100,
+    basePrice: 0,
+    minArea: 50,
+    unit: "sqm",
+    pricePerSqm: 0,
+  })
 
   const { data: session } = useSession()
   const router = useRouter()
   const { toast } = useToast()
+
+  useEffect(() => {
+    if (tabFromUrl) setEventTab(tabFromUrl)
+  }, [tabFromUrl])
 
   useEffect(() => {
     if (event) {
@@ -383,30 +403,71 @@ export default function EventPage({ params }: EventPageProps) {
 
   const handleUpdateSpaceCost = async (spaceId: string) => {
     try {
-      const response = await fetch(`/api/events/${event.id}/exhibition-spaces/${spaceId}`, {
+      const updatedSpace = await apiFetch<any>(`/api/events/${event.id}/exhibition-spaces/${spaceId}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(editingSpaceData),
+        body: editingSpaceData,
       })
-
-      if (response.ok) {
-        const updatedSpace = await response.json()
-        setEvent((prev: any) => ({
-          ...prev,
-          exhibitionSpaces: prev.exhibitionSpaces.map((space: any) => (space.id === spaceId ? updatedSpace : space)),
-        }))
-        setEditingSpaceId(null)
-        setEditingSpaceData({})
-        toast({
-          title: "Success",
-          description: "Space cost updated successfully",
-        })
-      }
+      setEvent((prev: any) => ({
+        ...prev,
+        exhibitionSpaces: prev.exhibitionSpaces.map((space: any) => (space.id === spaceId ? updatedSpace : space)),
+      }))
+      setEditingSpaceId(null)
+      setEditingSpaceData({})
+      toast({
+        title: "Success",
+        description: "Space cost updated successfully",
+      })
     } catch (error) {
       console.error("Error updating space cost:", error)
       toast({
         title: "Error",
         description: "Failed to update space cost",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const handleAddExhibitionSpace = async () => {
+    if (!newSpaceForm.name.trim()) {
+      toast({ title: "Validation", description: "Space name is required", variant: "destructive" })
+      return
+    }
+    try {
+      const created = await apiFetch<any>(`/api/events/${event.id}/exhibition-spaces`, {
+        method: "POST",
+        body: {
+          name: newSpaceForm.name.trim(),
+          spaceType: newSpaceForm.spaceType,
+          description: newSpaceForm.description || newSpaceForm.name,
+          dimensions: newSpaceForm.dimensions || undefined,
+          area: Number(newSpaceForm.area) || 100,
+          basePrice: Number(newSpaceForm.basePrice) || 0,
+          minArea: Number(newSpaceForm.minArea) || undefined,
+          unit: newSpaceForm.unit || "sqm",
+          pricePerSqm: Number(newSpaceForm.pricePerSqm) || 0,
+        },
+      })
+      setEvent((prev: any) => ({
+        ...prev,
+        exhibitionSpaces: [...(prev.exhibitionSpaces || []), created],
+      }))
+      setAddingSpace(false)
+      setNewSpaceForm({
+        name: "",
+        spaceType: "RAW_SPACE",
+        description: "",
+        dimensions: "",
+        area: 100,
+        basePrice: 0,
+        minArea: 50,
+        unit: "sqm",
+        pricePerSqm: 0,
+      })
+      toast({ title: "Success", description: "Exhibition space created. You can now assign it when adding exhibitors." })
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to create exhibition space",
         variant: "destructive",
       })
     }
@@ -510,7 +571,7 @@ export default function EventPage({ params }: EventPageProps) {
         </div>
         <div className="flex flex-col lg:flex-row gap-6">
           <div className="flex-1">
-            <Tabs defaultValue="about" className="w-full">
+            <Tabs value={eventTab} onValueChange={setEventTab} className="w-full">
               <div className="bg-white rounded-lg mb-6 shadow-sm border border-gray-200">
                 <TabsList className="grid w-full grid-cols-9 h-auto p-0 bg-transparent">
                   <TabsTrigger
@@ -707,10 +768,102 @@ export default function EventPage({ params }: EventPageProps) {
 
               <TabsContent value="space-cost">
                 <Card>
-                  <CardHeader>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0">
                     <CardTitle>Exhibition Space Pricing</CardTitle>
+                    <Button
+                      variant={addingSpace ? "outline" : "default"}
+                      size="sm"
+                      onClick={() => setAddingSpace((prev) => !prev)}
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      {addingSpace ? "Cancel" : "Add exhibition space"}
+                    </Button>
                   </CardHeader>
                   <CardContent className="space-y-4">
+                    {addingSpace && (
+                      <div className="p-4 rounded-lg border border-dashed border-gray-300 dark:border-gray-600 space-y-4 bg-gray-50 dark:bg-gray-900/50">
+                        <h4 className="font-medium">New exhibition space</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <label className="text-sm font-medium">Name *</label>
+                            <Input
+                              placeholder="e.g. Hall A – Standard Booth"
+                              value={newSpaceForm.name}
+                              onChange={(e) => setNewSpaceForm((p) => ({ ...p, name: e.target.value }))}
+                              className="mt-1"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-sm font-medium">Type</label>
+                            <select
+                              className="mt-1 flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm"
+                              value={newSpaceForm.spaceType}
+                              onChange={(e) => setNewSpaceForm((p) => ({ ...p, spaceType: e.target.value }))}
+                            >
+                              <option value="RAW_SPACE">Raw space</option>
+                              <option value="SHELL_SPACE">Shell space</option>
+                              <option value="TWO_SIDE_OPEN">Two side open</option>
+                              <option value="THREE_SIDE_OPEN">Three side open</option>
+                              <option value="FOUR_SIDE_OPEN">Four side open</option>
+                              <option value="MEZZANINE">Mezzanine</option>
+                              <option value="CUSTOM">Custom</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label className="text-sm font-medium">Dimensions (optional)</label>
+                            <Input
+                              placeholder="e.g. 3m x 3m"
+                              value={newSpaceForm.dimensions}
+                              onChange={(e) => setNewSpaceForm((p) => ({ ...p, dimensions: e.target.value }))}
+                              className="mt-1"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-sm font-medium">Area ({newSpaceForm.unit})</label>
+                            <Input
+                              type="number"
+                              min={1}
+                              value={newSpaceForm.area}
+                              onChange={(e) => setNewSpaceForm((p) => ({ ...p, area: Number(e.target.value) || 0 }))}
+                              className="mt-1"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-sm font-medium">Base price *</label>
+                            <Input
+                              type="number"
+                              min={0}
+                              step={0.01}
+                              value={newSpaceForm.basePrice}
+                              onChange={(e) => setNewSpaceForm((p) => ({ ...p, basePrice: Number(e.target.value) || 0 }))}
+                              className="mt-1"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-sm font-medium">Price per {newSpaceForm.unit} (optional)</label>
+                            <Input
+                              type="number"
+                              min={0}
+                              step={0.01}
+                              value={newSpaceForm.pricePerSqm}
+                              onChange={(e) => setNewSpaceForm((p) => ({ ...p, pricePerSqm: Number(e.target.value) || 0 }))}
+                              className="mt-1"
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium">Description (optional)</label>
+                          <Input
+                            placeholder="Short description"
+                            value={newSpaceForm.description}
+                            onChange={(e) => setNewSpaceForm((p) => ({ ...p, description: e.target.value }))}
+                            className="mt-1"
+                          />
+                        </div>
+                        <Button onClick={handleAddExhibitionSpace}>Create exhibition space</Button>
+                      </div>
+                    )}
+
                     {event.exhibitionSpaces?.length > 0 ? (
                       event.exhibitionSpaces.map((space: any) => (
                         <div key={space.id} className="p-4 bg-gradient-to-r from-gray-50 to-blue-50 rounded-lg border">
@@ -799,7 +952,9 @@ export default function EventPage({ params }: EventPageProps) {
                         </div>
                       ))
                     ) : (
-                      <p className="text-gray-600">No exhibition space information available.</p>
+                      <p className="text-gray-600">
+                        No exhibition spaces yet. Click <strong>Add exhibition space</strong> above to create one; then you can assign spaces when adding exhibitors to this event.
+                      </p>
                     )}
                   </CardContent>
                 </Card>

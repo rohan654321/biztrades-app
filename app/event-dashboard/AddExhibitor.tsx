@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -9,9 +10,10 @@ import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Search, Building, Mail, Phone, MapPin, Globe, Linkedin, Twitter, AlertCircle } from "lucide-react"
+import { Search, Building, Mail, Phone, MapPin, Globe, Linkedin, Twitter, AlertCircle, ArrowRight } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { apiFetch } from "@/lib/api"
 
 interface Exhibitor {
   id: string
@@ -67,6 +69,7 @@ export default function AddExhibitor({ eventId }: AddExhibitorProps) {
   const [activeTab, setActiveTab] = useState("existing")
   const [registeredExhibitors, setRegisteredExhibitors] = useState<Set<string>>(new Set())
   const { toast } = useToast()
+  const router = useRouter()
 
   const [newExhibitor, setNewExhibitor] = useState<Exhibitor>({
     id: "",
@@ -105,45 +108,47 @@ export default function AddExhibitor({ eventId }: AddExhibitorProps) {
   }, [eventId])
 
   useEffect(() => {
-    if (eventId) {
+    if (eventId && selectedExhibitor) {
       fetchExhibitionSpaces(eventId)
     }
-  }, [eventId])
+  }, [eventId, selectedExhibitor])
 
   const fetchExhibitors = async () => {
     try {
-      const response = await fetch("/api/exhibitors")
-      if (response.ok) {
-        const data = await response.json()
-        setExhibitors(data.exhibitors || [])
-      }
+      const data = await apiFetch<{ exhibitors?: Exhibitor[] }>("/api/exhibitors")
+      setExhibitors(data.exhibitors || [])
     } catch (error) {
       console.error("Error fetching exhibitors:", error)
+      setExhibitors([])
     }
   }
 
   const fetchExhibitionSpaces = async (eventId: string) => {
     try {
-      const response = await fetch(`/api/events/${eventId}/exhibition-spaces`)
-      if (response.ok) {
-        const data = await response.json()
-        setExhibitionSpaces(data.exhibitionSpaces || [])
+      const data = await apiFetch<{ exhibitionSpaces?: ExhibitionSpace[] }>(`/api/events/${eventId}/exhibition-spaces`)
+      setExhibitionSpaces(data.exhibitionSpaces || [])
+    } catch (error: unknown) {
+      const err = error as { status?: number }
+      if (err?.status !== 404) {
+        console.error("Error fetching exhibition spaces:", error)
       }
-    } catch (error) {
-      console.error("Error fetching exhibition spaces:", error)
+      setExhibitionSpaces([])
     }
   }
 
   const fetchRegisteredExhibitors = async () => {
     try {
-      const response = await fetch(`/api/events/exhibitors?eventId=${eventId}`)
-      if (response.ok) {
-        const data = await response.json()
-        const exhibitorIds = new Set<string>(data.booths?.map((booth: any) => booth.userId) || [])
-        setRegisteredExhibitors(exhibitorIds)
-      }
+      const data = await apiFetch<{ success?: boolean; data?: { exhibitors?: { exhibitor?: { id: string } }[] } }>(
+        `/api/events/${eventId}/exhibitors`
+      )
+      const list = data.data?.exhibitors ?? (data as any).exhibitors ?? (data as any).booths ?? []
+      const exhibitorIds = new Set<string>(
+        list.map((b: any) => b.exhibitor?.id ?? b.userId ?? b.exhibitorId).filter(Boolean)
+      )
+      setRegisteredExhibitors(exhibitorIds)
     } catch (error) {
       console.error("Error fetching registered exhibitors:", error)
+      setRegisteredExhibitors(new Set())
     }
   }
 
@@ -167,44 +172,35 @@ export default function AddExhibitor({ eventId }: AddExhibitorProps) {
 
     setLoading(true)
     try {
-      const response = await fetch("/api/exhibitors", {
+      const data = await apiFetch<{ exhibitor: Exhibitor }>("/api/exhibitors", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newExhibitor),
+        body: newExhibitor,
       })
-
-      if (response.ok) {
-        const data = await response.json()
-        toast({
-          title: "Success",
-          description: "Exhibitor created successfully.",
-        })
-
-        setNewExhibitor({
-          id: "",
-          firstName: "",
-          lastName: "",
-          email: "",
-          phone: "",
-          bio: "",
-          company: "",
-          jobTitle: "",
-          location: "",
-          website: "",
-          linkedin: "",
-          twitter: "",
-          businessEmail: "",
-          businessPhone: "",
-          businessAddress: "",
-          taxId: "",
-        })
-        fetchExhibitors()
-        setActiveTab("existing")
-        setSelectedExhibitor(data.exhibitor)
-      } else {
-        const errorData = await response.json()
-        throw new Error(errorData.error || "Failed to create exhibitor")
-      }
+      toast({
+        title: "Success",
+        description: "Exhibitor created successfully.",
+      })
+      setNewExhibitor({
+        id: "",
+        firstName: "",
+        lastName: "",
+        email: "",
+        phone: "",
+        bio: "",
+        company: "",
+        jobTitle: "",
+        location: "",
+        website: "",
+        linkedin: "",
+        twitter: "",
+        businessEmail: "",
+        businessPhone: "",
+        businessAddress: "",
+        taxId: "",
+      })
+      fetchExhibitors()
+      setActiveTab("existing")
+      setSelectedExhibitor(data.exhibitor)
     } catch (error) {
       toast({
         title: "Error",
@@ -240,43 +236,37 @@ export default function AddExhibitor({ eventId }: AddExhibitorProps) {
     setLoading(true)
     try {
       const payload = {
-        eventId: eventId,
         exhibitorId: selectedExhibitor.id,
         spaceId: selectedSpace,
-        ...boothDetails,
+        boothNumber: boothDetails.boothNumber,
+        companyName: boothDetails.companyName,
+        description: boothDetails.description || undefined,
+        additionalPower: Number(boothDetails.additionalPower) || 0,
+        compressedAir: Number(boothDetails.compressedAir) || 0,
+        setupRequirements: boothDetails.setupRequirements || undefined,
+        specialRequests: boothDetails.specialRequests || undefined,
         totalCost: calculateTotalCost(),
       }
-
-      const response = await fetch("/api/events/exhibitors", {
+      await apiFetch(`/api/events/${eventId}/exhibitors`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: payload,
       })
-
-      if (response.ok) {
-        const data = await response.json()
-        toast({
-          title: "Success",
-          description: "Exhibitor added to event successfully.",
-        })
-
-        fetchRegisteredExhibitors()
-
-        setSelectedExhibitor(null)
-        setSelectedSpace("")
-        setBoothDetails({
-          boothNumber: "",
-          companyName: "",
-          description: "",
-          additionalPower: "",
-          compressedAir: "",
-          setupRequirements: "",
-          specialRequests: "",
-        })
-      } else {
-        const errorData = await response.json()
-        throw new Error(errorData.error || "Failed to add exhibitor to event")
-      }
+      toast({
+        title: "Success",
+        description: "Exhibitor added to event successfully.",
+      })
+      fetchRegisteredExhibitors()
+      setSelectedExhibitor(null)
+      setSelectedSpace("")
+      setBoothDetails({
+        boothNumber: "",
+        companyName: "",
+        description: "",
+        additionalPower: "",
+        compressedAir: "",
+        setupRequirements: "",
+        specialRequests: "",
+      })
     } catch (error) {
       toast({
         title: "Error",
@@ -589,14 +579,14 @@ export default function AddExhibitor({ eventId }: AddExhibitorProps) {
           </Tabs>
 
           {selectedExhibitor && (
-            <Card className="border-blue-200 bg-blue-50 mt-6">
+            <Card className="border-blue-200 bg-blue-50/50 dark:bg-blue-950/20 dark:border-blue-800 mt-6">
               <CardHeader>
                 <CardTitle className="text-lg">
                   Booth Details for{" "}
                   {selectedExhibitor.company || `${selectedExhibitor.firstName} ${selectedExhibitor.lastName}`}
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-6">
                 {isExhibitorRegistered && (
                   <Alert variant="destructive">
                     <AlertCircle className="h-4 w-4" />
@@ -607,20 +597,69 @@ export default function AddExhibitor({ eventId }: AddExhibitorProps) {
                   </Alert>
                 )}
 
-                <div>
-                  <Label htmlFor="exhibitionSpace">Exhibition Space *</Label>
+                <div className="space-y-2">
+                  <Label htmlFor="exhibitionSpace" className="text-sm font-medium">
+                    Exhibition Space *
+                  </Label>
+                  <p className="text-xs text-muted-foreground">
+                    Select the space type and location for this exhibitor&apos;s booth.
+                  </p>
                   <Select value={selectedSpace} onValueChange={setSelectedSpace} disabled={isExhibitorRegistered}>
-                    <SelectTrigger>
+                    <SelectTrigger
+                      id="exhibitionSpace"
+                      className="w-full min-h-10 h-auto py-2.5 text-left"
+                    >
                       <SelectValue placeholder="Choose exhibition space" />
                     </SelectTrigger>
-                    <SelectContent>
-                      {exhibitionSpaces.map((space) => (
-                        <SelectItem key={space.id} value={space.id} disabled={!space.isAvailable}>
-                          {space.name} - {space.spaceType} (${space.basePrice}){!space.isAvailable && " - Unavailable"}
-                        </SelectItem>
-                      ))}
+                    <SelectContent className="max-h-[280px]" sideOffset={4}>
+                      {exhibitionSpaces.length === 0 ? (
+                        <div className="py-6 px-4 space-y-3">
+                          <p className="text-sm text-muted-foreground text-center">
+                            No exhibition spaces yet. Create them in Event Info → Space Cost.
+                          </p>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            className="w-full"
+                            onClick={() => router.push(`/event-dashboard/${eventId}?tab=space-cost`)}
+                          >
+                            Go to Event Info → Space Cost
+                            <ArrowRight className="ml-2 h-4 w-4" />
+                          </Button>
+                        </div>
+                      ) : (
+                        exhibitionSpaces.map((space) => (
+                          <SelectItem
+                            key={space.id}
+                            value={space.id}
+                            disabled={!space.isAvailable}
+                            className="py-2.5"
+                          >
+                            <span className="block truncate">
+                              {space.name} — {space.spaceType} · ${space.basePrice}
+                              {!space.isAvailable && " · Unavailable"}
+                            </span>
+                          </SelectItem>
+                        ))
+                      )}
                     </SelectContent>
                   </Select>
+                  {exhibitionSpaces.length === 0 && (
+                    <div className="mt-3 p-4 rounded-lg border border-amber-200 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-800 space-y-3">
+                      <p className="text-sm text-amber-800 dark:text-amber-200">
+                        No exhibition spaces yet. Add them in <strong>Event Info</strong> → <strong>Space Cost</strong> tab, then return here to assign a space.
+                      </p>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => router.push(`/event-dashboard/${eventId}?tab=space-cost`)}
+                      >
+                        Go to Event Info → Space Cost
+                        <ArrowRight className="ml-2 h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

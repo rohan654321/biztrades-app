@@ -848,11 +848,11 @@ export default function EventPageContent({ event, session, router, toast }: Even
                             </div>
                             <div className="text-right">
                               <span className="font-bold text-lg text-blue-600">
-                                {space.currency} {space.price.toLocaleString()}
+                                {space.currency ?? "USD"} {(Number(space.price) || 0).toLocaleString()}
                               </span>
-                              {space.pricePerSqm && space.pricePerSqm > 0 && (
+                              {space.pricePerSqm != null && Number(space.pricePerSqm) > 0 && (
                                 <p className="text-sm text-gray-600">
-                                  + {space.currency} {space.pricePerSqm}/{space.unit || "sqm"}
+                                  + {space.currency ?? "USD"} {Number(space.pricePerSqm)}/{space.unit || "sqm"}
                                 </p>
                               )}
                             </div>

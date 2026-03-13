@@ -1,29 +1,116 @@
 import { type NextRequest, NextResponse } from "next/server"
+import { proxyJson } from "@/lib/backend-proxy"
 import { prisma } from "@/lib/prisma"
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth-options"
 
-export async function GET(request: NextRequest, context: { params: Promise<{ id: string }> }) {
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000"
+
+// Try backend first; fall back to local create when backend returns 404 (endpoint not implemented).
+
+export async function GET(
+  req: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
+  const { id: eventId } = await context.params
+  if (!eventId) {
+    return NextResponse.json({ error: "Event ID is required" }, { status: 400 })
+  }
+  let res: Response
   try {
-    const session = await getServerSession(authOptions)
-    if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
-
-    const { id: eventId } = await context.params
-
-    if (!eventId || eventId.length !== 24 || !/^[0-9a-fA-F]{24}$/.test(eventId)) {
-      return NextResponse.json({ error: "Invalid event ID format" }, { status: 400 })
-    }
-
-    // First try to get exhibition spaces directly from the event
-    const exhibitionSpaces = await prisma.exhibitionSpace.findMany({
-      where: { eventId },
-      orderBy: { name: "asc" },
+    res = await fetch(`${API_BASE_URL}/api/events/${eventId}/exhibition-spaces`, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+      cache: "no-store",
     })
+  } catch {
+    res = { ok: false, status: 404 } as Response
+  }
+  if (res.ok) {
+    const data = await res.json().catch(() => ({}))
+    return NextResponse.json(data, { status: res.status })
+  }
+  if (res.status === 404 && prisma) {
+    try {
+      const spaces = await prisma.exhibitionSpace.findMany({
+        where: { eventId },
+        orderBy: { name: "asc" },
+      })
+      const list = spaces.map((s) => ({
+        id: s.id,
+        name: s.name,
+        spaceType: s.spaceType,
+        dimensions: s.dimensions,
+        area: s.area,
+        basePrice: s.basePrice,
+        location: s.location,
+        isAvailable: s.isAvailable && (s.bookedBooths ?? 0) < (s.maxBooths ?? 999),
+        maxBooths: s.maxBooths,
+        bookedBooths: s.bookedBooths ?? 0,
+      }))
+      return NextResponse.json({ exhibitionSpaces: list })
+    } catch {
+      // ignore
+    }
+  }
+  const data = await res.json().catch(() => ({}))
+  return NextResponse.json(data?.error ? data : { error: "Failed to fetch exhibition spaces" }, { status: res.status })
+}
 
-    if (exhibitionSpaces.length > 0) {
-      const spaces = exhibitionSpaces.map((space) => ({
+export async function POST(
+  req: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
+  const { id: eventId } = await context.params
+  if (!eventId) {
+    return NextResponse.json({ error: "Event ID is required" }, { status: 400 })
+  }
+  let body: Record<string, unknown>
+  try {
+    body = await req.json()
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 })
+  }
+  let res: Response
+  try {
+    res = await fetch(`${API_BASE_URL}/api/events/${eventId}/exhibition-spaces`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+      cache: "no-store",
+    })
+  } catch {
+    res = { ok: false, status: 404 } as Response
+  }
+  if (res.ok) {
+    const data = await res.json().catch(() => ({}))
+    return NextResponse.json(data, { status: res.status })
+  }
+  if (res.status === 404 && prisma) {
+    const validTypes = [
+      "SHELL_SPACE", "RAW_SPACE", "TWO_SIDE_OPEN", "THREE_SIDE_OPEN",
+      "FOUR_SIDE_OPEN", "MEZZANINE", "ADDITIONAL_POWER", "COMPRESSED_AIR", "CUSTOM",
+    ]
+    const name = typeof body.name === "string" ? body.name.trim() : ""
+    const basePrice = Number(body.basePrice) ?? 0
+    if (!name) {
+      return NextResponse.json({ error: "name is required" }, { status: 400 })
+    }
+    try {
+      const space = await prisma.exhibitionSpace.create({
+        data: {
+          eventId,
+          name,
+          spaceType: validTypes.includes(body.spaceType as string) ? (body.spaceType as string) : "RAW_SPACE",
+          description: (body.description as string) || name,
+          dimensions: (body.dimensions as string) || null,
+          area: Number(body.area) || 100,
+          basePrice,
+          minArea: body.minArea != null ? Number(body.minArea) : null,
+          unit: (body.unit as string) || "sqm",
+          pricePerSqm: body.pricePerSqm != null ? Number(body.pricePerSqm) : null,
+          maxBooths: body.maxBooths != null ? Number(body.maxBooths) : null,
+        },
+      })
+      return NextResponse.json({
         id: space.id,
         name: space.name,
         spaceType: space.spaceType,
@@ -31,86 +118,19 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
         area: space.area,
         basePrice: space.basePrice,
         location: space.location,
-        isAvailable: space.isAvailable && space.bookedBooths < (space.maxBooths || 999),
-        maxBooths: space.maxBooths,
-        bookedBooths: space.bookedBooths,
-      }))
-
-      return NextResponse.json({ exhibitionSpaces: spaces })
-    }
-
-    // Fallback: try to get from venue meeting spaces
-    const event = await prisma.event.findUnique({
-      where: { id: eventId },
-      include: {
-        venue: {
-          include: {
-            meetingSpaces: true,
-          },
-        },
-      },
-    })
-
-    if (!event) {
-      return NextResponse.json({ error: "Event not found" }, { status: 404 })
-    }
-
-    // Map meetingSpaces → exhibition spaces
-    const spaces =
-      event.venue?.meetingSpaces.map((space) => ({
-        id: space.id,
-        name: space.name,
-        spaceType: "Exhibition",
-        dimensions: `${Math.sqrt(space.area)} x ${Math.sqrt(space.area)} ft`,
-        area: space.area,
-        basePrice: space.hourlyRate * 8,
         isAvailable: space.isAvailable,
-        maxBooths: Math.floor(space.area / 100), // Estimate booths based on area
-        bookedBooths: 0,
-      })) || []
-
-    // Fallback mock spaces if no venue spaces exist
-    if (spaces.length === 0) {
-      spaces.push(
-        {
-          id: `${eventId}-space-1`,
-          name: "Exhibition Hall A",
-          spaceType: "Large Exhibition",
-          dimensions: "50 x 30 ft",
-          area: 1500,
-          basePrice: 500,
-          isAvailable: true,
-          maxBooths: 15,
-          bookedBooths: 0,
-        },
-        {
-          id: `${eventId}-space-2`,
-          name: "Exhibition Hall B",
-          spaceType: "Medium Exhibition",
-          dimensions: "30 x 20 ft",
-          area: 600,
-          basePrice: 300,
-          isAvailable: true,
-          maxBooths: 6,
-          bookedBooths: 0,
-        },
-        {
-          id: `${eventId}-space-3`,
-          name: "Premium Booth",
-          spaceType: "Premium Exhibition",
-          dimensions: "20 x 15 ft",
-          area: 300,
-          basePrice: 800,
-          isAvailable: false,
-          maxBooths: 3,
-          bookedBooths: 3,
-        },
-      )
+        maxBooths: space.maxBooths,
+        bookedBooths: space.bookedBooths ?? 0,
+        description: space.description,
+        minArea: space.minArea,
+        unit: space.unit,
+        pricePerSqm: space.pricePerSqm,
+      }, { status: 201 })
+    } catch (err) {
+      console.error("Exhibition space create fallback error:", err)
+      return NextResponse.json({ error: "Failed to create exhibition space" }, { status: 500 })
     }
-
-    return NextResponse.json({ exhibitionSpaces: spaces })
-  } catch (error) {
-    console.error("Error fetching exhibition spaces:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
+  const data = await res.json().catch(() => ({}))
+  return NextResponse.json(data?.error ? data : { error: "Failed to create exhibition space" }, { status: res.status })
 }

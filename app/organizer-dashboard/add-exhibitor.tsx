@@ -11,7 +11,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Search, Building, Mail, Phone, MapPin, Globe, Linkedin, Twitter } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
- 
+import { apiFetch } from "@/lib/api"
+
 interface Exhibitor {
   id: string
   firstName: string
@@ -111,13 +112,11 @@ export default function AddExhibitor({ organizerId }: AddExhibitorProps) {
 
   const fetchExhibitors = async () => {
     try {
-      const response = await fetch("/api/exhibitors")
-      if (response.ok) {
-        const data = await response.json()
-        setExhibitors(data.exhibitors || [])
-      }
+      const data = await apiFetch<{ exhibitors?: Exhibitor[] }>("/api/exhibitors")
+      setExhibitors(data.exhibitors || [])
     } catch (error) {
       console.error("Error fetching exhibitors:", error)
+      setExhibitors([])
     }
   }
 
@@ -135,13 +134,14 @@ export default function AddExhibitor({ organizerId }: AddExhibitorProps) {
 
   const fetchExhibitionSpaces = async (eventId: string) => {
     try {
-      const response = await fetch(`/api/events/${eventId}/exhibition-spaces`)
-      if (response.ok) {
-        const data = await response.json()
-        setExhibitionSpaces(data.exhibitionSpaces || [])
+      const data = await apiFetch<{ exhibitionSpaces?: ExhibitionSpace[] }>(`/api/events/${eventId}/exhibition-spaces`)
+      setExhibitionSpaces(data.exhibitionSpaces || [])
+    } catch (error: unknown) {
+      const err = error as { status?: number }
+      if (err?.status !== 404) {
+        console.error("Error fetching exhibition spaces:", error)
       }
-    } catch (error) {
-      console.error("Error fetching exhibition spaces:", error)
+      setExhibitionSpaces([])
     }
   }
 
@@ -165,44 +165,34 @@ export default function AddExhibitor({ organizerId }: AddExhibitorProps) {
 
     setLoading(true)
     try {
-      const response = await fetch("/api/exhibitors", {
+      const data = await apiFetch<{ exhibitor: Exhibitor }>("/api/exhibitors", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newExhibitor),
+        body: newExhibitor,
       })
-
-      if (response.ok) {
-        const data = await response.json()
-        toast({
-          title: "Success",
-          description: "Exhibitor created successfully.",
-        })
-
-        // Reset form and refresh exhibitors list
-        setNewExhibitor({
-          firstName: "",
-          lastName: "",
-          email: "",
-          phone: "",
-          bio: "",
-          company: "",
-          jobTitle: "",
-          location: "",
-          website: "",
-          linkedin: "",
-          twitter: "",
-          businessEmail: "",
-          businessPhone: "",
-          businessAddress: "",
-          taxId: "",
-        })
-        fetchExhibitors()
-        setActiveTab("existing")
-        setSelectedExhibitor(data.exhibitor)
-      } else {
-        const errorData = await response.json()
-        throw new Error(errorData.error || "Failed to create exhibitor")
-      }
+      toast({
+        title: "Success",
+        description: "Exhibitor created successfully.",
+      })
+      setNewExhibitor({
+        firstName: "",
+        lastName: "",
+        email: "",
+        phone: "",
+        bio: "",
+        company: "",
+        jobTitle: "",
+        location: "",
+        website: "",
+        linkedin: "",
+        twitter: "",
+        businessEmail: "",
+        businessPhone: "",
+        businessAddress: "",
+        taxId: "",
+      })
+      fetchExhibitors()
+      setActiveTab("existing")
+      setSelectedExhibitor(data.exhibitor)
     } catch (error) {
       toast({
         title: "Error",
@@ -251,51 +241,38 @@ export default function AddExhibitor({ organizerId }: AddExhibitorProps) {
     setLoading(true)
     try {
       const payload = {
-        eventId: selectedEvent,
         exhibitorId: selectedExhibitor.id,
         spaceId: selectedSpace,
-        ...boothDetails,
+        boothNumber: boothDetails.boothNumber,
+        companyName: boothDetails.companyName,
+        description: boothDetails.description || undefined,
+        additionalPower: Number(boothDetails.additionalPower) || 0,
+        compressedAir: Number(boothDetails.compressedAir) || 0,
+        setupRequirements: boothDetails.setupRequirements || undefined,
+        specialRequests: boothDetails.specialRequests || undefined,
         totalCost: calculateTotalCost(),
       }
-      console.log("[v0] Sending request payload:", payload)
-
-      const response = await fetch("/api/events/exhibitors", {
+      await apiFetch(`/api/events/${selectedEvent}/exhibitors`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: payload,
       })
-
-      console.log("[v0] Response status:", response.status)
-      console.log("[v0] Response ok:", response.ok)
-
-      if (response.ok) {
-        const data = await response.json()
-        console.log("[v0] Success response:", data)
-        toast({
-          title: "Success",
-          description: "Exhibitor added to event successfully.",
-        })
-
-        // Reset form
-        setSelectedExhibitor(null)
-        setSelectedEvent("")
-        setSelectedSpace("")
-        setBoothDetails({
-          boothNumber: "",
-          companyName: "",
-          description: "",
-          additionalPower: "",
-          compressedAir: "",
-          setupRequirements: "",
-          specialRequests: "",
-        })
-      } else {
-        const errorData = await response.json()
-        console.log("[v0] Error response:", errorData)
-        throw new Error(errorData.error || "Failed to add exhibitor to event")
-      }
+      toast({
+        title: "Success",
+        description: "Exhibitor added to event successfully.",
+      })
+      setSelectedExhibitor(null)
+      setSelectedEvent("")
+      setSelectedSpace("")
+      setBoothDetails({
+        boothNumber: "",
+        companyName: "",
+        description: "",
+        additionalPower: "",
+        compressedAir: "",
+        setupRequirements: "",
+        specialRequests: "",
+      })
     } catch (error) {
-      console.log("[v0] Catch block error:", error)
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to add exhibitor to event.",

@@ -2,9 +2,10 @@ import { proxyJson } from "@/lib/backend-proxy";
 
 export async function GET(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  return proxyJson(req, `/api/users/${params.id}/connections`);
+  const { id } = await params;
+  return proxyJson(req, `/api/users/${id}/connections`);
 }
 
 // For now we don't support creating connections via backend;

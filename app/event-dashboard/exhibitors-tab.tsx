@@ -9,6 +9,7 @@ import { Loader2 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
+import { apiFetch } from "@/lib/api"
 
 interface Exhibitor {
   id: string
@@ -46,15 +47,35 @@ export default function ExhibitorsTab({ eventId }: ExhibitorsTabProps) {
         setLoading(true)
         setError(null)
 
-        const response = await fetch(`/api/events/exhibitors?eventId=${eventId}`)
+        const data = await apiFetch<{ success: boolean; data: { exhibitors: Array<{
+          id: string
+          exhibitorId: string
+          boothNumber: string
+          companyName: string | null
+          description: string | null
+          totalCost: number
+          status?: string
+          exhibitor: { id: string; firstName: string; lastName: string; email: string; phone: string | null; avatar: string | null; company: string | null; jobTitle: string | null }
+          space?: { id: string; name: string; spaceType: string }
+        }> } }>(`/api/events/${eventId}/exhibitors`)
 
-        if (!response.ok) {
-          throw new Error(`Failed to fetch exhibitors: ${response.statusText}`)
-        }
-
-        const data = await response.json()
-        console.log("Fetched exhibitors:", data.booths)
-        setExhibitors(data.booths || [])
+        const list = data?.data?.exhibitors ?? []
+        const mapped: Exhibitor[] = list.map((booth) => ({
+          id: booth.exhibitor.id,
+          boothId: booth.id,
+          company: booth.companyName ?? booth.exhibitor.company ?? "",
+          name: [booth.exhibitor.firstName, booth.exhibitor.lastName].filter(Boolean).join(" ").trim() || "—",
+          email: booth.exhibitor.email,
+          phone: booth.exhibitor.phone ?? undefined,
+          logo: booth.exhibitor.avatar ?? "",
+          description: booth.description ?? undefined,
+          boothNumber: booth.boothNumber ?? "",
+          status: booth.status ?? "BOOKED",
+          totalCost: booth.totalCost ?? 0,
+          spaceReference: booth.space?.name,
+          userId: booth.exhibitor.id,
+        }))
+        setExhibitors(mapped)
       } catch (err) {
         console.error("Error fetching exhibitors:", err)
         setError(err instanceof Error ? err.message : "Failed to load exhibitors")
@@ -82,14 +103,9 @@ export default function ExhibitorsTab({ eventId }: ExhibitorsTabProps) {
     try {
       setDeleting(exhibitor.id)
 
-      const res = await fetch(`/api/events/${eventId}/exhibitors/${exhibitor.id}`, {
+      await apiFetch(`/api/events/${eventId}/exhibitors/${exhibitor.id}`, {
         method: "DELETE",
       })
-
-      if (!res.ok) {
-        const data = await res.json()
-        throw new Error(data.error || "Failed to delete exhibitor")
-      }
 
       setExhibitors((prev) => prev.filter((e) => e.id !== exhibitor.id))
 

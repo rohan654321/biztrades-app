@@ -2,14 +2,16 @@ import { proxyJson } from "@/lib/backend-proxy";
 
 export async function GET(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  return proxyJson(req, `/api/users/${params.id}`);
+  const { id } = await params;
+  return proxyJson(req, `/api/users/${id}`);
 }
 
 export async function PUT(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  return proxyJson(req, `/api/users/${params.id}`, { method: "PUT" });
+  const { id } = await params;
+  return proxyJson(req, `/api/users/${id}`, { method: "PUT" });
 }
