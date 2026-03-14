@@ -33,7 +33,7 @@ export function SavedEvents({ userId }: { userId?: string }) {
     try {
       setLoading(true)
       console.log("[v0] Fetching saved events for userId:", targetUserId)
-      console.log("[v0] Current session user ID:", session?.user?.id)
+      console.log("[v0] Current user ID:", targetUserId)
 
       const response = await fetch(`/api/users/${targetUserId}/saved-events`)
 

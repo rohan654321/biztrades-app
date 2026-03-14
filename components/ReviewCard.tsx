@@ -53,7 +53,7 @@ export function ReviewCard({ review, organizerId, onReplyAdded, hideReplyButton 
   const [showReplyForm, setShowReplyForm] = useState(false)
   const [replyContent, setReplyContent] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const { data: session } = useSession()
+  const userId = getCurrentUserId()
   const { toast } = useToast()
 
   const formatDate = (dateString: string) => {
@@ -141,7 +141,7 @@ export function ReviewCard({ review, organizerId, onReplyAdded, hideReplyButton 
     }
   }
 
-  const isOrganizer = session?.user?.id === organizerId
+  const isOrganizer = userId === organizerId
 
   // Handle null user
   if (!review.user) {

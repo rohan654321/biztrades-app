@@ -292,7 +292,7 @@ function ReviewCard({ review, exhibitorId, onReplyAdded }: {
         )}
 
         {/* Reply Button and Form */}
-        {session?.user && (
+        {isLoggedIn && (
           <div className="mt-4">
             {!showReplyForm ? (
               <Button
@@ -847,11 +847,11 @@ export default function ExhibitorPage() {
 
             {/* Action Buttons */}
             <div className="flex flex-col gap-3">
-              <div className="space-x-3">
-                <Button className="bg-white text-blue-600 hover:bg-blue-50">
-                  <Heart className="w-4 h-4 mr-2" />
+              <div className="flex items-center gap-3">
+                <div className="inline-flex items-center gap-2 rounded-md bg-white text-blue-600 hover:bg-blue-50 px-4 py-2">
+                  <Heart className="w-4 h-4" />
                   <FollowButton userId={exhibitor.id} currentUserId={userId ?? undefined} variant="default" size="default" />
-                </Button>
+                </div>
                 <Button
                   variant="outline"
                   className="border-white text-white hover:bg-white hover:text-blue-600 bg-transparent"

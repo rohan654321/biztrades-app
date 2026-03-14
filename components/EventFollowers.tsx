@@ -117,24 +117,16 @@ export default function EventFollowers({ eventId }: EventFollowersProps) {
   };
 
   const handleCancelRequest = async (connectionId: string, targetUserId: string) => {
-    if (!session?.user?.id) return;
+    if (!userId) return;
 
     try {
       setConnectingUsers(prev => new Set(prev).add(targetUserId));
       
-      const response = await fetch(`/api/users/${session.user.id}/connections/${connectionId}`, {
+      await apiFetch(`/api/users/${userId}/connections/${connectionId}`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          action: "cancel"
-        })
+        body: { action: "cancel" },
+        auth: true,
       });
-
-      if (!response.ok) {
-        throw new Error("Failed to cancel connection request");
-      }
 
       // Remove from connections
       setConnections(prev => prev.filter(conn => conn.connectionId !== connectionId));
