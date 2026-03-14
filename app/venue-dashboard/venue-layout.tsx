@@ -1,8 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { signOut } from "next-auth/react"
 import { useToast } from "@/hooks/use-toast"
+import { clearTokens } from "@/lib/api"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import {
@@ -16,7 +16,7 @@ import {
   X
 } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { useSession } from "next-auth/react"
+import { useAuth } from "@/hooks/use-auth"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 // Import all section components
@@ -75,7 +75,7 @@ export default function VenueDashboardPage({ userId }: UserDashboardProps) {
   const [error, setError] = useState<string | null>(null)
   const [openMenus, setOpenMenus] = useState<string[]>(["venue-management", "communication", "reviews-legal"])
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const { data: session, status } = useSession()
+  const { role, loading: authLoading, logout } = useAuth({ requireAuth: true, allowedRoles: ["VENUE_MANAGER"] })
   const router = useRouter()
   const { toast } = useToast()
 
@@ -87,16 +87,9 @@ export default function VenueDashboardPage({ userId }: UserDashboardProps) {
   }, [activeSection, setActiveSection])
 
   useEffect(() => {
-    if (status === "loading") return
-
-    if (status === "unauthenticated") {
-      router.push("/login")
-      return
-    }
-
-    // Normalize role and check access
-    const role = (session?.user.role || "").toString().toUpperCase()
-    if (role !== "VENUE_MANAGER") {
+    if (authLoading) return
+    const roleUpper = (role || "").toString().toUpperCase()
+    if (roleUpper !== "VENUE_MANAGER") {
       toast({
         title: "Access Denied",
         description: "You don't have permission to view this dashboard.",
@@ -107,7 +100,7 @@ export default function VenueDashboardPage({ userId }: UserDashboardProps) {
     }
 
     fetchVenueData()
-  }, [userId, status, session, router, toast])
+  }, [userId, authLoading, role, router, toast])
 
   const fetchVenueData = async () => {
     try {
@@ -357,7 +350,7 @@ export default function VenueDashboardPage({ userId }: UserDashboardProps) {
           </button>
 
           {/* Logout */}
-          <Button onClick={() => signOut({ callbackUrl: "/login" })} className="w-full bg-red-500 hover:bg-red-600 text-white mt-8">
+          <Button onClick={() => logout()} className="w-full bg-red-500 hover:bg-red-600 text-white mt-8">
             Logout
           </Button>
         </div>

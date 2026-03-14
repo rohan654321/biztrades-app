@@ -15,17 +15,22 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { AdminNotificationsDropdown } from "@/components/AdminNotificationsDropdown";
+import { clearTokens } from "@/lib/api";
 
-export default function Navbar() {
+type NavbarProps = { onLogout?: () => void };
+
+export default function Navbar({ onLogout }: NavbarProps) {
   const [exploreOpen, setExploreOpen] = useState(false);
   const router = useRouter();
 
   const toggleExplore = () => setExploreOpen((prev) => !prev);
 
   const handleLogout = () => {
+    clearTokens();
     localStorage.removeItem("superAdminToken");
     localStorage.removeItem("superAdmin");
-    router.push("/sign-in");
+    if (onLogout) onLogout();
+    else router.push("/login");
   };
 
   const navigateToProfile = () => {

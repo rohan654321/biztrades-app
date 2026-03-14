@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label"
 import { Eye, EyeOff, LogIn } from "lucide-react"
 import { toast } from "sonner"
+import { loginWithEmailPassword } from "@/lib/api"
 
 export default function SubAdminLoginPage() {
   const [formData, setFormData] = useState({
@@ -41,32 +42,25 @@ export default function SubAdminLoginPage() {
     setLoading(true)
 
     try {
-      const response = await fetch("/api/auth/sub-admin/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: formData.email,
-          password: formData.password,
-        }),
-      })
+      const result = await loginWithEmailPassword(formData.email, formData.password)
+      const user = result.user
 
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || "Login failed")
+      // Backend returns user with sub, email, role, permissions (for SUB_ADMIN/SUPER_ADMIN)
+      if (user?.role === "SUB_ADMIN" || user?.role === "SUPER_ADMIN") {
+        localStorage.setItem(
+          "subAdmin",
+          JSON.stringify({
+            id: user.sub ?? user.id,
+            email: user.email,
+            name: user.firstName ? `${user.firstName} ${user.lastName ?? ""}`.trim() : user.email,
+            role: user.role,
+            permissions: user.permissions ?? [],
+          })
+        )
       }
 
       toast.success("Login successful!")
-
-      // ✅ Store user info in localStorage with correct keys
-      localStorage.setItem("subAdmin", JSON.stringify(data.user))
-      localStorage.setItem("subAdminToken", data.token)
-
-      // Redirect to sub-admin dashboard
       router.push("/sub-admin/dashboard")
-
     } catch (error) {
       console.error("Login error:", error)
       toast.error(error instanceof Error ? error.message : "Login failed")

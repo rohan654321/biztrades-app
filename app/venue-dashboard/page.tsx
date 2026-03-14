@@ -1,26 +1,26 @@
-import { getServerSession } from "next-auth"
-import { redirect } from "next/navigation"
-import { authOptions } from "@/lib/auth-options"
+"use client"
 
-export default async function VenueDashboardRoot() {
-  const session = await getServerSession(authOptions)
+import { useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { getCurrentUserId, getCurrentUserRole } from "@/lib/api"
 
-  if (!session?.user) {
-    redirect("/login")
-  }
+// No server session; redirect to dashboard by user id or login. Client enforces JWT auth.
+export default function VenueDashboardRoot() {
+  const router = useRouter()
 
-  const role = (session.user.role || "").toString().toUpperCase()
+  useEffect(() => {
+    const userId = getCurrentUserId()
+    const role = (getCurrentUserRole() || "").toUpperCase()
+    if (!userId || role !== "VENUE_MANAGER") {
+      router.replace("/login")
+      return
+    }
+    router.replace(`/venue-dashboard/${userId}`)
+  }, [router])
 
-  // Only venue managers are allowed here
-  if (role !== "VENUE_MANAGER") {
-    redirect("/login")
-  }
-
-  const id = session.user.id
-  if (!id) {
-    redirect("/login")
-  }
-
-  redirect(`/venue-dashboard/${id}`)
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
+    </div>
+  )
 }
-

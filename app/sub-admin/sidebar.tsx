@@ -22,6 +22,13 @@ import {
     ChevronDown,
 } from "lucide-react"
 
+import {
+    getAccessToken,
+    getCurrentUserId,
+    getCurrentUserRole,
+    getCurrentUserPermissions,
+    clearTokens,
+} from "@/lib/api"
 import SuperAdminManagement from "@/app/admin-dashboard/superadminmanagement"
 import SubAdminManagement from "@/app/admin-dashboard/subadmin-management"
 import DashboardOverview from "@/app/admin-dashboard/dashboard-overview"
@@ -55,85 +62,55 @@ export default function Sidebar() {
     const [user, setUser] = useState<UserData | null>(null)
 
     useEffect(() => {
-        const loadUserData = async () => {
-            try {
-                const superAdminData = localStorage.getItem("superAdmin")
-                const subAdminData = localStorage.getItem("subAdmin")
-
-                let userData: UserData | null = null
-                let userRole = ""
-
-                if (superAdminData) {
-                    userData = JSON.parse(superAdminData)
-                    userRole = "SUPER_ADMIN"
-                } else if (subAdminData) {
-                    userData = JSON.parse(subAdminData)
-                    userRole = userData?.role || "SUB_ADMIN"
-                } else {
-                    router.push("/sub-admin/login")
-                    return
-                }
-
-                if (userData) {
-                    setUser(userData)
-                    setRole(userRole)
-
-                    const userId = userData.id ?? userData._id
-                    if (userId) {
-                        await fetchPermissions(userId, userRole)
-                    } else {
-                        console.warn("User ID missing, using stored permissions.")
-                        setPermissions(userData.permissions || [])
-                    }
-                } else {
-                    console.error("User data is null — redirecting to login")
-                    router.push("/sub-admin/login")
-                    return
-                }
-
-            } catch (error) {
-                console.error("Error loading user data:", error)
+        const loadUserData = () => {
+            const token = getAccessToken()
+            if (!token) {
                 router.push("/sub-admin/login")
-            } finally {
-                setIsLoading(false)
+                return
             }
+            const userRole = getCurrentUserRole()
+            if (userRole !== "SUPER_ADMIN" && userRole !== "SUB_ADMIN") {
+                router.push("/sub-admin/login")
+                return
+            }
+            const tokenPermissions = getCurrentUserPermissions()
+            const userId = getCurrentUserId()
+
+            const subAdminData = localStorage.getItem("subAdmin")
+            const superAdminData = localStorage.getItem("superAdmin")
+            let userData: UserData | null = null
+            if (superAdminData) {
+                try {
+                    userData = JSON.parse(superAdminData)
+                } catch {
+                    userData = { id: userId ?? "", email: "", name: "Admin", role: "SUPER_ADMIN", permissions: tokenPermissions }
+                }
+            } else if (subAdminData) {
+                try {
+                    userData = JSON.parse(subAdminData)
+                } catch {
+                    userData = { id: userId ?? "", email: "", name: "Sub Admin", role: "SUB_ADMIN", permissions: tokenPermissions }
+                }
+            } else {
+                userData = {
+                    id: userId ?? "",
+                    email: "",
+                    name: userRole === "SUPER_ADMIN" ? "Super Admin" : "Sub Admin",
+                    role: userRole,
+                    permissions: tokenPermissions,
+                }
+            }
+            setUser(userData)
+            setRole(userRole)
+            setPermissions(tokenPermissions)
+            setIsLoading(false)
         }
 
         loadUserData()
     }, [router])
 
-    const fetchPermissions = async (userId: string, userRole: string) => {
-        try {
-            const token = localStorage.getItem("subAdminToken") || localStorage.getItem("superAdminToken")
-            if (!token) throw new Error("No authentication token found")
-
-            const response = await fetch(`/api/auth/permissions?userId=${userId}&role=${userRole}`, {
-                method: "GET",
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    "Content-Type": "application/json",
-                },
-            })
-
-            if (!response.ok) throw new Error(`Failed to fetch permissions: ${response.status}`)
-
-            const data = await response.json()
-            setPermissions(data.permissions || [])
-
-            // Update localStorage permissions
-            const key = userRole === "SUPER_ADMIN" ? "superAdmin" : "subAdmin"
-            const existing = localStorage.getItem(key)
-            if (existing) {
-                const updatedUser = { ...JSON.parse(existing), permissions: data.permissions }
-                localStorage.setItem(key, JSON.stringify(updatedUser))
-            }
-        } catch (error) {
-            console.error("Error fetching permissions:", error)
-            setPermissions(user?.permissions || [])
-        }
-    }
-
     const handleLogout = () => {
+        clearTokens()
         localStorage.removeItem("superAdminToken")
         localStorage.removeItem("superAdmin")
         localStorage.removeItem("subAdminToken")

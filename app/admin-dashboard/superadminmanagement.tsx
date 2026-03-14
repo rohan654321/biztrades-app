@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useSession } from "next-auth/react"
+import { isAuthenticated } from "@/lib/api"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -33,19 +33,17 @@ interface SubAdmin {
 type ViewMode = "list" | "add" | "edit" | "view"
 
 export default function SuperAdminManagement() {
-  const { data: session, status } = useSession()
   const router = useRouter()
   const [viewMode, setViewMode] = useState<ViewMode>("list")
   const [selectedSubAdmin, setSelectedSubAdmin] = useState<SubAdmin | null>(null)
   const [subAdmins, setSubAdmins] = useState<SubAdmin[]>([])
   const [loading, setLoading] = useState(true)
 
-  // Redirect if not authenticated
   useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/sign-in")
+    if (!isAuthenticated()) {
+      router.push("/login")
     }
-  }, [status, router])
+  }, [router])
 
   const fetchSubAdmins = async () => {
     try {
@@ -54,7 +52,7 @@ export default function SuperAdminManagement() {
       
       if (response.status === 401) {
         toast.error("Session expired. Please login again.")
-        router.push("/sign-in")
+        router.push("/login")
         return
       }
       
@@ -74,10 +72,10 @@ export default function SuperAdminManagement() {
   }
 
   useEffect(() => {
-    if (session) {
+    if (isAuthenticated()) {
       fetchSubAdmins()
     }
-  }, [session])
+  }, [])
 
   const handleDeleteSubAdmin = async (id: string) => {
     if (!confirm('Are you sure you want to delete this sub-admin?')) return
@@ -89,7 +87,7 @@ export default function SuperAdminManagement() {
 
       if (response.status === 401) {
         toast.error("Session expired. Please login again.")
-        router.push("/sign-in")
+        router.push("/login")
         return
       }
 

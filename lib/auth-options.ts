@@ -1,14 +1,11 @@
-// lib/auth-options.ts
-import CredentialsProvider from "next-auth/providers/credentials"
+// lib/auth-options.ts — OAuth only (Google, LinkedIn). API auth uses backend JWT.
 import GoogleProvider from "next-auth/providers/google"
 import LinkedInProvider from "next-auth/providers/linkedin"
-import type { NextAuthOptions, Profile } from "next-auth"
+import type { NextAuthOptions } from "next-auth"
 import bcrypt from "bcryptjs"
 
 // Import Prisma (legacy Mongo client; may be null if DATABASE_URL is not set)
 import { prisma } from "@/lib/prisma"
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000"
 
 const providers: NextAuthOptions["providers"] = []
 
@@ -106,68 +103,7 @@ const safePrisma = {
 }
 
 export const authOptions: NextAuthOptions = {
-  providers: [
-    ...providers,
-    CredentialsProvider({
-      name: "Credentials",
-      credentials: {
-        email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" },
-      },
-      async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
-          console.log("[auth] Missing email or password");
-          return null;
-        }
-
-        try {
-          console.log("[auth] Attempting backend login for:", credentials.email);
-
-          const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              email: credentials.email,
-              password: credentials.password,
-            }),
-          });
-
-          if (!res.ok) {
-            console.log("[auth] Backend login failed with status:", res.status);
-            return null;
-          }
-
-          const data = await res.json();
-          const authUser = data.user;
-
-          if (!authUser) {
-            console.log("[auth] Backend login returned no user");
-            return null;
-          }
-
-          // Map backend AuthTokenPayload → NextAuth user object
-          const id = authUser.sub ?? authUser.id;
-          const name =
-            authUser.firstName || authUser.lastName
-              ? `${authUser.firstName ?? ""} ${authUser.lastName ?? ""}`.trim()
-              : authUser.email;
-
-          return {
-            id,
-            name,
-            email: authUser.email,
-            role: authUser.role,
-            domain: authUser.domain,
-            adminType: authUser.role === "SUPER_ADMIN" || authUser.role === "SUB_ADMIN" ? authUser.role : undefined,
-            permissions: authUser.permissions ?? [],
-          };
-        } catch (error) {
-          console.error("[auth] Credentials authorize error:", error);
-          return null;
-        }
-      },
-    }),
-  ],
+  providers: [...providers],
   pages: {
     signIn: "/login",
   },

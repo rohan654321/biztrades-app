@@ -4,8 +4,9 @@ import { useState, useRef, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { ChevronDown, Search, User, MapPin, Mic, Calendar, Menu, X } from "lucide-react"
-import { signIn, signOut, useSession } from "next-auth/react"
+import { signIn } from "next-auth/react"
 import { useRouter } from "next/navigation"
+import { isAuthenticated, getCurrentUserId, getCurrentUserRole, getCurrentUserDisplayName, getCurrentUserEmail, clearTokens } from "@/lib/api"
 
 interface SearchEvent {
   id: string
@@ -82,7 +83,11 @@ export default function Navbar() {
 
   const toggleExplore = () => setExploreOpen((prev) => !prev)
 
-  const { data: session } = useSession()
+  const authenticated = isAuthenticated()
+  const userId = getCurrentUserId()
+  const role = getCurrentUserRole()
+  const displayName = getCurrentUserDisplayName()
+  const userEmail = getCurrentUserEmail()
   const [showMenu, setShowMenu] = useState(false)
 
   // Close search results when clicking outside
@@ -200,16 +205,16 @@ export default function Navbar() {
   }
 
   const handleAddevent = async () => {
-    if (!session) {
+    if (!authenticated) {
       router.push("/organizer-signup")
       setMobileMenuOpen(false)
       return
     }
 
-    const role = session.user?.role
+    const roleForAdd = role
 
-    if (role === "ORGANIZER") {
-      router.push(`/organizer-dashboard/${session.user?.id}`)
+    if ((role || "").toUpperCase() === "ORGANIZER") {
+      router.push(`/organizer-dashboard/${userId}`)
       setMobileMenuOpen(false)
       return
     }
@@ -221,25 +226,24 @@ export default function Navbar() {
     }
 
     const confirmed = window.confirm(
-      `You are logged in as '${role}'.\n\nPlease login as an organizer to access this page.\n\nClick OK to logout and login as an organizer, or Cancel to stay logged in.`,
+      `You are logged in as '${roleForAdd}'.\n\nPlease login as an organizer to access this page.\n\nClick OK to logout and login as an organizer, or Cancel to stay logged in.`,
     )
 
     if (confirmed) {
-      await signOut({ redirect: false })
+      clearTokens()
       router.push("/organizer-signup")
       setMobileMenuOpen(false)
     }
   }
 
   const handleDashboard = () => {
-    const role = session?.user?.role
-
-    if (role === "ORGANIZER") {
-      router.push(`/organizer-dashboard/${session?.user?.id}`)
-    } else if (role === "superadmin") {
+    const roleUpper = (role || "").toUpperCase()
+    if (roleUpper === "ORGANIZER") {
+      router.push(`/organizer-dashboard/${userId}`)
+    } else if (roleUpper === "SUPER_ADMIN" || roleUpper === "SUB_ADMIN") {
       router.push("/admin-dashboard")
-    } else if (role === "ATTENDEE") {
-      router.push(`/dashboard/${session?.user?.id}`)
+    } else if (roleUpper === "ATTENDEE") {
+      router.push(`/dashboard/${userId}`)
     } else {
       router.push("/login")
     }
@@ -256,7 +260,8 @@ export default function Navbar() {
   }
 
   const handleLogout = () => {
-    signOut({ callbackUrl: "/login" })
+    clearTokens()
+    router.push("/login")
     setMobileMenuOpen(false)
   }
 
@@ -492,11 +497,11 @@ export default function Navbar() {
 
               {showMenu && (
                 <div className="absolute right-0 mt-2 w-48 bg-white border rounded-lg shadow-lg z-50">
-                  {session ? (
+                  {authenticated ? (
                     <>
                       <div className="px-4 py-3 border-b">
-                        <p className="text-sm font-medium text-gray-900">{session.user?.name}</p>
-                        <p className="text-xs text-gray-500">{session.user?.email}</p>
+                        <p className="text-sm font-medium text-gray-900">{displayName}</p>
+                        <p className="text-xs text-gray-500">{userEmail}</p>
                       </div>
                       <button
                         onClick={handleDashboard}
@@ -545,11 +550,11 @@ export default function Navbar() {
 
               {showMenu && (
                 <div className="absolute right-0 mt-2 w-48 bg-white border rounded-lg shadow-lg z-50">
-                  {session ? (
+                  {authenticated ? (
                     <>
                       <div className="px-4 py-3 border-b">
-                        <p className="text-sm font-medium text-gray-900">{session.user?.name}</p>
-                        <p className="text-xs text-gray-500">{session.user?.email}</p>
+                        <p className="text-sm font-medium text-gray-900">{displayName}</p>
+                        <p className="text-xs text-gray-500">{userEmail}</p>
                       </div>
                       <button
                         onClick={handleDashboard}
@@ -644,11 +649,11 @@ export default function Navbar() {
 
               {/* Auth section in mobile menu */}
               <div className="px-4 py-3 border-t border-gray-200">
-                {session ? (
+                {authenticated ? (
                   <>
                     <div className="mb-3">
-                      <p className="text-sm font-medium text-gray-900">{session.user?.name}</p>
-                      <p className="text-xs text-gray-500">{session.user?.email}</p>
+                      <p className="text-sm font-medium text-gray-900">{displayName}</p>
+                      <p className="text-xs text-gray-500">{userEmail}</p>
                     </div>
                     <button
                       onClick={handleDashboard}

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { LogOut, User, Shield, Calendar } from "lucide-react"
 import { toast } from "sonner"
+import { getAccessToken, clearTokens } from "@/lib/api"
 import AdminDashboard from "../sidebar"
 
 interface User {
@@ -27,14 +28,12 @@ export default function SubAdminDashboard() {
 
   const checkAuth = () => {
     try {
-      const userData = localStorage.getItem("adminUser")
-      const adminToken = localStorage.getItem("adminToken")
-
-      if (userData && adminToken) {
-        const user = JSON.parse(userData)
-        // Check if user is sub-admin
-        if (user.role === "SUB_ADMIN") {
-          setUser(user)
+      const token = typeof window !== "undefined" ? getAccessToken() : null
+      const subAdminData = localStorage.getItem("subAdmin")
+      if (token && subAdminData) {
+        const parsed = JSON.parse(subAdminData)
+        if (parsed.role === "SUB_ADMIN" || parsed.role === "SUPER_ADMIN") {
+          setUser(parsed)
         } else {
           router.push("/sub-admin/login")
         }
@@ -49,22 +48,14 @@ export default function SubAdminDashboard() {
     }
   }
 
-  const handleLogout = async () => {
-    try {
-      // Call logout API
-      await fetch("/api/auth/logout", {
-        method: "POST",
-      })
-    } catch (error) {
-      console.error("Logout error:", error)
-    } finally {
-      // Clear local storage
-      localStorage.removeItem("adminUser")
-      localStorage.removeItem("adminToken")
-      
-      toast.success("Logged out successfully")
-      router.push("/sub-admin/login")
-    }
+  const handleLogout = () => {
+    clearTokens()
+    localStorage.removeItem("adminUser")
+    localStorage.removeItem("adminToken")
+    localStorage.removeItem("subAdmin")
+    localStorage.removeItem("subAdminToken")
+    toast.success("Logged out successfully")
+    router.push("/sub-admin/login")
   }
 
   if (loading) {

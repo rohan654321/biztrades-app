@@ -38,6 +38,75 @@ export function clearTokens() {
   window.localStorage.removeItem(REFRESH_TOKEN_KEY);
 }
 
+/** Decode JWT payload without verification (client-side only; for reading sub/role/permissions). */
+function decodeJwtPayload(token: string): {
+  sub?: string;
+  role?: string;
+  domain?: string;
+  permissions?: string[];
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+} | null {
+  try {
+    const parts = token.split(".");
+    if (parts.length !== 3) return null;
+    const payload = JSON.parse(atob(parts[1].replace(/-/g, "+").replace(/_/g, "/")));
+    return payload;
+  } catch {
+    return null;
+  }
+}
+
+/** Current user id from stored access token (for use when backend expects userId in body). */
+export function getCurrentUserId(): string | null {
+  const token = getAccessToken();
+  if (!token) return null;
+  const payload = decodeJwtPayload(token);
+  return payload?.sub ?? null;
+}
+
+/** Current user role from stored access token. */
+export function getCurrentUserRole(): string | null {
+  const token = getAccessToken();
+  if (!token) return null;
+  const payload = decodeJwtPayload(token);
+  return payload?.role ?? null;
+}
+
+/** Display name (firstName + lastName or email) from stored access token. */
+export function getCurrentUserDisplayName(): string {
+  const token = getAccessToken();
+  if (!token) return "User";
+  const payload = decodeJwtPayload(token);
+  if (payload?.firstName || payload?.lastName) {
+    return [payload.firstName, payload.lastName].filter(Boolean).join(" ") || "User";
+  }
+  return payload?.email ?? "User";
+}
+
+/** Current user email from stored access token. */
+export function getCurrentUserEmail(): string | null {
+  const token = getAccessToken();
+  if (!token) return null;
+  const payload = decodeJwtPayload(token);
+  return payload?.email ?? null;
+}
+
+/** Current user permissions from stored access token (backend sets for ADMIN domain). */
+export function getCurrentUserPermissions(): string[] {
+  const token = getAccessToken();
+  if (!token) return [];
+  const payload = decodeJwtPayload(token);
+  const p = payload?.permissions;
+  return Array.isArray(p) ? p : [];
+}
+
+/** Whether the client has an access token (user considered logged in for API auth). */
+export function isAuthenticated(): boolean {
+  return !!getAccessToken();
+}
+
 async function refreshAccessToken(): Promise<string | null> {
   if (typeof window === "undefined") return null;
 

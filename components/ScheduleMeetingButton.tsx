@@ -2,8 +2,8 @@
 
 import { useState } from "react"
 import { Loader2 } from "lucide-react"
-import { useSession } from "next-auth/react"
 import { useToast } from "@/hooks/use-toast"
+import { getCurrentUserId, isAuthenticated, apiFetch } from "@/lib/api"
 
 interface Exhibitor {
   id: string
@@ -22,7 +22,6 @@ export default function ScheduleMeetingButton({
 }) {
   const [creating, setCreating] = useState(false)
   const { toast } = useToast()
-  const { data: session } = useSession()
 
   const handleScheduleMeeting = async () => {
     try {
@@ -37,7 +36,17 @@ export default function ScheduleMeetingButton({
         return
       }
 
-      if (!session?.user?.id) {
+      if (!isAuthenticated()) {
+        toast({
+          title: "Authentication Required",
+          description: "Please log in to schedule meetings.",
+          variant: "destructive",
+        })
+        return
+      }
+
+      const requesterId = getCurrentUserId()
+      if (!requesterId) {
         toast({
           title: "Authentication Required",
           description: "Please log in to schedule meetings.",
@@ -50,7 +59,7 @@ export default function ScheduleMeetingButton({
       const body = {
         eventId,
         exhibitorId: exhibitorUserId,
-        requesterId: session.user.id,
+        requesterId,
         title: `Meeting with ${exhibitor.companyName}`,
         description: `Meeting request with ${exhibitor.firstName} from ${exhibitor.companyName}`,
         requestedDate: new Date().toISOString().split("T")[0],
@@ -59,14 +68,11 @@ export default function ScheduleMeetingButton({
         purpose: "Networking",
       }
 
-      const res = await fetch(`/api/appointments`, {
+      await apiFetch("/api/appointments", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
+        body,
+        auth: true,
       })
-
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || "Failed to create appointment")
 
       toast({
         title: "Success",

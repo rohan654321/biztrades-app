@@ -1,23 +1,17 @@
 "use client"
 
-import { useEffect } from "react"
-import { useSession } from "next-auth/react"
-import { useRouter } from "next/navigation"
+import { useAuth } from "@/hooks/use-auth"
 import AdminDashboard from "./sidebar"
 import Navbar from "./navbar"
 import { NameBanner } from "./NameBanner"
 
 export default function AdminDashboardPage() {
-  const router = useRouter()
-  const { data: session, status } = useSession()
+  const { role, permissions, loading, logout } = useAuth({
+    requireAuth: true,
+    allowedRoles: ["SUPER_ADMIN", "SUB_ADMIN"],
+  })
 
-  useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/sign-in")
-    }
-  }, [status, router])
-
-  if (status === "loading") {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -28,23 +22,16 @@ export default function AdminDashboardPage() {
     )
   }
 
-  if (!session?.user) {
-    return null
-  }
-
-  const role = (session.user as any).role ?? (session.user as any).adminType
   const userRole: "SUPER_ADMIN" | "SUB_ADMIN" =
-    role === "SUPER_ADMIN" || (session.user as any).adminType === "SUPER_ADMIN"
-      ? "SUPER_ADMIN"
-      : "SUB_ADMIN"
-  const userPermissions = ((session.user as any).permissions as string[]) || []
+    role === "SUPER_ADMIN" ? "SUPER_ADMIN" : "SUB_ADMIN"
+  const userPermissions = Array.isArray(permissions) ? permissions : []
   const isSuperAdmin = userRole === "SUPER_ADMIN"
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Navbar />
+      <Navbar onLogout={logout} />
       <NameBanner
-        name={session.user.name || "Admin"}
+        name="Admin"
         designation={isSuperAdmin ? "Super Administrator" : "Sub Administrator"}
         bannerImage="/admin-banner.jpg"
       />

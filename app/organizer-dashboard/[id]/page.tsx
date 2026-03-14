@@ -1,6 +1,4 @@
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth-options"
-import { redirect } from "next/navigation"
+// Auth is enforced client-side via useAuth (JWT in localStorage). No server session.
 import { NameBanner } from "@/app/dashboard/NameBanner"
 import OrganizerDashboardPage from "../OrganizerDashboardPage"
 import Navbar from "../navbar"
@@ -12,24 +10,10 @@ interface DashboardPageProps {
 
 export default async function DashboardPage({ params }: DashboardPageProps) {
   const { id } = await params
-  const session = await getServerSession(authOptions)
-
-  if (!session) {
-    redirect("/login")
-  }
-
-  // Only allow self or organizer
-  if (session.user.id !== id && session.user.role !== "ORGANIZER") {
-    redirect("/login")
-  }
-
   return (
     <DashboardProvider>
       <Navbar />
-      <NameBanner
-        name={session.user.name || "Organizer"}
-        designation={session.user.role || ""}
-      />
+      <NameBanner name="Organizer" designation="Organizer" />
       <OrganizerDashboardPage organizerId={id} />
     </DashboardProvider>
   )

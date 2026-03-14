@@ -1,10 +1,9 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useSession } from "next-auth/react"
+import { useAuth } from "@/hooks/use-auth"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { signOut } from "next-auth/react"
 import MessagesCenter from "@/app/organizer-dashboard/messages-center"
 import EventPromotion from "@/app/organizer-dashboard/event-promotion"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -89,30 +88,26 @@ export function ExhibitorLayout({ userId }: UserDashboardProps) {
 
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
-  const { data: session, status } = useSession()
+  const { userId: authUserId, role, loading: authLoading, logout } = useAuth({
+    requireAuth: true,
+    allowedRoles: ["EXHIBITOR"],
+  })
   const router = useRouter()
   const { toast } = useToast()
 
   useEffect(() => {
-    if (status === "loading") return
-
-    if (status === "unauthenticated") {
-      router.push("/login")
-      return
-    }
-
-    if (session?.user.id !== userId && session?.user.role !== "admin") {
+    if (authLoading) return
+    if (authUserId && userId !== authUserId) {
       toast({
         title: "Access Denied",
         description: "You don't have permission to view this dashboard.",
         variant: "destructive",
       })
-      router.push("/login")
+      router.replace("/login")
       return
     }
-
     fetchExhibitorData()
-  }, [userId, status, session, router, toast])
+  }, [userId, authUserId, authLoading, router, toast])
 
   useEffect(() => {
     // Set company info as default active section when component mounts
@@ -121,55 +116,68 @@ export function ExhibitorLayout({ userId }: UserDashboardProps) {
     }
   }, [activeSection, setActiveSection])
 
-  // Function to fetch product count
+  // Fetch product count from backend only
   const fetchProductCount = async (exhibitorId: string): Promise<number> => {
     try {
-      const response = await fetch(`/api/exhibitors/${exhibitorId}/products`)
-      if (response.ok) {
-        const data = await response.json()
-        // This will return the actual count from products array length
-        return data.products?.length || 0
-      }
-      return 0
+      const data = await apiFetch<{ products?: unknown[] }>(`/api/exhibitors/${exhibitorId}/products`, {
+        method: "GET",
+        auth: true,
+      })
+      return data.products?.length ?? 0
     } catch (error) {
       console.error("Error fetching product count:", error)
       return 0
     }
   }
 
+  // Map backend exhibitor shape to layout state
+  const mapBackendExhibitor = (e: any, productCount: number) => ({
+    id: e?.id,
+    firstName: e?.firstName ?? "",
+    lastName: e?.lastName ?? "",
+    email: e?.email ?? "",
+    phone: e?.phone,
+    avatar: e?.avatar,
+    bio: e?.bio,
+    website: e?.website,
+    twitter: e?.twitter,
+    jobTitle: e?.jobTitle,
+    company: e?.company ?? e?.companyName,
+    linkedin: e?.linkedin,
+    location: e?.location,
+    totalProducts: productCount,
+    totalEvents: e?.totalEvents ?? 0,
+    activeEvents: e?.activeEvents ?? 0,
+    totalLeads: (e as any)?.totalLeads ?? 0,
+    pendingLeads: (e as any)?.pendingLeads ?? 0,
+    profileViews: (e as any)?.profileViews ?? 0,
+    upcomingAppointments: (e as any)?.upcomingAppointments ?? 0,
+  })
+
   const fetchExhibitorData = async () => {
     try {
       setLoading(true)
       setError(null)
 
-      // Fetch user data and product count in parallel
-      const [userData, productCount] = await Promise.all([
-        apiFetch<{ success: boolean; user: any }>(`/api/users/${userId}`, {
+      const [exhibitorRes, productCount] = await Promise.all([
+        apiFetch<{ success: boolean; exhibitor: any }>(`/api/exhibitors/${userId}`, {
           method: "GET",
-          auth: false,
+          auth: true,
         }),
         fetchProductCount(userId),
       ])
-      
-      // Combine user data with product count
-      setExhibitor({
-        ...userData.user,
-        totalProducts: productCount, // This will now show the actual count (3)
-        // Set default values for other fields if not provided
-        totalEvents: userData.user.totalEvents || 0,
-        activeEvents: userData.user.activeEvents || 0,
-        totalLeads: userData.user.totalLeads || 0,
-        pendingLeads: userData.user.pendingLeads || 0,
-        profileViews: userData.user.profileViews || 0,
-        upcomingAppointments: userData.user.upcomingAppointments || 0
-      })
-      
-      setAppointmentCount(Number(userData.user.upcomingAppointments) || 0)
-    } catch (err) {
-      console.error("Error fetching user data:", err)
-      setError(err instanceof Error ? err.message : "An error occurred")
 
-      if (err instanceof Error && (err.message === "Access denied" || err.message === "User not found")) {
+      if (!exhibitorRes.success || !exhibitorRes.exhibitor) {
+        setError("Exhibitor not found")
+        return
+      }
+
+      setExhibitor(mapBackendExhibitor(exhibitorRes.exhibitor, productCount))
+      setAppointmentCount(Number((exhibitorRes.exhibitor as any)?.upcomingAppointments) || 0)
+    } catch (err) {
+      console.error("Error fetching exhibitor data:", err)
+      setError(err instanceof Error ? err.message : "An error occurred")
+      if (err instanceof Error && (err.message === "Access denied" || err.message === "User not found" || err.message.includes("Exhibitor not found"))) {
         toast({
           title: "Error",
           description: err.message,
@@ -188,18 +196,18 @@ export function ExhibitorLayout({ userId }: UserDashboardProps) {
 
   const handleUpdate = async (updates: Partial<any>) => {
     try {
-      const res = await fetch(`/api/exhibitors/${userId}`, {
+      const data = await apiFetch<{ success: boolean; exhibitor: any }>(`/api/exhibitors/${userId}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updates),
+        body: updates,
+        auth: true,
       })
-      const data = await res.json()
-
-      if (data.success) {
-        setExhibitor((prev: any) => ({ ...prev, ...updates }))
+      if (data.success && data.exhibitor) {
+        const productCount = await fetchProductCount(userId)
+        setExhibitor((prev: any) => ({ ...prev, ...mapBackendExhibitor(data.exhibitor, productCount) }))
       }
     } catch (error) {
       console.error("Error updating exhibitor:", error)
+      throw error
     }
   }
 
@@ -213,6 +221,13 @@ export function ExhibitorLayout({ userId }: UserDashboardProps) {
   }
 
   const renderMainContent = () => {
+    if (authLoading) {
+      return (
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
+        </div>
+      )
+    }
     if (loading) {
       return (
         <div className="flex items-center justify-center min-h-[60vh]">
@@ -669,7 +684,7 @@ case "view-feedback":
 
           {/* Logout */}
           <Button
-            onClick={() => signOut({ callbackUrl: "/login" })}
+            onClick={() => logout()}
             className="w-full bg-red-500 hover:bg-red-600 text-white mt-8"
           >
             Logout

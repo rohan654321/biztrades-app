@@ -1,6 +1,6 @@
 "use client"
 
-import { signOut } from "next-auth/react"
+import { clearTokens } from "@/lib/api"
 import {
   Sidebar,
   SidebarContent,
@@ -51,6 +51,7 @@ interface DashboardSidebarProps {
 }
 
 export function DashboardSidebar({ activeSection, setActiveSection, userData }: DashboardSidebarProps) {
+  const router = useRouter()
   return (
     <Sidebar className="border-r">
       <SidebarHeader className="border-b p-4">
@@ -84,7 +85,7 @@ export function DashboardSidebar({ activeSection, setActiveSection, userData }: 
               ))}
               <SidebarMenuItem>
                 <Button
-                  onClick={() => signOut({ callbackUrl: "/login" })}
+                  onClick={() => { clearTokens(); router.push("/login"); }}
                   className="w-full bg-red-500 hover:bg-red-600 text-white mt-20 "
                 >
                   Logout

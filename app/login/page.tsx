@@ -1,8 +1,8 @@
 "use client"
 
 import type React from "react"
-import { useState, useEffect } from "react"
-import { signIn, useSession } from "next-auth/react"
+import { useState } from "react"
+import { signIn } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
@@ -15,35 +15,11 @@ import { loginWithEmailPassword } from "@/lib/api"
 
 export default function LoginPage() {
   const router = useRouter()
-  const { data: session, status } = useSession()
-
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
-
-  useEffect(() => {
-    if (status === "authenticated" && session?.user) {
-      const role = (session.user.role || "").toString().toUpperCase()
-
-      if (role === "ATTENDEE") {
-        router.push(`/dashboard/${session.user.id}`)
-      } else if (role === "ORGANIZER") {
-        router.push(`/organizer-dashboard/${session.user.id}`)
-      } else if (role === "SUPER_ADMIN" || role === "SUPERADMIN" || role === "SUB_ADMIN") {
-        router.push("/admin-dashboard")
-      } else if (role === "EXHIBITOR") {
-        router.push(`/exhibitor-dashboard/${session.user.id}`)
-      } else if (role === "SPEAKER") {
-        router.push(`/speaker-dashboard/${session.user.id}`)
-      } else if (role === "VENUE_MANAGER") {
-        router.push(`/venue-dashboard/${session.user.id}`)
-      } else {
-        router.push(`/login`)
-      }
-    }
-  }, [session, status, router])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -51,21 +27,28 @@ export default function LoginPage() {
     setError("")
 
     try {
-      // First, log in against the Express backend to obtain JWT tokens
-      await loginWithEmailPassword(email, password)
+      const result = await loginWithEmailPassword(email, password)
+      const user = result.user
+      const role = (user?.role || "").toString().toUpperCase()
+      const userId = user?.sub ?? (user as any)?.id
 
-      // Then, create a NextAuth session using the same credentials
-      const res = await signIn("credentials", {
-        redirect: false,
-        email,
-        password,
-      })
-
-      if (res?.error) {
-        setError("Invalid email or password. Please try again.")
+      if (role === "ATTENDEE") {
+        router.push(`/dashboard/${userId}`)
+      } else if (role === "ORGANIZER") {
+        router.push(`/organizer-dashboard/${userId}`)
+      } else if (role === "SUPER_ADMIN" || role === "SUPERADMIN" || role === "SUB_ADMIN") {
+        router.push("/admin-dashboard")
+      } else if (role === "EXHIBITOR") {
+        router.push(`/exhibitor-dashboard/${userId}`)
+      } else if (role === "SPEAKER") {
+        router.push(`/speaker-dashboard/${userId}`)
+      } else if (role === "VENUE_MANAGER") {
+        router.push(`/venue-dashboard/${userId}`)
+      } else {
+        router.push("/")
       }
     } catch (err: any) {
-      setError(err?.message || "An error occurred. Please try again.")
+      setError(err?.message || "Invalid email or password. Please try again.")
     } finally {
       setIsLoading(false)
     }
@@ -81,17 +64,6 @@ export default function LoginPage() {
     } finally {
       setIsLoading(false)
     }
-  }
-
-  if (status === "loading") {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
-          <p className="text-gray-600">Checking session...</p>
-        </div>
-      </div>
-    )
   }
 
   return (

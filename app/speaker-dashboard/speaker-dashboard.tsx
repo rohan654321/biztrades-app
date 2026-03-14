@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useSession, signOut } from "next-auth/react"
+import { useAuth } from "@/hooks/use-auth"
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -58,7 +58,10 @@ export function SpeakerDashboard({ userId }: UserDashboardProps) {
   const [openMenus, setOpenMenus] = useState<string[]>(["speaker-management", "communication"])
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
-  const { data: session, status } = useSession()
+  const { userId: authUserId, role, loading: authLoading, logout } = useAuth({
+    requireAuth: true,
+    allowedRoles: ["SPEAKER"],
+  })
   const router = useRouter()
   const { toast } = useToast()
 
@@ -70,25 +73,11 @@ export function SpeakerDashboard({ userId }: UserDashboardProps) {
   }, [activeSection, setActiveSection])
 
   useEffect(() => {
-    if (status === "loading") return
-
-    if (status === "unauthenticated") {
-      router.push("/login")
-      return
-    }
-
-    if (session?.user.id !== userId && session?.user.role !== "SPEAKER") {
-      toast({
-        title: "Access Denied",
-        description: "You don't have permission to view this dashboard.",
-        variant: "destructive",
-      })
-      router.push("/login")
-      return
-    }
-
+    if (authLoading) return
+    const roleUpper = (role || "").toUpperCase()
+    if (roleUpper !== "SPEAKER") return
     fetchSpeakerData()
-  }, [userId, status, session, router, toast])
+  }, [userId, role, authLoading, router, toast])
 
   const fetchSpeakerData = async () => {
     try {
@@ -308,7 +297,7 @@ export function SpeakerDashboard({ userId }: UserDashboardProps) {
 
           {/* Logout */}
           <Button
-            onClick={() => signOut({ callbackUrl: "/login" })}
+            onClick={() => logout()}
             className="w-full bg-red-500 hover:bg-red-600 text-white mt-8"
           >
             Logout

@@ -3,7 +3,6 @@
 import type React from "react"
 
 import { useState } from "react"
-import { signIn } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -27,21 +26,7 @@ export default function SignInPage() {
     setIsLoading(true)
 
     try {
-      // 1. Authenticate against the Express backend and obtain JWTs
       await loginWithEmailPassword(email, password)
-
-      // 2. (Optional) Also create a NextAuth session so existing session-based UI keeps working
-      const nextAuthResult = await signIn("credentials", {
-        email,
-        password,
-        redirect: false,
-      })
-
-      if (nextAuthResult?.error) {
-        setError("Logged in to backend, but session creation failed. Please try again.")
-        return
-      }
-
       router.push("/admin-dashboard")
       router.refresh()
     } catch (err) {

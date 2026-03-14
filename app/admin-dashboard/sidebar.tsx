@@ -35,7 +35,7 @@ import VenueManagement from "./venues/page"
 import SystemSettings from "./system-settings"
 import SubAdminManagement from "./subadmin-management"
 import { CreateEventForm } from "./eventManagement/createEvent/create-event"
-import { signOut } from "next-auth/react"
+import { clearTokens } from "@/lib/api"
 import CountriesManagement from "./countries-management"
 import VisitorManagement from "./visitors/page"
 import EventCategories from "./event-categories"
@@ -196,8 +196,9 @@ export default function AdminDashboard({ userRole, userPermissions }: AdminDashb
     return userPermissions.includes(requiredPermission)
   }
 
-  const handleLogout = async () => {
-    await signOut({ callbackUrl: "/sign-in" })
+  const handleLogout = () => {
+    clearTokens()
+    router.push("/login")
   }
 
   const toggleMenu = (menuId: string) => {

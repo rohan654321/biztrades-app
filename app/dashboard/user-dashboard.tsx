@@ -1,7 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useSession, signOut } from "next-auth/react"
+import { useAuth } from "@/hooks/use-auth"
+import { clearTokens } from "@/lib/api"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import {
@@ -46,7 +47,7 @@ interface UserDashboardProps {
 }
 
 export function UserDashboard({ userId }: UserDashboardProps) {
-  const { data: session, status } = useSession()
+  const { userId, loading } = useAuth({ requireAuth: true })
   const router = useRouter()
   const { toast } = useToast()
   const { activeSection, setActiveSection } = useDashboard()
@@ -63,17 +64,11 @@ export function UserDashboard({ userId }: UserDashboardProps) {
   useEffect(() => {
     if (status === "loading") return
     
-    if (status === "unauthenticated") {
-      router.push("/login")
-      return
-    }
-    
-    // Only fetch data if we have a valid session
-    if (session?.user?.id) {
+    if (!loading && userId) {
       fetchUserData()
       fetchInterestedEvents()
     }
-  }, [status, userId, session])
+  }, [loading, userId])
 
   // Close mobile sidebar when switching sections
   useEffect(() => {
@@ -169,17 +164,9 @@ export function UserDashboard({ userId }: UserDashboardProps) {
     }
   }
 
-  const handleSignOut = async () => {
-    try {
-      await signOut({ callbackUrl: "/login" })
-    } catch (error) {
-      console.error("Error during sign out:", error)
-      toast({
-        title: "Error",
-        description: "Failed to sign out",
-        variant: "destructive",
-      })
-    }
+  const handleSignOut = () => {
+    clearTokens()
+    router.push("/login")
   }
 
   const renderContent = () => {
