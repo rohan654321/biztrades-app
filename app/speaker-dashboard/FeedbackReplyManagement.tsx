@@ -15,7 +15,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { useSession } from "next-auth/react"
+import { getCurrentUserId } from "@/lib/api"
 
 interface Review {
   id: string
@@ -65,7 +65,7 @@ interface Session {
 }
 
 export default function FeedbackReplyManagement({ speakerId }: { speakerId?: string }) {
-  const { data: session } = useSession()
+  const userId = getCurrentUserId()
   const [reviews, setReviews] = useState<Review[]>([])
   const [sessions, setSessions] = useState<Session[]>([])
   const [filteredReviews, setFilteredReviews] = useState<Review[]>([])
@@ -80,8 +80,8 @@ export default function FeedbackReplyManagement({ speakerId }: { speakerId?: str
   const [loading, setLoading] = useState(true)
   const { toast } = useToast()
 
-  // Use speakerId prop or fall back to session user id
-  const currentSpeakerId = speakerId || session?.user?.id
+  // Use speakerId prop or fall back to current user id
+  const currentSpeakerId = speakerId || userId
 
   useEffect(() => {
     if (currentSpeakerId) {

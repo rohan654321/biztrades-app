@@ -5,8 +5,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Mail, Edit2, Trash2, Save, X, Plus } from "lucide-react"
 import { useEffect, useState } from "react"
-import { useSession } from "next-auth/react"
 import { useRouter, useSearchParams } from "next/navigation"
+import { getCurrentUserId, isAuthenticated } from "@/lib/api"
 import { useToast } from "@/hooks/use-toast"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -52,7 +52,7 @@ export default function EventPage({ params }: EventPageProps) {
     pricePerSqm: 0,
   })
 
-  const { data: session } = useSession()
+  const userId = getCurrentUserId()
   const router = useRouter()
   const { toast } = useToast()
 
@@ -107,7 +107,7 @@ export default function EventPage({ params }: EventPageProps) {
   }, [params])
 
   useEffect(() => {
-    if (event?.id && session?.user?.id) {
+    if (event?.id && userId) {
       checkIfSaved()
     }
   }, [event?.id, session?.user?.id])
@@ -272,7 +272,7 @@ export default function EventPage({ params }: EventPageProps) {
     }
   }
   const handleSaveEvent = async () => {
-    if (!session) {
+    if (!isAuthenticated()) {
       alert("Please log in to save events")
       router.push("/login")
       return

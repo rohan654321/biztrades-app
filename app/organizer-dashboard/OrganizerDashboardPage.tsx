@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { useState, useEffect } from "react"
-import { useParams } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
 import {
@@ -21,7 +21,7 @@ import {
   Users,
   Star
 } from "lucide-react"
-import { signOut } from "next-auth/react"
+import { clearTokens } from "@/lib/api"
 import DashboardOverview from "./dashboard-overview"
 import MyEvents from "./my-events"
 import CreateEvent from "./create-event"
@@ -96,6 +96,7 @@ interface SidebarItem {
 
 export default function OrganizerDashboardSimplified({ organizerId }: OrganizerDashboardPageProps) {
   const params = useParams()
+  const router = useRouter()
   const { toast } = useToast()
   const { activeSection, setActiveSection } = useDashboard()
   const [expandedGroups, setExpandedGroups] = useState<string[]>(["main", "event-management", "network"])
@@ -449,7 +450,7 @@ export default function OrganizerDashboardSimplified({ organizerId }: OrganizerD
         {/* Footer with Logout */}
         <div className="border-t border-gray-200 p-4 flex-shrink-0">
           <Button
-            onClick={() => signOut({ callbackUrl: "/login" })}
+            onClick={() => { clearTokens(); router.push("/login"); }}
             className="w-full bg-red-600 hover:bg-red-700 text-white"
           >
             <User className="mr-2 h-4 w-4" />

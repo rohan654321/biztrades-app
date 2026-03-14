@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { useSession } from "next-auth/react"
+import { getCurrentUserId, isAuthenticated } from "@/lib/api"
 import Image from "next/image"
 import {
   MapPin,
@@ -169,7 +169,7 @@ function ReviewCard({ review, exhibitorId, onReplyAdded }: {
   const [showReplyForm, setShowReplyForm] = useState(false)
   const [replyContent, setReplyContent] = useState("")
   const [isSubmittingReply, setIsSubmittingReply] = useState(false)
-  const { data: session } = useSession()
+  const isLoggedIn = isAuthenticated()
 
   const handleSubmitReply = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -180,6 +180,7 @@ function ReviewCard({ review, exhibitorId, onReplyAdded }: {
       await apiFetch(`/api/exhibitors/${exhibitorId}/reviews/${review.id}/replies`, {
         method: "POST",
         body: { content: replyContent },
+        auth: true,
       })
       const newReply: ReviewReply = {
         id: crypto.randomUUID(),
@@ -490,7 +491,7 @@ export default function ExhibitorPage() {
   const router = useRouter()
   const exhibitorId = params.id as string
 
-  const { data: session } = useSession()
+  const userId = getCurrentUserId()
 
   const [activeTab, setActiveTab] = useState("overview")
   const [eventsTab, setEventsTab] = useState("upcoming")
@@ -849,7 +850,7 @@ export default function ExhibitorPage() {
               <div className="space-x-3">
                 <Button className="bg-white text-blue-600 hover:bg-blue-50">
                   <Heart className="w-4 h-4 mr-2" />
-                  <FollowButton userId={exhibitor.id} currentUserId={session?.user.id} variant="default" size="default" />
+                  <FollowButton userId={exhibitor.id} currentUserId={userId ?? undefined} variant="default" size="default" />
                 </Button>
                 <Button
                   variant="outline"

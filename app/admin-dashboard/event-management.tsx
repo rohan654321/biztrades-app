@@ -17,7 +17,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { useSession } from "next-auth/react"
 import { apiFetch } from "@/lib/api"
 import {
   Download,
@@ -1358,7 +1357,6 @@ function EventList({
 
 // Main Component
 export default function EventManagement() {
-  const { data: session } = useSession()
   const [events, setEvents] = useState<Event[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)

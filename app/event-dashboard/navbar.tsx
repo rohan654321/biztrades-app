@@ -4,7 +4,6 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { ChevronDown, User, LogOut, Settings } from "lucide-react";
-import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { isAuthenticated, getCurrentUserRole, clearTokens } from "@/lib/api";
 import {
