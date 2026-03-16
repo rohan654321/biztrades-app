@@ -259,7 +259,9 @@ export default function OrganizerDashboardSimplified({ organizerId }: OrganizerD
         },
         {
           title: "Total Attendees",
-          value: `${(organizerData.totalAttendees / 1000).toFixed(1)}K`,
+          value: organizerData.totalAttendees >= 1000
+            ? `${(organizerData.totalAttendees / 1000).toFixed(1)}K`
+            : organizerData.totalAttendees.toString(),
           change: "+18%",
           trend: "up" as const,
           icon: User,

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { UserPlus, UserCheck } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import { apiFetch } from "@/lib/api"
 
 interface FollowButtonProps {
   userId: string
@@ -17,15 +18,17 @@ export function FollowButton({ userId, currentUserId, variant = "default", size 
   const [isLoading, setIsLoading] = useState(false)
   const { toast } = useToast()
 
-  // Check if already following on mount
+  // Check if already following on mount (backend)
   useEffect(() => {
     const checkFollowStatus = async () => {
       try {
-        const response = await fetch(`/api/follow/${userId}?currentUserId=${currentUserId}`)
-        const data = await response.json()
-        setIsFollowing(data.isFollowing)
+        const data = await apiFetch<{ isFollowing?: boolean }>(
+          `/api/follow/${userId}${currentUserId ? `?currentUserId=${currentUserId}` : ""}`,
+          { auth: !!currentUserId }
+        )
+        setIsFollowing(!!data?.isFollowing)
       } catch (error) {
-        console.error("[v0] Error checking follow status:", error)
+        console.error("[FollowButton] Error checking follow status:", error)
       }
     }
 
@@ -48,34 +51,14 @@ export function FollowButton({ userId, currentUserId, variant = "default", size 
 
     try {
       if (isFollowing) {
-        // Unfollow
-        const response = await fetch(`/api/follow/${userId}?currentUserId=${currentUserId}`, {
-          method: "DELETE",
-        })
-
-        if (!response.ok) {
-          throw new Error("Failed to unfollow")
-        }
-
+        await apiFetch(`/api/follow/${userId}`, { method: "DELETE", auth: true })
         setIsFollowing(false)
         toast({
           title: "Unfollowed",
           description: "You have unfollowed this exhibitor",
         })
       } else {
-        // Follow
-        const response = await fetch(`/api/follow/${userId}`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ currentUserId }),
-        })
-
-        if (!response.ok) {
-          throw new Error("Failed to follow")
-        }
-
+        await apiFetch(`/api/follow/${userId}`, { method: "POST", auth: true })
         setIsFollowing(true)
         toast({
           title: "Following",
@@ -83,7 +66,7 @@ export function FollowButton({ userId, currentUserId, variant = "default", size 
         })
       }
     } catch (error) {
-      console.error("[v0] Error toggling follow:", error)
+      console.error("[FollowButton] Error toggling follow:", error)
       toast({
         title: "Error",
         description: "Failed to update follow status",

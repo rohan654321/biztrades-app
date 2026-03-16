@@ -28,7 +28,7 @@ import Link from "next/link"
 import AdCard from "@/components/add-card"
 import { useToast } from "@/hooks/use-toast"
 import { ShareButton } from "@/components/share-button"
-import { isAuthenticated, getCurrentUserId } from "@/lib/api"
+import { isAuthenticated, getCurrentUserId, apiFetch } from "@/lib/api"
 import { BookmarkButton } from "@/components/bookmark-button"
 
 // Use Next.js API (same-origin) to avoid CORS; API route proxies to backend when needed
@@ -446,30 +446,15 @@ export default function EventsPageContent() {
     }
 
     try {
-      const response = await fetch(`/api/event/${eventId}/leads`, {
+      await apiFetch(`/api/events/${eventId}/leads`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type: "attendee", userId, eventId }),
+        body: { type: "attendee", eventId },
+        auth: true,
       })
-
-      if (response.ok) {
-        try {
-          alert(`Thanks for visiting "${eventTitle}"!`)
-        } catch {
-          toast({
-            title: "Visit recorded",
-            description: `Thanks for visiting "${eventTitle}".`,
-          })
-        }
-      } else {
-        const problemText = await response.text().catch(() => "")
-        console.error("[v0] Visit lead failed:", response.status, problemText)
-        toast({
-          title: "Error",
-          description: "Failed to record your interest. Your local visit counter was still updated.",
-          variant: "destructive",
-        })
-      }
+      toast({
+        title: "Visit recorded",
+        description: `Thanks for visiting "${eventTitle}".`,
+      })
     } catch (error) {
       console.error("[v0] Visit lead error:", error)
       toast({

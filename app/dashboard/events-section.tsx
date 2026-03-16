@@ -277,7 +277,7 @@ export function EventsSection({ userId }: EventsSectionProps) {
 
   /* ---------- Render ---------- */
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 min-w-0 overflow-hidden">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold text-gray-900">My Interested Events</h1>
         <Button onClick={() => router.push("/event")} className="flex items-center gap-2">
@@ -373,7 +373,7 @@ export function EventsSection({ userId }: EventsSectionProps) {
       <Tabs defaultValue="all" className="w-full">
         <TabsContent value="all" className="space-y-8">
           {filteredEvents.length > 0 ? (
-            <div className="relative border-l-2 border-gray-200 ml-6">
+            <div className="relative border-l-2 border-gray-200 ml-6 min-w-0">
               {filteredEvents.map((event) => {
                 const defaultImage = DEFAULT_IMAGE
                 const role = roleBadgeProps(event.leadType)
@@ -393,7 +393,7 @@ export function EventsSection({ userId }: EventsSectionProps) {
                     {/* Event Card */}
                     <div
                       onClick={() => router.push(`/event/${event.id}`)}
-                      className="flex w-full border border-gray-200 bg-white rounded-lg hover:shadow-md transition-shadow overflow-hidden cursor-pointer"
+                      className="flex w-full min-w-0 border border-gray-200 bg-white rounded-lg hover:shadow-md transition-shadow overflow-hidden cursor-pointer"
                     >
                       {/* Left Image Section - Keep exact same styling */}
                       <div className="w-40 h-32 flex-shrink-0">
@@ -409,8 +409,8 @@ export function EventsSection({ userId }: EventsSectionProps) {
                       </div>
 
                       {/* Main Content Section */}
-                      <div className="flex-1 p-6">
-                        <div className="flex justify-between items-start">
+                      <div className="flex-1 p-6 min-w-0">
+                        <div className="flex justify-between items-start min-w-0">
                           {/* Left Content */}
                           <div className="flex-1 min-w-0">
                             {/* Category Badge */}
@@ -435,19 +435,10 @@ export function EventsSection({ userId }: EventsSectionProps) {
 
                               {/* Location and Date - Fixed width with proper wrapping */}
                               <div className="flex flex-col gap-4 text-sm text-gray-500 ml-4 min-w-[200px] max-w-[250px]">
-                                <div className="flex items-start min-w-0">
+                                <div className="flex items-start min-w-0 overflow-hidden">
                                   <MapPin className="w-4 h-4 mr-2 flex-shrink-0 mt-0.5" />
-                                  <span
-                                    className="
-    leading-relaxed 
-    break-all 
-    whitespace-pre-line 
-    line-clamp-1
-  "
-                                  >
-                                    {event.address
-                                      ? event.address.replace(/(.{12})/g, "$1\n")
-                                      : "Location TBD"}
+                                  <span className="truncate block" title={event.address || event.location || (event.city && event.state ? `${event.city}, ${event.state}` : "Location TBD")}>
+                                    {event.address || event.location || (event.city && event.state ? `${event.city}, ${event.state}` : "Location TBD")}
                                   </span>
                                 </div>
 

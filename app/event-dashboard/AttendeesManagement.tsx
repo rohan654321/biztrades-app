@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { apiFetch } from "@/lib/api"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -60,20 +61,18 @@ export default function AttendeesManagement({ eventId }: AttendeesManagementProp
   const fetchAttendees = async () => {
     try {
       setLoading(true)
-      console.log("[v0] Fetching attendees for event:", eventId)
-
-      const response = await fetch(`/api/events/${eventId}/attendees`)
-      if (!response.ok) throw new Error("Failed to fetch attendees")
-
-      const data = await response.json()
-      console.log("[v0] API Response:", data)
-
-      if (data.success && data.attendeeLeads) {
-        const transformedAttendees = data.attendeeLeads.map((lead: any) => ({
+      const data = await apiFetch<{ success?: boolean; attendeeLeads?: any[] }>(
+        `/api/events/${eventId}/attendees`,
+        { auth: true }
+      )
+      const list = Array.isArray(data?.attendeeLeads) ? data.attendeeLeads : []
+      const transformedAttendees = list
+        .filter((lead: any) => lead?.user && lead?.event)
+        .map((lead: any) => ({
           id: lead.id,
-          firstName: lead.user.firstName,
-          lastName: lead.user.lastName,
-          email: lead.user.email,
+          firstName: lead.user.firstName ?? "",
+          lastName: lead.user.lastName ?? "",
+          email: lead.user.email ?? "",
           phone: lead.user.phone,
           company: lead.user.company,
           jobTitle: lead.user.jobTitle,
@@ -82,26 +81,20 @@ export default function AttendeesManagement({ eventId }: AttendeesManagementProp
             id: lead.event.id,
             title: lead.event.title,
             startDate: lead.event.startDate,
-            images: lead.event.images,
+            images: lead.event.images ?? [],
           },
           registration: {
             id: lead.id,
-            status: lead.status,
+            status: lead.status ?? "NEW",
             ticketType: lead.notes || "General Admission",
             quantity: 1,
             totalAmount: 0,
-            registeredAt: lead.createdAt,
+            registeredAt: lead.createdAt ?? new Date().toISOString(),
           },
         }))
-
-        console.log("[v0] Transformed attendees:", transformedAttendees.length, "records")
-        setAttendees(transformedAttendees)
-
-        if (transformedAttendees.length > 0 && transformedAttendees[0].event) {
-          fetchOrganizerData(transformedAttendees[0].event.id)
-        }
-      } else {
-        throw new Error(data.error || "No attendees found")
+      setAttendees(transformedAttendees)
+      if (transformedAttendees.length > 0 && transformedAttendees[0].event) {
+        fetchOrganizerData(transformedAttendees[0].event.id)
       }
     } catch (error) {
       console.error("Error fetching attendees:", error)

@@ -239,6 +239,9 @@ export default function VenueProfile({ venueData }: VenueProfileProps) {
 
       if (data.success) {
         setProfileData(data.venue)
+        if (Array.isArray(data.venue?.meetingSpaces)) {
+          setMeetingSpaces(data.venue.meetingSpaces)
+        }
         setIsEditing(false)
         toast({
           title: "Success",

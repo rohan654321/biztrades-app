@@ -79,20 +79,13 @@ export function UserDashboard({ userId }: UserDashboardProps) {
     try {
       setLoading(true)
       setError(null)
-      const res = await fetch(`/api/users/${userId}`)
-      
-      if (!res.ok) {
-        throw new Error(`Failed to load user: ${res.status}`)
-      }
-      
-      const data = await res.json()
-      
-      if (!data.user) {
+      const data = await apiFetch<{ user?: UserData; data?: UserData }>(`/api/users/${userId}`, { auth: false })
+      const user = data?.user ?? data?.data
+      if (!user) {
         throw new Error("User data not found")
       }
-      
-      setUserData(data.user)
-      setUserInterests(data.user.interests || [])
+      setUserData(user as UserData)
+      setUserInterests((user as UserData).interests || [])
     } catch (err) {
       console.error("Error fetching user data:", err)
       setError(err instanceof Error ? err.message : "Error loading user data")

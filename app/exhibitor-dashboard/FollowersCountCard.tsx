@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
+import { apiFetch } from "@/lib/api"
 
 interface FollowersCountCardProps {
   exhibitorId: string
 }
 
+/** Leads = people who clicked Follow on this exhibitor or Connect (connection request). */
 export function FollowersCountCard({ exhibitorId }: FollowersCountCardProps) {
   const [count, setCount] = useState<number | null>(null)
   const [loading, setLoading] = useState(true)
@@ -13,21 +14,22 @@ export function FollowersCountCard({ exhibitorId }: FollowersCountCardProps) {
   useEffect(() => {
     if (!exhibitorId) return
 
-    const fetchFollowers = async () => {
+    const fetchLeadsCount = async () => {
       try {
-        const res = await fetch(`/api/follow/followers/${exhibitorId}`)
-        const data = await res.json()
-        // Assuming the API returns an array of followers
-        setCount(data?.length || 0)
+        const data = await apiFetch<{ count?: number; totalLeads?: number }>(
+          `/api/exhibitors/${exhibitorId}/leads-count`,
+          { auth: true }
+        )
+        setCount(Number(data?.count ?? data?.totalLeads ?? 0))
       } catch (err) {
-        console.error("Failed to fetch followers:", err)
+        console.error("Failed to fetch leads count:", err)
         setCount(0)
       } finally {
         setLoading(false)
       }
     }
 
-    fetchFollowers()
+    fetchLeadsCount()
   }, [exhibitorId])
 
   if (loading) {
@@ -35,9 +37,6 @@ export function FollowersCountCard({ exhibitorId }: FollowersCountCardProps) {
   }
 
   return (
-    <div>
-      
-      <CardContent className="text-2xl font-bold text-gray-900">{count}</CardContent>
-    </div>
+    <div className="text-2xl font-bold text-gray-900">{count}</div>
   )
 }

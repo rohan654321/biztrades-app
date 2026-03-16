@@ -30,27 +30,19 @@ export function SavedEvents({ userId }: { userId?: string }) {
   }, [targetUserId])
 
   const fetchSavedEvents = async () => {
+    if (!targetUserId) return
     try {
       setLoading(true)
-      console.log("[v0] Fetching saved events for userId:", targetUserId)
-      console.log("[v0] Current user ID:", targetUserId)
-
-      const response = await fetch(`/api/users/${targetUserId}/saved-events`)
-
-      if (response.status === 403) {
-        console.error("[v0] 403 Forbidden: You can only view your own saved events")
-        throw new Error("You can only view your own saved events")
+      const data = await apiFetch<{ events?: Event[]; data?: Event[] }>(
+        `/api/users/${targetUserId}/saved-events`,
+        { auth: true }
+      )
+      setEvents(data.events ?? data.data ?? [])
+    } catch (err: any) {
+      if (err?.message?.includes("403") || err?.message?.includes("Forbidden") || err?.message?.includes("own saved")) {
+        setEvents([])
+        return
       }
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}))
-        console.error("[v0] API error:", response.status, errorData)
-        throw new Error(errorData.error || "Failed to fetch saved events")
-      }
-
-      const data = await response.json()
-      setEvents(data.events || [])
-    } catch (err) {
       console.error("Error fetching saved events:", err)
       setEvents([])
     } finally {

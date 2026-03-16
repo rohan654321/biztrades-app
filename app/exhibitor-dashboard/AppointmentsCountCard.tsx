@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
+import { apiFetch } from "@/lib/api"
 
 interface AppointmentsCountCardProps {
   exhibitorId: string
@@ -15,10 +16,11 @@ export function AppointmentsCountCard({ exhibitorId }: AppointmentsCountCardProp
 
     const fetchAppointments = async () => {
       try {
-        const res = await fetch(`/api/appointments?exhibitorId=${exhibitorId}`)
-        const data = await res.json()
-        // Assuming API returns an array of appointments
-        setCount(data?.length || 0)
+        const data = await apiFetch<{ appointments?: unknown[]; total?: number }>(
+          `/api/appointments?exhibitorId=${encodeURIComponent(exhibitorId)}`,
+          { auth: true }
+        )
+        setCount(Array.isArray(data?.appointments) ? data.appointments.length : (data?.total ?? 0))
       } catch (err) {
         console.error("Failed to fetch appointments:", err)
         setCount(0)

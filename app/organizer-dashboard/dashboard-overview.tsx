@@ -1,10 +1,11 @@
 "use client"
 
+import { useState, useEffect } from "react"
+import { apiFetch } from "@/lib/api"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Plus, Users, BarChart3, MessageSquare, TrendingUp, TrendingDown, Calendar, Loader2 } from "lucide-react"
-import { useState, useEffect } from "react"
 
 interface DashboardStats {
   title: string
@@ -63,21 +64,28 @@ export default function DashboardOverview({
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  // Fetch total attendees data
+  // Fetch total attendees data from backend (all events attendee leads count)
   useEffect(() => {
     const fetchAttendeeStats = async () => {
       try {
         setLoading(true)
-        const response = await fetch(`/api/organizers/${organizerId}/total-attendees`)
-        
-        if (!response.ok) throw new Error("Failed to fetch attendee statistics")
-        
-        const data = await response.json()
-        
-        if (data.success) {
-          setAttendeeStats(data)
-        } else {
-          throw new Error(data.error || "Failed to fetch data")
+        const data = await apiFetch<OrganizerAttendeeStats & { success?: boolean }>(
+          `/api/organizers/${organizerId}/total-attendees`,
+          { auth: true }
+        )
+        if (data && (data.success !== false)) {
+          setAttendeeStats({
+            totalAttendees: data.totalAttendees ?? 0,
+            eventsCount: data.eventsCount ?? 0,
+            statusCounts: data.statusCounts ?? {
+              NEW: 0,
+              CONTACTED: 0,
+              QUALIFIED: 0,
+              CONVERTED: 0,
+              FOLLOW_UP: 0,
+              REJECTED: 0,
+            },
+          })
         }
       } catch (err) {
         console.error("Error fetching attendee stats:", err)
