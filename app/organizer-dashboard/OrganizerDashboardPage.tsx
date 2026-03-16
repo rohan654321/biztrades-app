@@ -43,6 +43,8 @@ interface OrganizerDashboardPageProps {
 interface OrganizerData {
   id: string
   name: string
+  firstName: string
+  lastName: string
   email: string
   phone: string
   location: string
@@ -318,7 +320,9 @@ export default function OrganizerDashboardSimplified({ organizerId }: OrganizerD
         return (
           <OrganizerInfo
             organizerData={organizerData}
-            onOrganizerUpdated={(updated) => setOrganizerData(updated)}
+            onOrganizerUpdated={(updated) =>
+  setOrganizerData((prev) => (prev ? { ...prev, ...updated } : prev))
+}
           />
         )
       case "venue-booking":

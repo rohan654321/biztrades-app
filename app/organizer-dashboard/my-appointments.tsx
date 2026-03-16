@@ -388,7 +388,7 @@ const cancelAppointment = async (appointmentId: string) => {
               <div className="relative w-full md:w-1/3 h-48 bg-gray-100 flex items-center justify-center">
                 <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center">
                   <div className="text-2xl font-bold text-blue-600">
-                    {appointment.venue.firstName[0]?.toUpperCase() || "V"}
+                    {appointment.venue?.firstName[0]?.toUpperCase() || "V"}
                   </div>
                 </div>
                 <div className="absolute top-4 right-4 flex flex-col gap-2">
@@ -402,7 +402,7 @@ const cancelAppointment = async (appointmentId: string) => {
                   <div>
                     <h3 className="font-semibold text-xl line-clamp-1">{appointment.title}</h3>
                     <p className="text-sm text-gray-600 line-clamp-2">
-                      with {appointment.venue.firstName} {appointment.venue.lastName}
+                      with {appointment.venue?.firstName} {appointment.venue?.lastName}
                     </p>
                     <div className="flex flex-wrap gap-2 mt-2">
                       <Badge variant="outline">{getTypeLabel(appointment.type)}</Badge>
@@ -426,7 +426,7 @@ const cancelAppointment = async (appointmentId: string) => {
                     </div>
                     <div className="flex items-center gap-2">
                       <Mail className="w-4 h-4" />
-                      <span className="line-clamp-1">{appointment.venue.email}</span>
+                      <span className="line-clamp-1">{appointment.venue?.email || "No email"}</span>
                     </div>
                     {appointment.requesterPhone && (
                       <div className="flex items-center gap-2">
@@ -500,13 +500,13 @@ const cancelAppointment = async (appointmentId: string) => {
               <div className="flex items-center gap-4">
                 <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center">
                   <div className="text-xl font-bold text-blue-600">
-                    {selectedAppointment.venue.firstName[0]?.toUpperCase() || "V"}
+                    {selectedAppointment.venue?.firstName[0]?.toUpperCase() || "V"}
                   </div>
                 </div>
                 <div>
                   <h3 className="font-semibold text-lg">{selectedAppointment.title}</h3>
                   <p className="text-gray-600">
-                    with {selectedAppointment.venue.firstName} {selectedAppointment.venue.lastName}
+                    with {selectedAppointment.venue?.firstName} {selectedAppointment.venue?.lastName}
                   </p>
                   <div className="flex gap-2 mt-1">
                     <Badge variant={getStatusColor(selectedAppointment.status)}>
@@ -554,7 +554,7 @@ const cancelAppointment = async (appointmentId: string) => {
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span className="text-gray-600">Venue Email:</span>
-                      <span>{selectedAppointment.venue.email}</span>
+                      <span>{selectedAppointment.venue?.email}</span>
                     </div>
                     {selectedAppointment.requesterPhone && (
                       <div className="flex justify-between">
