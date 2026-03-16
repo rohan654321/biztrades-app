@@ -6,7 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Users, Plus, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useSession } from "next-auth/react";
+import { apiFetch, getCurrentUserId } from "@/lib/api";
 
 interface SavedEvent {
   _id: string;
@@ -49,26 +49,32 @@ export default function EventFollowers({ eventId }: EventFollowersProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [connectingUsers, setConnectingUsers] = useState<Set<string>>(new Set());
-  const { data: session } = useSession();
+  const userId = getCurrentUserId();
 
   useEffect(() => {
     async function fetchData() {
       try {
         setLoading(true);
-        
-        // Fetch followers
-        const followersResponse = await fetch(`/api/events/${eventId}/followers`);
-        if (!followersResponse.ok) throw new Error("Failed to fetch followers");
-        const followersData = await followersResponse.json();
+        const followersData = await apiFetch<{ followers?: SavedEvent[] }>(`/api/events/${eventId}/followers`, { auth: false });
         setFollowers(followersData.followers || []);
 
-        // Fetch current user's connections if logged in
-        if (session?.user?.id) {
-          const connectionsResponse = await fetch(`/api/users/${session.user.id}/connections`);
-          if (connectionsResponse.ok) {
-            const connectionsData = await connectionsResponse.json();
-            setConnections(connectionsData.connections || []);
-          }
+        if (userId) {
+          const [listRes, requestsRes] = await Promise.all([
+            apiFetch<{ connections?: Connection[] }>("/api/connections", { auth: true }),
+            apiFetch<{ connections?: Connection[] }>("/api/connections/requests", { auth: true }),
+          ]);
+          const list = listRes.connections || [];
+          const requests = requestsRes.connections || [];
+          const merged: Connection[] = list.map((c) => ({
+            ...c,
+            status: c.status as Connection["status"],
+            isOutgoing: c.status === "pending",
+          }));
+          requests.forEach((r) => {
+            if (!merged.some((m) => m.id === r.id))
+              merged.push({ ...r, status: "request_received" as const, isOutgoing: false });
+          });
+          setConnections(merged);
         }
       } catch (err) {
         console.error("Error fetching data:", err);
@@ -79,39 +85,26 @@ export default function EventFollowers({ eventId }: EventFollowersProps) {
     }
 
     if (eventId) fetchData();
-  }, [eventId, session]);
+  }, [eventId, userId]);
 
   const handleConnect = async (follower: SavedEvent) => {
-    if (!session?.user?.id) {
+    if (!userId) {
       alert("Please log in to connect with users");
       return;
     }
 
-    const targetUserId = follower.user?.id || follower.userId;
-    
+    const targetUserId = follower.user?.id || (follower as any).userId;
+    if (!targetUserId) return;
+
     try {
       setConnectingUsers(prev => new Set(prev).add(targetUserId));
-      
-      // Make API call to create connection
-      const response = await fetch(`/api/users/${session.user.id}/connections`, {
+      const result = await apiFetch<{ connection?: { id: string; connectionId?: string } }>("/api/connections/request", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          receiverId: targetUserId,
-          message: `I'd like to connect with you regarding the event`
-        })
+        body: { receiverId: targetUserId },
+        auth: true,
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to send connection request");
-      }
-
-      const result = await response.json();
-      
-      // Update connections state
+      const conn = result?.connection;
       setConnections(prev => [...prev, {
         id: targetUserId,
         firstName: follower.user?.firstName || "",
@@ -120,10 +113,9 @@ export default function EventFollowers({ eventId }: EventFollowersProps) {
         company: follower.user?.company,
         avatar: follower.user?.avatar,
         status: "pending",
-        connectionId: result.connection?.id,
-        isOutgoing: true
+        connectionId: conn?.connectionId ?? conn?.id,
+        isOutgoing: true,
       }]);
-
     } catch (err) {
       console.error("Error sending connection request:", err);
       alert(err instanceof Error ? err.message : "Failed to send connection request");
@@ -137,28 +129,12 @@ export default function EventFollowers({ eventId }: EventFollowersProps) {
   };
 
   const handleCancelRequest = async (connectionId: string, targetUserId: string) => {
-    if (!session?.user?.id) return;
+    if (!userId) return;
 
     try {
       setConnectingUsers(prev => new Set(prev).add(targetUserId));
-      
-      const response = await fetch(`/api/users/${session.user.id}/connections/${connectionId}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          action: "cancel"
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to cancel connection request");
-      }
-
-      // Remove from connections
-      setConnections(prev => prev.filter(conn => conn.connectionId !== connectionId));
-
+      await apiFetch(`/api/connections/${connectionId}`, { method: "DELETE", auth: true });
+      setConnections(prev => prev.filter(conn => conn.connectionId !== connectionId && conn.id !== targetUserId));
     } catch (err) {
       console.error("Error canceling connection request:", err);
       alert("Failed to cancel connection request");
@@ -255,10 +231,10 @@ export default function EventFollowers({ eventId }: EventFollowersProps) {
               const targetUserId = follower.user?.id || follower.userId;
               const connection = getConnectionStatus(targetUserId);
               const isConnecting = connectingUsers.has(targetUserId);
-              const isCurrentUser = session?.user?.id === targetUserId;
+              const isCurrentUser = userId === targetUserId;
 
               // Create a unique key by combining _id with index
-              const uniqueKey = `${follower._id}-${index}-${targetUserId}`;
+              const uniqueKey = `${(follower as any).id ?? follower._id}-${index}-${targetUserId}`;
 
               return (
                 <div
@@ -309,7 +285,7 @@ export default function EventFollowers({ eventId }: EventFollowersProps) {
                             size="sm"
                             variant="outline"
                             className="w-full text-orange-600 border-orange-200 bg-orange-50 hover:bg-orange-100"
-                            onClick={() => handleCancelRequest(connection.connectionId!, targetUserId)}
+                            onClick={() => connection.connectionId && handleCancelRequest(connection.connectionId, targetUserId)}
                             disabled={isConnecting}
                           >
                             {isConnecting ? "Canceling..." : "Cancel Request"}
@@ -323,15 +299,39 @@ export default function EventFollowers({ eventId }: EventFollowersProps) {
                           >
                             Respond to Request
                           </Button>
-                        ) : null
+                        ) : (
+                          <Button
+                            size="sm"
+                            className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
+                            onClick={() => handleConnect(follower)}
+                            disabled={isConnecting || !targetUserId}
+                          >
+                            {isConnecting ? (
+                              <>
+                                <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
+                                Connecting...
+                              </>
+                            ) : (
+                              <>
+                                <Plus className="w-4 h-4" />
+                                Connect
+                              </>
+                            )}
+                          </Button>
+                        )
                       ) : (
                         <Button
                           size="sm"
                           className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
-                          onClick={() => handleConnect(follower)}
-                          disabled={isConnecting}
+                          onClick={() => (userId ? handleConnect(follower) : (window.location.href = "/login"))}
+                          disabled={isConnecting || !targetUserId}
                         >
-                          {isConnecting ? (
+                          {!userId ? (
+                            <>
+                              <Plus className="w-4 h-4" />
+                              Log in to connect
+                            </>
+                          ) : isConnecting ? (
                             <>
                               <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
                               Connecting...

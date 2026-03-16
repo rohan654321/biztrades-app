@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { useSession } from "next-auth/react"
+import { getCurrentUserId, isAuthenticated } from "@/lib/api"
 import Image from "next/image"
 import {
   MapPin,
@@ -169,7 +169,7 @@ function ReviewCard({ review, exhibitorId, onReplyAdded }: {
   const [showReplyForm, setShowReplyForm] = useState(false)
   const [replyContent, setReplyContent] = useState("")
   const [isSubmittingReply, setIsSubmittingReply] = useState(false)
-  const { data: session } = useSession()
+  const isLoggedIn = isAuthenticated()
 
   const handleSubmitReply = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -180,6 +180,7 @@ function ReviewCard({ review, exhibitorId, onReplyAdded }: {
       await apiFetch(`/api/exhibitors/${exhibitorId}/reviews/${review.id}/replies`, {
         method: "POST",
         body: { content: replyContent },
+        auth: true,
       })
       const newReply: ReviewReply = {
         id: crypto.randomUUID(),
@@ -212,14 +213,14 @@ function ReviewCard({ review, exhibitorId, onReplyAdded }: {
               />
             ) : (
               <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center">
-                <span className="text-sm font-medium">
-                  {review.user.firstName?.[0]}{review.user.lastName?.[0]}
-                </span>
+                  <span className="text-sm font-medium">
+                        {([review.user?.firstName?.[0], review.user?.lastName?.[0]].filter(Boolean).join("") || "G").toUpperCase()}
+                      </span>
               </div>
             )}
             <div>
               <h4 className="font-medium">
-                {review.user.firstName} {review.user.lastName}
+                {[review.user?.firstName, review.user?.lastName].filter(Boolean).join(" ").trim() || "Guest"}
               </h4>
               <p className="text-sm text-gray-500">
                 {format(new Date(review.createdAt), 'MMM dd, yyyy')}
@@ -264,7 +265,7 @@ function ReviewCard({ review, exhibitorId, onReplyAdded }: {
                   ) : (
                     <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
                       <span className="text-xs font-medium">
-                        {reply.user.firstName?.[0]}{reply.user.lastName?.[0]}
+                        {([reply.user?.firstName?.[0], reply.user?.lastName?.[0]].filter(Boolean).join("") || "G").toUpperCase()}
                       </span>
                     </div>
                   )}
@@ -272,7 +273,7 @@ function ReviewCard({ review, exhibitorId, onReplyAdded }: {
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
                     <span className="font-medium text-sm">
-                      {reply.user.firstName} {reply.user.lastName}
+                      {[reply.user?.firstName, reply.user?.lastName].filter(Boolean).join(" ").trim() || "Guest"}
                     </span>
                     {reply.isOrganizerReply && (
                       <Badge variant="secondary" className="text-xs">
@@ -291,7 +292,7 @@ function ReviewCard({ review, exhibitorId, onReplyAdded }: {
         )}
 
         {/* Reply Button and Form */}
-        {session?.user && (
+        {isLoggedIn && (
           <div className="mt-4">
             {!showReplyForm ? (
               <Button
@@ -490,7 +491,7 @@ export default function ExhibitorPage() {
   const router = useRouter()
   const exhibitorId = params.id as string
 
-  const { data: session } = useSession()
+  const userId = getCurrentUserId()
 
   const [activeTab, setActiveTab] = useState("overview")
   const [eventsTab, setEventsTab] = useState("upcoming")
@@ -846,11 +847,11 @@ export default function ExhibitorPage() {
 
             {/* Action Buttons */}
             <div className="flex flex-col gap-3">
-              <div className="space-x-3">
-                <Button className="bg-white text-blue-600 hover:bg-blue-50">
-                  <Heart className="w-4 h-4 mr-2" />
-                  <FollowButton userId={exhibitor.id} currentUserId={session?.user.id} variant="default" size="default" />
-                </Button>
+              <div className="flex items-center gap-3">
+                <div className="inline-flex items-center gap-2 rounded-md bg-white text-blue-600 hover:bg-blue-50 px-4 py-2">
+                  <Heart className="w-4 h-4" />
+                  <FollowButton userId={exhibitor.id} currentUserId={userId ?? undefined} variant="default" size="default" />
+                </div>
                 <Button
                   variant="outline"
                   className="border-white text-white hover:bg-white hover:text-blue-600 bg-transparent"

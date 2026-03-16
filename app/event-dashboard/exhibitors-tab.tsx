@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Loader2 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
-import { useSession } from "next-auth/react"
+import { getCurrentUserId } from "@/lib/api"
 import { useRouter } from "next/navigation"
 import { apiFetch } from "@/lib/api"
 
@@ -38,7 +38,7 @@ export default function ExhibitorsTab({ eventId }: ExhibitorsTabProps) {
   const [error, setError] = useState<string | null>(null)
   const [deleting, setDeleting] = useState<string | null>(null)
   const { toast } = useToast()
-  const { data: session } = useSession()
+  const userId = getCurrentUserId()
   const router = useRouter()
 
   useEffect(() => {

@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from "react"
 import type { Event } from "./events-section"
-import { useSession } from "next-auth/react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { CalendarIcon, MapPin } from "lucide-react"
 import type { TicketType } from "@prisma/client"
+import { apiFetch, getCurrentUserId } from "@/lib/api"
 
 /* ---------- Helpers (same as EventsSection) ---------- */
 const DEFAULT_IMAGE = "/image/download2.jpg"
@@ -19,11 +19,10 @@ const formatDate = (dateString: string) =>
   })
 
 export function SavedEvents({ userId }: { userId?: string }) {
-  const { data: session } = useSession()
   const [events, setEvents] = useState<Event[]>([])
   const [loading, setLoading] = useState(true)
 
-  const targetUserId = userId || session?.user?.id
+  const targetUserId = userId || (typeof window !== "undefined" ? getCurrentUserId() : null)
 
   useEffect(() => {
     if (!targetUserId) return
@@ -34,7 +33,7 @@ export function SavedEvents({ userId }: { userId?: string }) {
     try {
       setLoading(true)
       console.log("[v0] Fetching saved events for userId:", targetUserId)
-      console.log("[v0] Current session user ID:", session?.user?.id)
+      console.log("[v0] Current user ID:", targetUserId)
 
       const response = await fetch(`/api/users/${targetUserId}/saved-events`)
 

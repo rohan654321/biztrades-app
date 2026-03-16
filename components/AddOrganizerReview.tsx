@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast"
-import { useSession } from "next-auth/react"
+import { isAuthenticated, apiFetch } from "@/lib/api"
 import { Star, Loader2 } from "lucide-react"
 
 interface ReviewReply {
@@ -55,12 +55,11 @@ export function AddOrganizerReview({ organizerId, onReviewAdded }: AddOrganizerR
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [hoveredRating, setHoveredRating] = useState(0)
   const { toast } = useToast()
-  const { data: session } = useSession()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!session?.user) {
+    if (!isAuthenticated()) {
       toast({
         title: "Authentication Required",
         description: "Please log in to submit a review.",
@@ -90,24 +89,15 @@ export function AddOrganizerReview({ organizerId, onReviewAdded }: AddOrganizerR
     try {
       setIsSubmitting(true)
 
-      const response = await fetch(`/api/organizers/${organizerId}/reviews`, {
+      const reviewData = await apiFetch<Review>(`/api/organizers/${organizerId}/reviews`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
+        body: {
           rating,
           title: title.trim() || null,
           comment: comment.trim(),
-        }),
+        },
+        auth: true,
       })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || "Failed to submit review")
-      }
-
-      const reviewData = await response.json()
 
       if (!reviewData || typeof reviewData.rating !== "number" || !reviewData.user) {
         console.error("[v0] Invalid review data received:", reviewData)

@@ -7,8 +7,8 @@ import { Star, Calendar, Reply, Send } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { useState } from "react"
-import { useSession } from "next-auth/react"
 import { useToast } from "@/hooks/use-toast"
+import { getCurrentUserId, isAuthenticated, apiFetch } from "@/lib/api"
 
 interface ReviewReply {
   id: string
@@ -53,7 +53,7 @@ export function ReviewCard({ review, organizerId, onReplyAdded, hideReplyButton 
   const [showReplyForm, setShowReplyForm] = useState(false)
   const [replyContent, setReplyContent] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const { data: session } = useSession()
+  const userId = getCurrentUserId()
   const { toast } = useToast()
 
   const formatDate = (dateString: string) => {
@@ -80,7 +80,7 @@ export function ReviewCard({ review, organizerId, onReplyAdded, hideReplyButton 
   }
 
   const handleSubmitReply = async () => {
-    if (!session?.user) {
+    if (!isAuthenticated() || !userId) {
       toast({
         title: "Authentication Required",
         description: "Please log in to submit a reply.",
@@ -101,22 +101,11 @@ export function ReviewCard({ review, organizerId, onReplyAdded, hideReplyButton 
     try {
       setIsSubmitting(true)
 
-      const response = await fetch(`/api/organizers/${organizerId}/reviews/${review.id}/replies`, {
+      const replyData = await apiFetch<ReviewReply>(`/api/reviews/${review.id}/replies`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          content: replyContent.trim(),
-        }),
+        body: { content: replyContent.trim() },
+        auth: true,
       })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || "Failed to submit reply")
-      }
-
-      const replyData = await response.json()
 
       if (onReplyAdded) {
         onReplyAdded(review.id, replyData)
@@ -141,7 +130,7 @@ export function ReviewCard({ review, organizerId, onReplyAdded, hideReplyButton 
     }
   }
 
-  const isOrganizer = session?.user?.id === organizerId
+  const isOrganizer = userId === organizerId
 
   // Handle null user
   if (!review.user) {
@@ -204,7 +193,7 @@ export function ReviewCard({ review, organizerId, onReplyAdded, hideReplyButton 
             <p className="text-gray-600 leading-relaxed">{review.comment}</p>
 
             {/* Reply Button */}
-            {!hideReplyButton && (isOrganizer || session?.user) && (
+            {!hideReplyButton && (isOrganizer || userId) && (
               <div className="flex items-center justify-between pt-2">
                 <Button
                   variant="ghost"
