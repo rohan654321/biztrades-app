@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Users, UserPlus, UserMinus } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import { apiFetch } from "@/lib/api"
 
 interface FollowUser {
   id: string
@@ -34,24 +35,19 @@ export function FollowManagement({ userId }: FollowManagementProps) {
   }, [userId])
 
   const fetchFollowData = async () => {
+    if (!userId) return
     try {
       setLoading(true)
 
-      // Fetch followers
-      const followersRes = await fetch(`/api/follow/followers/${userId}`)
-      const followersData = await followersRes.json()
+      const [followersData, followingData, statsData] = await Promise.all([
+        apiFetch<{ success?: boolean; followers?: FollowUser[] }>(`/api/follow/followers/${userId}`, { auth: true }).catch(() => ({ success: false, followers: [] })),
+        apiFetch<{ success?: boolean; following?: FollowUser[] }>(`/api/follow/following/${userId}`, { auth: true }).catch(() => ({ success: false, following: [] })),
+        apiFetch<{ success?: boolean; stats?: { followersCount: number; followingCount: number } }>(`/api/follow/stats/${userId}`, { auth: true }).catch(() => ({ success: false, stats: { followersCount: 0, followingCount: 0 } })),
+      ])
 
-      // Fetch following
-      const followingRes = await fetch(`/api/follow/following/${userId}`)
-      const followingData = await followingRes.json()
-
-      // Fetch stats
-      const statsRes = await fetch(`/api/follow/stats/${userId}`)
-      const statsData = await statsRes.json()
-
-      if (followersData.success) setFollowers(followersData.followers)
-      if (followingData.success) setFollowing(followingData.following)
-      if (statsData.success) setStats(statsData.stats)
+      if (followersData?.success && Array.isArray(followersData.followers)) setFollowers(followersData.followers)
+      if (followingData?.success && Array.isArray(followingData.following)) setFollowing(followingData.following)
+      if (statsData?.success && statsData.stats) setStats(statsData.stats)
     } catch (error) {
       console.error("Error fetching follow data:", error)
       toast({
@@ -66,20 +62,15 @@ export function FollowManagement({ userId }: FollowManagementProps) {
 
   const handleUnfollow = async (targetUserId: string) => {
     try {
-      const res = await fetch(`/api/follow/${targetUserId}`, {
+      await apiFetch(`/api/follow/${targetUserId}`, {
         method: "DELETE",
+        auth: true,
       })
-      const data = await res.json()
-
-      if (data.success) {
-        toast({
-          title: "Success",
-          description: "Unfollowed successfully",
-        })
-        fetchFollowData()
-      } else {
-        throw new Error(data.error)
-      }
+      toast({
+        title: "Success",
+        description: "Unfollowed successfully",
+      })
+      fetchFollowData()
     } catch (error) {
       toast({
         title: "Error",
@@ -89,29 +80,12 @@ export function FollowManagement({ userId }: FollowManagementProps) {
     }
   }
 
-  const handleRemoveFollower = async (followerUserId: string) => {
-    try {
-      const res = await fetch(`/api/follow/remove-follower/${followerUserId}`, {
-        method: "DELETE",
-      })
-      const data = await res.json()
-
-      if (data.success) {
-        toast({
-          title: "Success",
-          description: "Follower removed successfully",
-        })
-        fetchFollowData()
-      } else {
-        throw new Error(data.error)
-      }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to remove follower",
-        variant: "destructive",
-      })
-    }
+  const handleRemoveFollower = async (_followerUserId: string) => {
+    toast({
+      title: "Not available",
+      description: "Remove follower is not supported yet.",
+      variant: "destructive",
+    })
   }
 
   if (loading) {
