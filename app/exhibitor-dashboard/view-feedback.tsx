@@ -103,7 +103,7 @@ export default function ViewFeedback({ exhibitorId }: { exhibitorId: string }) {
               </Avatar>
               <div>
                 <h3 className="font-medium">
-                  {review.user?.firstName ?? ""} {review.user?.lastName ?? ""}
+                  {[review.user?.firstName, review.user?.lastName].filter(Boolean).join(" ").trim() || "Anonymous"}
                 </h3>
                 <div className="flex items-center text-yellow-500">
                   {[...Array(5)].map((_, i) => (
@@ -130,7 +130,7 @@ export default function ViewFeedback({ exhibitorId }: { exhibitorId: string }) {
                   <div key={rep.id} className="pl-4 border-l-2 border-gray-200">
                     <p className="text-sm text-gray-800">
                       <span className="font-semibold">
-                        {rep.isOrganizerReply ? "You" : (rep.user?.firstName ?? "User")}
+                        {rep.isOrganizerReply ? "You" : ([rep.user?.firstName, rep.user?.lastName].filter(Boolean).join(" ").trim() || "Anonymous")}
                       </span>
                       : {rep.content}
                     </p>

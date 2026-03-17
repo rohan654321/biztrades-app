@@ -362,6 +362,7 @@ function AddReview({ exhibitorId, onReviewAdded }: { exhibitorId: string; onRevi
       const newReview = await apiFetch<Review>(`/api/exhibitors/${exhibitorId}/reviews`, {
         method: "POST",
         body: { rating, title, comment },
+        auth: true,
       })
       onReviewAdded(newReview)
       setShowSuccessMessage(true)

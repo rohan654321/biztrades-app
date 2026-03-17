@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -13,18 +13,25 @@ import { Label } from "@/components/ui/label"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useToast } from "@/hooks/use-toast"
 import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+} from "@/components/ui/pagination"
+import {
   Clock,
   CalendarIcon,
   CheckCircle,
   X,
-  Eye,
   Phone,
   Mail,
   Building,
   User,
   MapPin,
-  MessageSquare,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react"
+
+const PAGE_SIZE = 8
 
 interface AppointmentSchedulingProps {
   venueId: string
@@ -84,6 +91,7 @@ export default function AppointmentScheduling({ venueId, onCountChange }: Appoin
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [filterStatus, setFilterStatus] = useState("ALL")
+  const [currentPage, setCurrentPage] = useState(1)
 
   useEffect(() => {
     if (venueId && venueId !== "undefined") {
@@ -200,9 +208,22 @@ const updateAppointment = async (appointmentId: string, updates: Partial<Appoint
     }
   }
 
-  const filteredAppointments = appointments.filter(
-    (appointment) => filterStatus === "ALL" || appointment.status === filterStatus,
+  const filteredAppointments = useMemo(
+    () =>
+      appointments.filter(
+        (appointment) => filterStatus === "ALL" || appointment.status === filterStatus,
+      ),
+    [appointments, filterStatus],
   )
+
+  const totalPages = Math.max(1, Math.ceil(filteredAppointments.length / PAGE_SIZE))
+  const startIndex = (currentPage - 1) * PAGE_SIZE
+  const endIndex = Math.min(startIndex + PAGE_SIZE, filteredAppointments.length)
+  const paginatedAppointments = filteredAppointments.slice(startIndex, endIndex)
+
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [filterStatus])
 
   const AppointmentCard = ({ appointment }: { appointment: Appointment }) => (
     <Card className="hover:shadow-md transition-shadow">
@@ -495,9 +516,83 @@ const updateAppointment = async (appointmentId: string, updates: Partial<Appoint
         {/* Appointments List */}
         <div className="lg:col-span-2 space-y-4">
           {filteredAppointments.length > 0 ? (
-            filteredAppointments.map((appointment) => (
-              <AppointmentCard key={appointment.id} appointment={appointment} />
-            ))
+            <>
+              {paginatedAppointments.map((appointment) => (
+                <AppointmentCard key={appointment.id} appointment={appointment} />
+              ))}
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t">
+                  <p className="text-sm text-muted-foreground">
+                    Showing {startIndex + 1}–{endIndex} of {filteredAppointments.length} appointment
+                    {filteredAppointments.length !== 1 ? "s" : ""}
+                  </p>
+                  <Pagination>
+                    <PaginationContent className="gap-1">
+                      <PaginationItem>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-9 gap-1 pl-2.5 pr-2.5"
+                          onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                          disabled={currentPage <= 1}
+                        >
+                          <ChevronLeft className="h-4 w-4" />
+                          <span className="hidden sm:inline">Previous</span>
+                        </Button>
+                      </PaginationItem>
+                      {(() => {
+                        const pages: (number | "ellipsis")[] = []
+                        if (totalPages <= 5) {
+                          for (let i = 1; i <= totalPages; i++) pages.push(i)
+                        } else {
+                          pages.push(1)
+                          if (currentPage > 3) pages.push("ellipsis")
+                          const midStart = Math.max(2, currentPage - 1)
+                          const midEnd = Math.min(totalPages - 1, currentPage + 1)
+                          for (let i = midStart; i <= midEnd; i++) pages.push(i)
+                          if (currentPage < totalPages - 2) pages.push("ellipsis")
+                          if (totalPages > 1) pages.push(totalPages)
+                        }
+                        return pages.map((p) =>
+                          p === "ellipsis" ? (
+                            <PaginationItem key="ellipsis">
+                              <span className="flex h-9 w-9 items-center justify-center text-muted-foreground px-1">
+                                …
+                              </span>
+                            </PaginationItem>
+                          ) : (
+                            <PaginationItem key={p}>
+                              <Button
+                                variant={currentPage === p ? "default" : "outline"}
+                                size="icon"
+                                className="h-9 w-9"
+                                onClick={() => setCurrentPage(p)}
+                              >
+                                {p}
+                              </Button>
+                            </PaginationItem>
+                          ),
+                        )
+                      })()}
+                      <PaginationItem>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-9 gap-1 pl-2.5 pr-2.5"
+                          onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                          disabled={currentPage >= totalPages}
+                        >
+                          <span className="hidden sm:inline">Next</span>
+                          <ChevronRight className="h-4 w-4" />
+                        </Button>
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
+                </div>
+              )}
+            </>
           ) : (
             <Card>
               <CardContent className="p-12 text-center">

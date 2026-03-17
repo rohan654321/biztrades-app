@@ -28,7 +28,7 @@ import Link from "next/link"
 import AdCard from "@/components/add-card"
 import { useToast } from "@/hooks/use-toast"
 import { ShareButton } from "@/components/share-button"
-import { isAuthenticated, getCurrentUserId } from "@/lib/api"
+import { isAuthenticated, getCurrentUserId, apiFetch } from "@/lib/api"
 import { BookmarkButton } from "@/components/bookmark-button"
 
 // Use Next.js API (same-origin) to avoid CORS; API route proxies to backend when needed
@@ -370,6 +370,7 @@ export default function EventsPageContent() {
             venueCity: city,
             venueCountry: country,
           },
+          followersCount: typeof event.followersCount === "number" ? event.followersCount : 0,
           featured: event.tags?.includes("featured") || false,
           categories: categories,
           tags: event.tags || [],
@@ -446,30 +447,15 @@ export default function EventsPageContent() {
     }
 
     try {
-      const response = await fetch(`/api/event/${eventId}/leads`, {
+      await apiFetch(`/api/events/${eventId}/leads`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type: "attendee", userId, eventId }),
+        body: { type: "attendee", eventId },
+        auth: true,
       })
-
-      if (response.ok) {
-        try {
-          alert(`Thanks for visiting "${eventTitle}"!`)
-        } catch {
-          toast({
-            title: "Visit recorded",
-            description: `Thanks for visiting "${eventTitle}".`,
-          })
-        }
-      } else {
-        const problemText = await response.text().catch(() => "")
-        console.error("[v0] Visit lead failed:", response.status, problemText)
-        toast({
-          title: "Error",
-          description: "Failed to record your interest. Your local visit counter was still updated.",
-          variant: "destructive",
-        })
-      }
+      toast({
+        title: "Visit recorded",
+        description: `Thanks for visiting "${eventTitle}".`,
+      })
     } catch (error) {
       console.error("[v0] Visit lead error:", error)
       toast({
@@ -855,9 +841,12 @@ export default function EventsPageContent() {
   }
 
   const getFollowerCount = () => {
-    const total = filteredEvents.reduce((sum, ev) => sum + (visitorCounts[ev.id] || 0), 0)
-    if (total >= 1000) return `${Math.round(total / 1000)}K+ Followers`
-    return `${total}+ Followers`
+    const total = filteredEvents.reduce(
+      (sum, ev) => sum + (typeof (ev as any).followersCount === "number" ? (ev as any).followersCount : 0),
+      0
+    )
+    if (total >= 1000) return `${(total / 1000).toFixed(1).replace(/\.0$/, "")}K Followers`
+    return `${total} Followers`
   }
 
   const totalPages = Math.ceil(filteredEvents.length / itemsPerPage)
@@ -1474,9 +1463,9 @@ export default function EventsPageContent() {
       <span>Interested</span>
     </div>
 
-    {/* RIGHT: COUNT */}
+    {/* RIGHT: COUNT — only from backend (saved events), no dummy/localStorage data */}
     <div className="px-3 py-1 text-gray-900 bg-white border-l">
-      {visitorCounts[event.id] ?? 0}
+      {typeof (event as any).followersCount === "number" ? (event as any).followersCount : 0}
     </div>
   </div>
 </BookmarkButton>
@@ -1686,7 +1675,11 @@ export default function EventsPageContent() {
                 {/* Desktop View - Vertical List */}
                 <div className="hidden lg:block space-y-4">
                   {events
-                    .sort((a, b) => (visitorCounts[b.id] || 0) - (visitorCounts[a.id] || 0))
+                    .sort((a, b) => {
+                      const aCount = typeof (a as any).followersCount === "number" ? (a as any).followersCount : 0
+                      const bCount = typeof (b as any).followersCount === "number" ? (b as any).followersCount : 0
+                      return bCount - aCount
+                    })
                     .slice(0, 3)
                     .map((event) => (
                       <Link key={event.id} href={`/event/${event.id}`} className="group block">
@@ -1722,10 +1715,16 @@ export default function EventsPageContent() {
                               {formatDate(event.timings.startDate)} {formatYear(event.timings.startDate)}
                             </div>
 
-                            {/* LOCATION — 14px system-ui */}
+                            {/* LOCATION — from venue/city/address */}
                             <div className="flex items-center font-sans text-[14px] font-semibold text-gray-800">
                               <MapPin className="w-4 h-4 mr-2 text-blue-700" />
-                              {event.location?.city || "Chennai, India"}
+                              {event.location?.city && event.location.city !== "City not specified"
+                                ? event.location.city
+                                : event.location?.venue && event.location.venue !== "Venue not specified"
+                                  ? event.location.venue
+                                  : event.location?.address && event.location.address !== "Address not available"
+                                    ? event.location.address
+                                    : event.location?.country || "Location TBD"}
                             </div>
                           </div>
                         </div>
@@ -1771,7 +1770,13 @@ export default function EventsPageContent() {
                           </div>
                           <div className="flex items-center text-sm text-gray-800 font-bold">
                             <MapPin className="w-4 h-4 mr-2 text-blue-700" />
-                            {event.location?.city || "Chennai, India"}
+                            {event.location?.city && event.location.city !== "City not specified"
+                              ? event.location.city
+                              : event.location?.venue && event.location.venue !== "Venue not specified"
+                                ? event.location.venue
+                                : event.location?.address && event.location.address !== "Address not available"
+                                  ? event.location.address
+                                  : event.location?.country || "Location TBD"}
                           </div>
                         </div>
                       </Link>

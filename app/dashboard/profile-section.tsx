@@ -238,7 +238,7 @@ export function ProfileSection({ organizerId, userData, onUpdate }: ProfileSecti
       bio: localUserData?.bio || "",
       website: localUserData?.website || "",
       company: localUserData?.company || "",
-      companyIndustry: userData?.companyIndustry || "",
+      companyIndustry: localUserData?.companyIndustry ?? userData?.companyIndustry ?? "",
       jobTitle: localUserData?.jobTitle || "",
       linkedin: localUserData?.linkedin || "",
       twitter: localUserData?.twitter || "",
@@ -246,7 +246,7 @@ export function ProfileSection({ organizerId, userData, onUpdate }: ProfileSecti
       interests: localUserData?.interests || [],
     })
     setSelectedInterests(localUserData?.interests || [])
-  }, [localUserData])
+  }, [localUserData, userData])
 
   const handleSave = useCallback(async () => {
     setIsSaving(true)
@@ -669,26 +669,26 @@ export function ProfileSection({ organizerId, userData, onUpdate }: ProfileSecti
         </Card>
 
         <div className="lg:col-span-2 flex flex-col gap-6">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <Card className="bg-yellow-200 h-32 flex items-center justify-center">
-              <div className="text-center p-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 min-w-0">
+            <Card className="bg-yellow-200 h-32 flex items-center justify-center overflow-hidden">
+              <div className="text-center p-4 min-w-0 overflow-hidden">
                 <Calendar className="w-8 h-8 mx-auto mb-2" />
-                <h3 className="font-semibold">Upcoming Events</h3>
-                <p className="text-sm">{interestedEventsCount} events</p>
+                <h3 className="font-semibold truncate">Upcoming Events</h3>
+                <p className="text-sm truncate">{interestedEventsCount} events</p>
               </div>
             </Card>
-            <Card className="bg-blue-200 h-32 flex items-center justify-center">
-              <div className="text-center p-4">
+            <Card className="bg-blue-200 h-32 flex items-center justify-center overflow-hidden">
+              <div className="text-center p-4 min-w-0 overflow-hidden">
                 <CalendarDays className="w-8 h-8 mx-auto mb-2" />
-                <h3 className="font-semibold">Events</h3>
-                <p className="text-sm">{localUserData._count?.eventsAttended || events.length} events</p>
+                <h3 className="font-semibold truncate">Events</h3>
+                <p className="text-sm truncate">{localUserData._count?.eventsAttended ?? events.length} events</p>
               </div>
             </Card>
-            <Card className="bg-red-300 h-32 flex items-center justify-center">
-              <div className="text-center p-4">
+            <Card className="bg-red-300 h-32 flex items-center justify-center overflow-hidden">
+              <div className="text-center p-4 min-w-0 overflow-hidden">
                 <UserIcon className="w-8 h-8 mx-auto mb-2" />
-                <h3 className="font-semibold">Connections</h3>
-                <p className="text-sm">{connectionsCount} total</p>
+                <h3 className="font-semibold truncate">Connections</h3>
+                <p className="text-sm truncate">{connectionsCount} total</p>
               </div>
             </Card>
           </div>
