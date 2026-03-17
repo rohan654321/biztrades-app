@@ -1,13 +1,13 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Search, Users, UserPlus, UserCheck, UserX } from "lucide-react"
-import { apiFetch } from "@/lib/api"
+import { apiFetch, getCurrentUserId } from "@/lib/api"
 
 interface Connection {
   id: string
@@ -96,29 +96,44 @@ export function ConnectionsSection({ userId: _userId }: ConnectionsSectionProps)
   }
 }
 
-  const searchUsers = async (query: string) => {
-    if (!query.trim()) {
+  const searchUsers = useCallback(async (query: string) => {
+    const trimmed = query.trim()
+    if (!trimmed) {
       setSearchResults([])
       return
     }
-    
     setSearchLoading(true)
     try {
-      const data = await apiFetch<{ users?: any[]; data?: any[] }>(`/api/users/search?q=${encodeURIComponent(query)}`, { auth: true })
+      const data = await apiFetch<{ users?: any[]; data?: any[] }>(`/api/users/search?q=${encodeURIComponent(trimmed)}`, { auth: true })
       const list = data.users ?? data.data ?? []
-      // Filter out users who are already connected or have pending requests
-      const filteredResults = list.filter((user: any) => 
-          !connections.some(conn => 
-            (conn.firstName === user.firstName && conn.lastName === user.lastName) ||
-            conn.id === user.id
-          )
-        )
+      const currentId = getCurrentUserId()
+      const connectedOrPendingIds = new Set([
+        ...connections.map((c: Connection) => c.id),
+        ...connectionRequests.map((c: Connection) => c.id),
+      ])
+      const filteredResults = list.filter((user: any) => {
+        if (user.id === currentId) return false
+        if (connectedOrPendingIds.has(user.id)) return false
+        return true
+      })
       setSearchResults(filteredResults)
     } catch (error) {
       console.error("Error searching users:", error)
+      setSearchResults([])
     } finally {
       setSearchLoading(false)
     }
+  }, [connections, connectionRequests])
+
+  const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current)
+    if (!value.trim()) {
+      setSearchResults([])
+      return
+    }
+    searchDebounceRef.current = setTimeout(() => searchUsers(value), 300)
   }
 
   const pendingConnections = connections.filter(conn => conn.status === 'pending')
@@ -187,7 +202,7 @@ export function ConnectionsSection({ userId: _userId }: ConnectionsSectionProps)
               <Input
                 placeholder="Search by name, company, or job title..."
                 className="pl-10"
-                onChange={(e) => searchUsers(e.target.value)}
+                onChange={handleSearchInputChange}
               />
             </div>
           </div>
@@ -206,12 +221,11 @@ export function ConnectionsSection({ userId: _userId }: ConnectionsSectionProps)
                     <Avatar className="w-16 h-16 mx-auto mb-4">
                       <AvatarImage src={user.avatar || "/placeholder.svg"} />
                       <AvatarFallback>
-                        {user.firstName[0]}
-                        {user.lastName[0]}
+                        {user.firstName?.[0] ?? ""}{user.lastName?.[0] ?? "?"}
                       </AvatarFallback>
                     </Avatar>
                     <h3 className="font-semibold mb-1">
-                      {user.firstName} {user.lastName}
+                      {user.firstName ?? ""} {user.lastName ?? ""}
                     </h3>
                     {user.jobTitle && <p className="text-sm text-gray-600 mb-1">{user.jobTitle}</p>}
                     {user.company && <p className="text-sm text-gray-500 mb-4">{user.company}</p>}

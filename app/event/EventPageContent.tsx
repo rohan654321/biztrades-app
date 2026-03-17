@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import { Star, Mail, MapPin, Clock, IndianRupee, Wifi, Utensils, Car, Tag, Trash2, Calendar, Users, Edit2, Plus, Share2, Bookmark } from "lucide-react"
+import { Star, Mail, MapPin, Clock, IndianRupee, Wifi, Utensils, Car, Tag, Trash2, Calendar, Users, Edit2, Plus, Share2, Bookmark, FileText, ExternalLink } from "lucide-react"
 import EventHero from "@/components/event-hero"
 import EventImageGallery from "@/components/event-image-gallery"
 import { useEffect, useState } from "react"
@@ -866,22 +866,26 @@ export default function EventPageContent({ event, session: _session, router, toa
                     <div className="space-y-4">
                       {event?.brochure ? (
                         <>
-                          <div className="bg-gray-100 rounded-lg border border-gray-300 min-h-[400px] flex flex-col">
-                            <div className="flex justify-between items-center p-3 bg-white border-b">
-                              <span className="text-sm font-medium">Event Brochure</span>
-                            </div>
-
-                            <div className="flex-1 p-4">
-                              <iframe
-                                src={`https://docs.google.com/gview?url=${encodeURIComponent(event.brochure)}&embedded=true`}
-                                className="w-full h-96 border-0"
-                                title="PDF Brochure"
-                              />
-                              <div className="text-center mt-4">
-                                <p className="text-sm text-gray-600">
-                                  If the PDF doesn't load, use the buttons above to download or open in a new tab.
+                          <div className="bg-gray-50 rounded-lg border border-gray-200 min-h-[280px] flex flex-col items-center justify-center p-8">
+                            <div className="flex flex-col items-center gap-4 max-w-sm text-center">
+                              <div className="rounded-full bg-primary/10 p-4">
+                                <FileText className="h-12 w-12 text-primary" />
+                              </div>
+                              <div>
+                                <p className="font-medium text-gray-900">Event Brochure</p>
+                                <p className="text-sm text-gray-500 mt-1">
+                                  View or download the PDF.
                                 </p>
                               </div>
+                              <a
+                                href={event.brochure}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+                              >
+                                <ExternalLink className="h-4 w-4" />
+                                View / Download PDF
+                              </a>
                             </div>
                           </div>
                         </>

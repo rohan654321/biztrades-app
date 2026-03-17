@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Mail, Edit2, Trash2, Save, X, Plus } from "lucide-react"
+import { Mail, Edit2, Trash2, Save, X, Plus, FileText, ExternalLink } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { getCurrentUserId, isAuthenticated } from "@/lib/api"
@@ -194,24 +194,22 @@ export default function EventPage({ params }: EventPageProps) {
     const file = e.target.files?.[0]
     if (!file) return
 
-    // Validate file type
-    const validTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/gif']
-    const isValidType = validTypes.includes(file.type) || file.name.toLowerCase().endsWith('.pdf')
-
-    if (!isValidType) {
+    // PDF only (backend /upload/brochure accepts PDF; same as other working PDF uploads)
+    const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')
+    if (!isPdf) {
       toast({
         title: "Invalid file type",
-        description: "Please upload a PDF or image file (JPEG, PNG, GIF)",
+        description: "Please upload a PDF file for the brochure.",
         variant: "destructive",
       })
       return
     }
 
-    // Validate file size (10MB max for brochures)
-    if (file.size > 10 * 1024 * 1024) {
+    // 15MB max (matches backend document limit)
+    if (file.size > 15 * 1024 * 1024) {
       toast({
         title: "File too large",
-        description: "Please upload a file smaller than 10MB",
+        description: "Please upload a PDF smaller than 15MB",
         variant: "destructive",
       })
       return
@@ -222,36 +220,26 @@ export default function EventPage({ params }: EventPageProps) {
     try {
       const formData = new FormData()
       formData.append('file', file)
-      formData.append('type', 'brochure')
 
-      // Reuse Next.js Cloudinary route (NextAuth-based)
-      const uploadRes = await fetch('/api/upload/cloudinary', {
+      // Backend upload → Cloudinary "documents" folder (same as other working PDF uploads)
+      const uploadData = await apiFetch<{ url?: string; publicId?: string }>('/api/upload/brochure', {
         method: 'POST',
         body: formData,
+        auth: true,
       })
 
-      if (!uploadRes.ok) {
-        const err = await uploadRes.json().catch(() => ({}))
-        throw new Error(err.error || 'Failed to upload brochure')
-      }
+      const brochureUrl = uploadData?.url
+      if (!brochureUrl) throw new Error('No URL returned from upload')
 
-      const uploadData = await uploadRes.json()
-      const brochureUrl = uploadData.url as string
-
-      const saveRes = await fetch(`/api/events/${event.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ brochure: brochureUrl }),
+      await apiFetch(`/api/events/${event.id}`, {
+        method: 'PATCH',
+        body: { brochure: brochureUrl },
+        auth: true,
       })
-
-      if (!saveRes.ok) {
-        const errorData = await saveRes.json().catch(() => ({}))
-        throw new Error(errorData.error || 'Failed to update brochure')
-      }
 
       setEvent((prev: any) => ({
         ...prev,
-        brochure: `${brochureUrl}?t=${Date.now()}`,
+        brochure: brochureUrl,
       }))
 
       toast({
@@ -1073,40 +1061,25 @@ export default function EventPage({ params }: EventPageProps) {
                     <div className="space-y-4">
                       {event?.brochure ? (
                         <>
-                          {/* Simple PDF Viewer */}
-                          <div className="bg-gray-100 rounded-lg border border-gray-300 min-h-[400px] flex flex-col">
-                            <div className="flex justify-between items-center p-3 bg-white border-b">
-                              <span className="text-sm font-medium">Event Brochure</span>
-                              <div className="flex gap-2">
-                                {/* <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleDownloadBrochure(event.id)}
-                  >
-                    Download PDF
-                  </Button> */}
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => window.open(event.brochure, '_blank')}
-                                >
-                                  Open Full Screen
-                                </Button>
+                          {/* Brochure card - same pattern as Layout Plan: link to stored URL */}
+                          <div className="bg-gray-50 rounded-lg border border-gray-200 min-h-[280px] flex flex-col items-center justify-center p-8">
+                            <div className="flex flex-col items-center gap-4 max-w-sm text-center">
+                              <div className="rounded-full bg-primary/10 p-4">
+                                <FileText className="h-12 w-12 text-primary" />
                               </div>
-                            </div>
-
-                            {/* PDF Display */}
-                            <div className="flex-1 p-4">
-                              <iframe
-                                src={`https://docs.google.com/gview?url=${encodeURIComponent(event.brochure)}&embedded=true`}
-                                className="w-full h-96 border-0"
-                                title="PDF Brochure"
-                              />
-                              <div className="text-center mt-4">
-                                <p className="text-sm text-gray-600">
-                                  If the PDF doesn't load, use the buttons above to download or open in a new tab.
+                              <div>
+                                <p className="font-medium text-gray-900">Event Brochure</p>
+                                <p className="text-sm text-gray-500 mt-1">
+                                  View or download the PDF.
                                 </p>
                               </div>
+                              <Button
+                                onClick={() => window.open(event.brochure, "_blank")}
+                                className="gap-2"
+                              >
+                                <ExternalLink className="h-4 w-4" />
+                                View / Download PDF
+                              </Button>
                             </div>
                           </div>
                         </>
