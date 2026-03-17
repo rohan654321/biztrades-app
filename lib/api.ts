@@ -1,3 +1,4 @@
+// lib/api.ts
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
 const ACCESS_TOKEN_KEY = "accessToken";
@@ -143,7 +144,6 @@ async function refreshAccessToken(): Promise<string | null> {
 
     return newAccessToken;
   } catch (error) {
-    // eslint-disable-next-line no-console
     console.error("Failed to refresh access token", error);
     clearTokens();
     return null;
@@ -234,4 +234,3 @@ export async function loginWithEmailPassword(email: string, password: string) {
 
   return result;
 }
-

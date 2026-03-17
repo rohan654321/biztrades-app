@@ -26,16 +26,15 @@ import {
   Download,
   MoreHorizontal,
   Ban,
-  CheckCheck,
   Clock,
   TrendingUp,
 } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { adminApi } from "@/lib/admin-api"
+import { useToast } from "@/components/ui/use-toast"
 
 interface Organizer {
-  location: string | null
   id: string
   firstName: string
   lastName: string
@@ -64,16 +63,42 @@ interface Organizer {
   activeEvents: number
   totalAttendees: number
   totalRevenue: number
-  _count: {
+  location: string | null
+  website: string | null
+  linkedin: string | null
+  twitter: string | null
+  instagram: string | null
+  timezone: string | null
+  language: string | null
+  _count?: {
     organizedEvents: number
     speakers: number
     exhibitors: number
     venueManagers: number
-    campaigns: number
   }
 }
 
+interface TransformedOrganizer {
+  id: string
+  name: string
+  email: string
+  phone: string
+  location: string
+  status: "active" | "pending" | "suspended"
+  joinDate: string
+  totalEvents: number
+  totalRevenue: number
+  rating: number
+  avatar: string
+  category: string
+  description: string
+  documents: string[]
+  lastActive: string
+  originalData: Organizer
+}
+
 export default function OrganizerManagement() {
+  const { toast } = useToast()
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
   const [selectedOrganizer, setSelectedOrganizer] = useState<Organizer | null>(null)
@@ -89,67 +114,70 @@ export default function OrganizerManagement() {
     fetchOrganizers()
   }, [])
 
-const fetchOrganizers = async () => {
-  try {
-    setLoading(true)
-    setError(null)
-    const data = await adminApi<{ success?: boolean; data?: Organizer[]; organizers?: Organizer[] }>("/organizers")
-    const list = data?.data ?? (data as any)?.organizers ?? []
-    setOrganizers(Array.isArray(list) ? list : [])
-  } catch (err) {
-    console.error("Error fetching organizers:", err)
-    setError("Failed to load organizers")
-  } finally {
-    setLoading(false)
-  }
-}
-
-// Update the transformOrganizerData function:
-const transformOrganizerData = (organizer: Organizer) => {
-  // Determine status based on isActive and isVerified
-  let status: "active" | "pending" | "suspended" = "pending"
-  if (organizer.isActive && organizer.isVerified) {
-    status = "active"
-  } else if (!organizer.isActive) {
-    status = "suspended"
-  } else if (!organizer.isVerified) {
-    status = "pending"
+  const fetchOrganizers = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      const data = await adminApi<{ success?: boolean; data?: Organizer[]; organizers?: Organizer[] }>("/organizers")
+      const list = data?.data ?? (data as any)?.organizers ?? []
+      setOrganizers(Array.isArray(list) ? list : [])
+    } catch (err) {
+      console.error("Error fetching organizers:", err)
+      setError("Failed to load organizers")
+      toast({
+        title: "Error",
+        description: "Failed to load organizers",
+        variant: "destructive"
+      })
+    } finally {
+      setLoading(false)
+    }
   }
 
-  // Generate location from available data
-  const location = organizer.headquarters || organizer.businessAddress || "Location not specified"
-  
-  // Calculate rating based on reviews or events
-  const rating = organizer.totalEvents > 10 ? 4.5 : organizer.totalEvents > 5 ? 4.0 : organizer.totalEvents > 0 ? 3.5 : 0
+  const transformOrganizerData = (organizer: Organizer): TransformedOrganizer => {
+    // Determine status based on isActive and isVerified
+    let status: "active" | "pending" | "suspended" = "pending"
+    if (organizer.isActive && organizer.isVerified) {
+      status = "active"
+    } else if (!organizer.isActive) {
+      status = "suspended"
+    } else if (!organizer.isVerified) {
+      status = "pending"
+    }
 
-  // Mock documents (replace with actual document data when available)
-  const documents = organizer.certifications && organizer.certifications.length > 0 
-    ? organizer.certifications 
-    : ["Business Registration", "Tax ID"]
+    // Generate location from available data
+    const location = organizer.headquarters || organizer.businessAddress || "Location not specified"
+    
+    // Calculate rating based on reviews or events
+    const rating = organizer.totalEvents > 10 ? 4.5 : organizer.totalEvents > 5 ? 4.0 : organizer.totalEvents > 0 ? 3.5 : 0
 
-  return {
-    id: organizer.id,
-    name: organizer.organizationName || `${organizer.firstName} ${organizer.lastName}`,
-    email: organizer.email,
-    phone: organizer.phone || organizer.businessPhone || "Not provided",
-    location: location,
-    status: status,
-    joinDate: new Date(organizer.createdAt).toISOString().split('T')[0],
-    totalEvents: organizer.totalEvents || organizer._count?.organizedEvents || 0,
-    totalRevenue: organizer.totalRevenue || 0,
-    rating: rating,
-    avatar: organizer.avatar || `/placeholder.svg?height=40&width=40&text=${organizer.firstName?.charAt(0) || 'O'}${organizer.lastName?.charAt(0) || 'R'}`,
-    category: organizer.specialties?.[0] || "General Events",
-    description: organizer.description || "No description provided",
-    documents: documents,
-    lastActive: organizer.lastLogin ? new Date(organizer.lastLogin).toISOString().split('T')[0] : new Date(organizer.updatedAt).toISOString().split('T')[0],
-    // Keep original data for detailed view
-    originalData: organizer
+    // Mock documents (replace with actual document data when available)
+    const documents = organizer.certifications && organizer.certifications.length > 0 
+      ? organizer.certifications 
+      : ["Business Registration", "Tax ID"]
+
+    return {
+      id: organizer.id,
+      name: organizer.organizationName || `${organizer.firstName} ${organizer.lastName}`,
+      email: organizer.email,
+      phone: organizer.phone || organizer.businessPhone || "Not provided",
+      location: location,
+      status: status,
+      joinDate: new Date(organizer.createdAt).toISOString().split('T')[0],
+      totalEvents: organizer.totalEvents || organizer._count?.organizedEvents || 0,
+      totalRevenue: organizer.totalRevenue || 0,
+      rating: rating,
+      avatar: organizer.avatar || `/placeholder.svg?height=40&width=40&text=${organizer.firstName?.charAt(0) || 'O'}${organizer.lastName?.charAt(0) || 'R'}`,
+      category: organizer.specialties?.[0] || "General Events",
+      description: organizer.description || "No description provided",
+      documents: documents,
+      lastActive: organizer.lastLogin ? new Date(organizer.lastLogin).toISOString().split('T')[0] : new Date(organizer.updatedAt).toISOString().split('T')[0],
+      originalData: organizer
+    }
   }
-}
 
   // Filter organizers based on search and status
-  const filteredOrganizers = organizers
+  const filteredOrganizers: TransformedOrganizer[] = organizers
     .map(transformOrganizerData)
     .filter((organizer) => {
       const matchesSearch =
@@ -195,48 +223,57 @@ const transformOrganizerData = (organizer: Organizer) => {
     }
   }
 
-  const handleApproval = (organizer: any, action: "approve" | "reject") => {
+  const handleApproval = (organizer: TransformedOrganizer, action: "approve" | "reject") => {
     setSelectedOrganizer(organizer.originalData)
     setApprovalAction(action)
     setShowApprovalDialog(true)
   }
 
   const submitApproval = async () => {
+    if (!selectedOrganizer) return
+    
     try {
-      // Here you would implement the actual approval/rejection logic
-      const response = await fetch(`/api/admin/organizers/${selectedOrganizer?.id}/status`, {
+      await adminApi(`/organizers/${selectedOrganizer.id}/status`, {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+        body: {
           action: approvalAction,
           message: approvalMessage
-        })
+        }
       })
 
-      if (!response.ok) {
-        throw new Error('Failed to update organizer status')
-      }
+      toast({
+        title: "Success",
+        description: `Organizer ${approvalAction === 'approve' ? 'approved' : 'rejected'} successfully!`
+      })
 
       // Refresh the organizers list
       await fetchOrganizers()
       setShowApprovalDialog(false)
       setApprovalMessage("")
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating organizer status:', error)
-      setError('Failed to update organizer status')
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update organizer status",
+        variant: "destructive"
+      })
     }
   }
 
   const handleExport = async () => {
     try {
-      const response = await fetch('/api/admin/organizers/export')
-      if (!response.ok) {
-        throw new Error('Failed to export data')
+      interface ExportResponse {
+        csv?: string;
+        data?: any[];
       }
       
-      const blob = await response.blob()
+      const response = await adminApi<ExportResponse>('/organizers/export', {
+        method: 'GET'
+      })
+      
+      // Create a blob from the response data
+      const csv = response.csv || JSON.stringify(response, null, 2)
+      const blob = new Blob([csv], { type: 'text/csv' })
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
@@ -245,9 +282,18 @@ const transformOrganizerData = (organizer: Organizer) => {
       a.click()
       window.URL.revokeObjectURL(url)
       document.body.removeChild(a)
-    } catch (error) {
+
+      toast({
+        title: "Success",
+        description: "Data exported successfully!"
+      })
+    } catch (error: any) {
       console.error('Error exporting data:', error)
-      setError('Failed to export data')
+      toast({
+        title: "Error",
+        description: error.message || "Failed to export data",
+        variant: "destructive"
+      })
     }
   }
 
@@ -374,7 +420,7 @@ const transformOrganizerData = (organizer: Organizer) => {
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <Avatar className="w-10 h-10">
-                          <AvatarImage src={organizer.avatar || "/placeholder.svg"} />
+                          <AvatarImage src={organizer.avatar} />
                           <AvatarFallback>{organizer.name.substring(0, 2)}</AvatarFallback>
                         </Avatar>
                         <div>
@@ -451,7 +497,7 @@ const transformOrganizerData = (organizer: Organizer) => {
                             <div className="space-y-6">
                               <div className="flex items-center gap-4">
                                 <Avatar className="w-16 h-16">
-                                  <AvatarImage src={organizer.avatar || "/placeholder.svg"} />
+                                  <AvatarImage src={organizer.avatar} />
                                   <AvatarFallback>{organizer.name.substring(0, 2)}</AvatarFallback>
                                 </Avatar>
                                 <div>

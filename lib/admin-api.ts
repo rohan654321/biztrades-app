@@ -3,22 +3,25 @@
  * Uses apiFetch with auth so the backend receives the Bearer token.
  */
 
-import { apiFetch } from "./api";
+import { apiFetch, ApiRequestOptions } from "./api";
 
-export type AdminApiOptions = RequestInit & {
+// Reuse the ApiRequestOptions type from api.ts
+export type AdminApiOptions = Omit<ApiRequestOptions, 'auth'> & {
   auth?: boolean;
-  body?: unknown;
 };
 
 export function adminApi<T = unknown>(path: string, options: AdminApiOptions = {}): Promise<T> {
-  const { auth = true, body, ...rest } = options;
+  const { auth = true, ...rest } = options;
   const method = options.method ?? "GET";
-  return apiFetch<T>(`/api/admin${path}`, {
+  
+  // Create a properly typed options object for apiFetch
+  const fetchOptions: ApiRequestOptions = {
     ...rest,
     method,
     auth,
-    ...(body !== undefined && { body }),
-  });
+  };
+
+  return apiFetch<T>(`/api/admin${path}`, fetchOptions);
 }
 
 export default adminApi;

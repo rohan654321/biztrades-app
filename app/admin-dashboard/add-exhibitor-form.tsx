@@ -10,6 +10,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ArrowLeft, Save, User, Building2, Mail, Phone, MapPin, Globe, Linkedin, Twitter } from "lucide-react"
+import { useToast } from "@/components/ui/use-toast"
+import { apiFetch } from "@/lib/api"
 
 interface AddExhibitorFormProps {
   onSuccess?: () => void
@@ -18,6 +20,7 @@ interface AddExhibitorFormProps {
 
 export default function AddExhibitorForm({ onSuccess, onCancel }: AddExhibitorFormProps) {
   const router = useRouter()
+  const { toast } = useToast()
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
     // Personal Information
@@ -49,7 +52,6 @@ export default function AddExhibitorForm({ onSuccess, onCancel }: AddExhibitorFo
     bio: "",
     
     // Settings
-    isVerified: false,
     isActive: true,
   })
 
@@ -75,18 +77,124 @@ export default function AddExhibitorForm({ onSuccess, onCancel }: AddExhibitorFo
     }))
   }
 
+  const validateForm = () => {
+    if (!formData.firstName.trim()) {
+      toast({ 
+        title: "Validation Error", 
+        description: "First name is required", 
+        variant: "destructive" 
+      })
+      return false
+    }
+    if (!formData.lastName.trim()) {
+      toast({ 
+        title: "Validation Error", 
+        description: "Last name is required", 
+        variant: "destructive" 
+      })
+      return false
+    }
+    if (!formData.email.trim()) {
+      toast({ 
+        title: "Validation Error", 
+        description: "Email is required", 
+        variant: "destructive" 
+      })
+      return false
+    }
+    if (!formData.email.includes('@')) {
+      toast({ 
+        title: "Validation Error", 
+        description: "Invalid email format", 
+        variant: "destructive" 
+      })
+      return false
+    }
+    if (!formData.company.trim()) {
+      toast({ 
+        title: "Validation Error", 
+        description: "Company name is required", 
+        variant: "destructive" 
+      })
+      return false
+    }
+    if (!formData.companyIndustry) {
+      toast({ 
+        title: "Validation Error", 
+        description: "Industry is required", 
+        variant: "destructive" 
+      })
+      return false
+    }
+    return true
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    if (!validateForm()) return
+    
     setLoading(true)
 
     try {
-      await import("@/lib/admin-api").then((m) => m.adminApi("/exhibitors", { method: "POST", body: formData }))
-      if (onSuccess) onSuccess()
-      else router.push("/admin-dashboard?section=exhibitors&sub=exhibitors-all")
-      alert("Exhibitor created successfully!")
-    } catch (error) {
+      // Prepare the data for the backend
+      const exhibitorData = {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        phone: formData.phone || null,
+        company: formData.company,
+        jobTitle: formData.jobTitle || null,
+        companyIndustry: formData.companyIndustry,
+        website: formData.website || null,
+        linkedin: formData.linkedin || null,
+        twitter: formData.twitter || null,
+        location: formData.location || null,
+        businessEmail: formData.businessEmail || null,
+        businessPhone: formData.businessPhone || null,
+        businessAddress: formData.businessAddress || null,
+        taxId: formData.taxId || null,
+        bio: formData.bio || null,
+        isActive: formData.isActive,
+      }
+
+      // Use your existing apiFetch function
+      const response = await apiFetch('/api/admin/exhibitors', {
+        method: 'POST',
+        body: exhibitorData,
+        auth: true, // This will automatically attach the auth token
+      })
+
+      toast({ 
+        title: "Success", 
+        description: "Exhibitor created successfully!" 
+      })
+      
+      if (onSuccess) {
+        onSuccess()
+      } else {
+        router.push('/admin-dashboard?section=exhibitors&sub=exhibitors-all')
+        router.refresh()
+      }
+    } catch (error: any) {
       console.error('Error creating exhibitor:', error)
-      alert('Failed to create exhibitor. Please try again.')
+      
+      // Handle specific error messages from your backend
+      let errorMessage = "Failed to create exhibitor. Please try again."
+      
+      if (error.message) {
+        if (error.message.includes("already exists")) {
+          errorMessage = "An exhibitor with this email already exists."
+        } else {
+          errorMessage = error.message
+        }
+      }
+      
+      toast({ 
+        title: "Error", 
+        description: errorMessage,
+        variant: "destructive"
+      })
     } finally {
       setLoading(false)
     }
@@ -96,13 +204,17 @@ export default function AddExhibitorForm({ onSuccess, onCancel }: AddExhibitorFo
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Button 
-            variant="outline" 
-            size="icon"
-            onClick={onCancel}
-          >
-            <ArrowLeft className="w-4 h-4" />
-          </Button>
+          {onCancel && (
+            <Button 
+              variant="outline" 
+              size="icon"
+              onClick={onCancel}
+              type="button"
+              disabled={loading}
+            >
+              <ArrowLeft className="w-4 h-4" />
+            </Button>
+          )}
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Add New Exhibitor</h1>
             <p className="text-gray-600">Create a new exhibitor account</p>
@@ -135,6 +247,7 @@ export default function AddExhibitorForm({ onSuccess, onCancel }: AddExhibitorFo
                       onChange={(e) => handleChange("firstName", e.target.value)}
                       placeholder="Enter first name"
                       required
+                      disabled={loading}
                     />
                   </div>
                   <div className="space-y-2">
@@ -145,6 +258,7 @@ export default function AddExhibitorForm({ onSuccess, onCancel }: AddExhibitorFo
                       onChange={(e) => handleChange("lastName", e.target.value)}
                       placeholder="Enter last name"
                       required
+                      disabled={loading}
                     />
                   </div>
                 </div>
@@ -162,6 +276,7 @@ export default function AddExhibitorForm({ onSuccess, onCancel }: AddExhibitorFo
                         placeholder="Enter email address"
                         className="pl-10"
                         required
+                        disabled={loading}
                       />
                     </div>
                   </div>
@@ -175,6 +290,7 @@ export default function AddExhibitorForm({ onSuccess, onCancel }: AddExhibitorFo
                         onChange={(e) => handleChange("phone", e.target.value)}
                         placeholder="Enter phone number"
                         className="pl-10"
+                        disabled={loading}
                       />
                     </div>
                   </div>
@@ -187,6 +303,7 @@ export default function AddExhibitorForm({ onSuccess, onCancel }: AddExhibitorFo
                     value={formData.jobTitle}
                     onChange={(e) => handleChange("jobTitle", e.target.value)}
                     placeholder="e.g., Sales Manager, CEO, Marketing Director"
+                    disabled={loading}
                   />
                 </div>
               </CardContent>
@@ -212,6 +329,7 @@ export default function AddExhibitorForm({ onSuccess, onCancel }: AddExhibitorFo
                     onChange={(e) => handleChange("company", e.target.value)}
                     placeholder="Enter company name"
                     required
+                    disabled={loading}
                   />
                 </div>
 
@@ -221,6 +339,7 @@ export default function AddExhibitorForm({ onSuccess, onCancel }: AddExhibitorFo
                     <Select
                       value={formData.companyIndustry}
                       onValueChange={(value) => handleChange("companyIndustry", value)}
+                      disabled={loading}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select industry" />
@@ -244,6 +363,7 @@ export default function AddExhibitorForm({ onSuccess, onCancel }: AddExhibitorFo
                         onChange={(e) => handleChange("website", e.target.value)}
                         placeholder="https://example.com"
                         className="pl-10"
+                        disabled={loading}
                       />
                     </div>
                   </div>
@@ -261,6 +381,7 @@ export default function AddExhibitorForm({ onSuccess, onCancel }: AddExhibitorFo
                         onChange={(e) => handleChange("businessEmail", e.target.value)}
                         placeholder="business@company.com"
                         className="pl-10"
+                        disabled={loading}
                       />
                     </div>
                   </div>
@@ -274,6 +395,7 @@ export default function AddExhibitorForm({ onSuccess, onCancel }: AddExhibitorFo
                         onChange={(e) => handleChange("businessPhone", e.target.value)}
                         placeholder="Business phone number"
                         className="pl-10"
+                        disabled={loading}
                       />
                     </div>
                   </div>
@@ -286,6 +408,7 @@ export default function AddExhibitorForm({ onSuccess, onCancel }: AddExhibitorFo
                     value={formData.businessAddress}
                     onChange={(e) => handleChange("businessAddress", e.target.value)}
                     placeholder="Enter business address"
+                    disabled={loading}
                   />
                 </div>
 
@@ -296,6 +419,7 @@ export default function AddExhibitorForm({ onSuccess, onCancel }: AddExhibitorFo
                     value={formData.taxId}
                     onChange={(e) => handleChange("taxId", e.target.value)}
                     placeholder="Enter tax identification number"
+                    disabled={loading}
                   />
                 </div>
               </CardContent>
@@ -321,6 +445,7 @@ export default function AddExhibitorForm({ onSuccess, onCancel }: AddExhibitorFo
                         onChange={(e) => handleChange("linkedin", e.target.value)}
                         placeholder="LinkedIn profile URL"
                         className="pl-10"
+                        disabled={loading}
                       />
                     </div>
                   </div>
@@ -334,6 +459,7 @@ export default function AddExhibitorForm({ onSuccess, onCancel }: AddExhibitorFo
                         onChange={(e) => handleChange("twitter", e.target.value)}
                         placeholder="Twitter profile URL"
                         className="pl-10"
+                        disabled={loading}
                       />
                     </div>
                   </div>
@@ -349,6 +475,7 @@ export default function AddExhibitorForm({ onSuccess, onCancel }: AddExhibitorFo
                       onChange={(e) => handleChange("location", e.target.value)}
                       placeholder="City, Country"
                       className="pl-10"
+                      disabled={loading}
                     />
                   </div>
                 </div>
@@ -372,6 +499,7 @@ export default function AddExhibitorForm({ onSuccess, onCancel }: AddExhibitorFo
                     onChange={(e) => handleChange("bio", e.target.value)}
                     placeholder="Describe the company, products, services, and what makes them unique..."
                     rows={4}
+                    disabled={loading}
                   />
                 </div>
               </CardContent>
@@ -391,20 +519,6 @@ export default function AddExhibitorForm({ onSuccess, onCancel }: AddExhibitorFo
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
-                    <Label htmlFor="isVerified">Verified Account</Label>
-                    <div className="text-sm text-gray-500">
-                      Mark this exhibitor as verified
-                    </div>
-                  </div>
-                  <Switch
-                    id="isVerified"
-                    checked={formData.isVerified}
-                    onCheckedChange={(checked) => handleChange("isVerified", checked)}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
                     <Label htmlFor="isActive">Active Account</Label>
                     <div className="text-sm text-gray-500">
                       Activate or deactivate this account
@@ -414,6 +528,7 @@ export default function AddExhibitorForm({ onSuccess, onCancel }: AddExhibitorFo
                     id="isActive"
                     checked={formData.isActive}
                     onCheckedChange={(checked) => handleChange("isActive", checked)}
+                    disabled={loading}
                   />
                 </div>
               </CardContent>
@@ -443,15 +558,17 @@ export default function AddExhibitorForm({ onSuccess, onCancel }: AddExhibitorFo
                   )}
                 </Button>
                 
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  className="w-full"
-                  onClick={onCancel}
-                  disabled={loading}
-                >
-                  Cancel
-                </Button>
+                {onCancel && (
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    className="w-full"
+                    onClick={onCancel}
+                    disabled={loading}
+                  >
+                    Cancel
+                  </Button>
+                )}
               </CardContent>
             </Card>
 
