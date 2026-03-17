@@ -29,34 +29,20 @@ export function SavedEvents({ userId }: { userId?: string }) {
     fetchSavedEvents()
   }, [targetUserId])
 
-  const fetchSavedEvents = async () => {
-    try {
-      setLoading(true)
-      console.log("[v0] Fetching saved events for userId:", targetUserId)
-      console.log("[v0] Current user ID:", targetUserId)
+const fetchSavedEvents = async () => {
+  try {
+    setLoading(true)
 
-      const response = await fetch(`/api/users/${targetUserId}/saved-events`)
+    const data = await apiFetch(`/api/users/${targetUserId}/saved-events`)
 
-      if (response.status === 403) {
-        console.error("[v0] 403 Forbidden: You can only view your own saved events")
-        throw new Error("You can only view your own saved events")
-      }
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}))
-        console.error("[v0] API error:", response.status, errorData)
-        throw new Error(errorData.error || "Failed to fetch saved events")
-      }
-
-      const data = await response.json()
-      setEvents(data.events || [])
-    } catch (err) {
-      console.error("Error fetching saved events:", err)
-      setEvents([])
-    } finally {
-      setLoading(false)
-    }
+    setEvents(data.events || [])
+  } catch (err) {
+    console.error("Error fetching saved events:", err)
+    setEvents([])
+  } finally {
+    setLoading(false)
   }
+}
 
   const formatTicketPrice = (ticketTypes: TicketType[]) => {
     if (!ticketTypes || ticketTypes.length === 0) return "Free"
