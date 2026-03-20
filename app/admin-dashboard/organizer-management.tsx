@@ -233,18 +233,21 @@ export default function OrganizerManagement() {
     if (!selectedOrganizer) return
     
     try {
-      await adminApi(`/organizers/${selectedOrganizer.id}/status`, {
+      // Here you would implement the actual approval/rejection logic
+      const response = await fetch(`/api/admin/organizers/${selectedOrganizer?.id}/status`, {
         method: 'PATCH',
-        body: {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
           action: approvalAction,
           message: approvalMessage
-        }
+        })
       })
 
-      toast({
-        title: "Success",
-        description: `Organizer ${approvalAction === 'approve' ? 'approved' : 'rejected'} successfully!`
-      })
+      if (!response.ok) {
+        throw new Error('Failed to update organizer status')
+      }
 
       // Refresh the organizers list
       await fetchOrganizers()
