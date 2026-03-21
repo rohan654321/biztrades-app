@@ -41,6 +41,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { adminApi } from "@/lib/admin-api"
 
 interface NotificationChannel {
   id: string
@@ -266,10 +267,9 @@ export default function SettingsNotificationsPage() {
   const fetchData = async () => {
     setLoading(true)
     try {
-      const response = await fetch("/api/admin/settings/notifications")
-      if (response.ok) {
-        const data = await response.json()
-        setStats(data.stats)
+      const res = await adminApi<{ success?: boolean; data?: { stats?: typeof stats } }>("/settings/notifications")
+      if (res.success !== false && res.data?.stats) {
+        setStats(res.data.stats)
       }
     } catch (error) {
       console.error("Error fetching notification settings:", error)
@@ -285,10 +285,9 @@ export default function SettingsNotificationsPage() {
   const handleSaveSettings = async () => {
     setSaving(true)
     try {
-      await fetch("/api/admin/settings/notifications", {
+      await adminApi("/settings/notifications", {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ channels, notificationTypes, schedules, globalSettings }),
+        body: { channels, notificationTypes, schedules, globalSettings },
       })
       // Show success message
     } catch (error) {
@@ -313,10 +312,9 @@ export default function SettingsNotificationsPage() {
 
   const handleTestNotification = async () => {
     try {
-      await fetch("/api/admin/settings/notifications/test", {
+      await adminApi("/settings/notifications/test", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ channel: testChannel }),
+        body: { channel: testChannel },
       })
       setShowTestDialog(false)
     } catch (error) {

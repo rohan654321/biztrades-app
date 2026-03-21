@@ -1,5 +1,17 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+import { apiFetch } from "@/lib/api";
+
+export type DeactivationSummary = {
+  status: "NONE" | "PENDING" | "APPROVED" | "REJECTED" | "COMPLETED";
+  requestId?: string;
+  requestedAt?: string;
+  reviewedAt?: string;
+  deactivateEffectiveAt?: string;
+  rejectReason?: string | null;
+};
+
+export type SettingsResponse = Record<string, unknown> & { deactivation?: DeactivationSummary };
 
 export function useSettings() {
   const { toast } = useToast();
@@ -8,86 +20,86 @@ export function useSettings() {
   const { data: settings, isLoading, error } = useQuery({
     queryKey: ["settings"],
     queryFn: async () => {
-      const response = await fetch("/api/settings");
-      if (!response.ok) throw new Error(`Failed to fetch settings: ${response.status}`);
-      return response.json();
+      return apiFetch<SettingsResponse>("/api/settings", { auth: true });
     },
     retry: 1,
   });
 
-  // Update user settings
   const updateSettings = useMutation({
-    mutationFn: async (newSettings: any) => {
-      const response = await fetch("/api/settings", {
+    mutationFn: async (newSettings: Record<string, unknown>) => {
+      return apiFetch<{ message?: string; settings?: SettingsResponse }>("/api/settings", {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newSettings),
+        body: newSettings,
+        auth: true,
       });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || `Failed to update settings`);
-      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["settings"] });
       toast({ title: "Settings updated", description: "Your settings have been saved." });
     },
-    onError: (error: Error) =>
-      toast({ title: "Error updating settings", description: error.message, variant: "destructive" }),
+    onError: (err: Error) =>
+      toast({ title: "Error updating settings", description: err.message, variant: "destructive" }),
   });
 
-  // Send OTP
   const sendEmailVerification = useMutation({
     mutationFn: async (email: string) => {
-      const response = await fetch("/api/settings/verify", {
+      return apiFetch("/api/settings/verify", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
+        body: { email },
+        auth: true,
       });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Failed to send verification");
-      return data;
     },
-    onSuccess: () =>
-      toast({ title: "Verification code sent", description: "Check your email for the 6-digit code." }),
-    onError: (error: Error) =>
-      toast({ title: "Error sending verification", description: error.message, variant: "destructive" }),
   });
 
-  // Verify OTP
   const verifyEmailCode = useMutation({
     mutationFn: async ({ code, email }: { code: string; email: string }) => {
-      const response = await fetch("/api/settings/verify", {
+      return apiFetch("/api/settings/verify", {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code, email }),
+        body: { code, email },
+        auth: true,
       });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Verification failed");
-      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["settings"] });
-      toast({ title: "Verification successful", description: "Your email has been verified." });
     },
-    onError: (error: Error) =>
-      toast({ title: "Verification failed", description: error.message, variant: "destructive" }),
   });
 
-  // Deactivate account
-  const deactivateAccount = useMutation({
+  const requestDeactivation = useMutation({
     mutationFn: async () => {
-      const response = await fetch("/api/settings/account", {
+      return apiFetch<{ message?: string; settings?: SettingsResponse }>("/api/settings/account", {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "deactivate" }),
+        body: { action: "requestDeactivation" },
+        auth: true,
       });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Failed to deactivate account");
-      return data;
     },
-    onSuccess: () => toast({ title: "Account deactivated", description: "Your account is now hidden." }),
-    onError: (error: Error) =>
-      toast({ title: "Error deactivating account", description: error.message, variant: "destructive" }),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["settings"] });
+      toast({
+        title: "Request submitted",
+        description: data?.message ?? "An administrator will review your request.",
+      });
+    },
+    onError: (err: Error) =>
+      toast({ title: "Request failed", description: err.message, variant: "destructive" }),
+  });
+
+  const cancelDeactivationRequest = useMutation({
+    mutationFn: async () => {
+      return apiFetch<{ message?: string; settings?: SettingsResponse }>("/api/settings/account", {
+        method: "PATCH",
+        body: { action: "cancelDeactivationRequest" },
+        auth: true,
+      });
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["settings"] });
+      toast({
+        title: "Cancelled",
+        description: data?.message ?? "Your pending request was withdrawn.",
+      });
+    },
+    onError: (err: Error) =>
+      toast({ title: "Could not cancel", description: err.message, variant: "destructive" }),
   });
 
   return {
@@ -97,10 +109,12 @@ export function useSettings() {
     updateSettings: updateSettings.mutate,
     sendEmailVerification: sendEmailVerification.mutate,
     verifyEmailCode: verifyEmailCode.mutate,
-    deactivateAccount: deactivateAccount.mutate,
+    requestDeactivation: requestDeactivation.mutate,
+    cancelDeactivationRequest: cancelDeactivationRequest.mutate,
     isUpdating: updateSettings.isPending,
     isSendingCode: sendEmailVerification.isPending,
     isVerifyingCode: verifyEmailCode.isPending,
-    isDeactivating: deactivateAccount.isPending,
+    isRequestingDeactivation: requestDeactivation.isPending,
+    isCancellingDeactivation: cancelDeactivationRequest.isPending,
   };
 }

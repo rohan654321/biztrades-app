@@ -82,6 +82,7 @@ import SettingsNotificationsPage from "./settings/notifications"
 import SettingsSecurityPage from "./settings/security"
 import SettingsLanguagePage from "./settings/languages"
 import SettingsBackupPage from "./settings/backup"
+import AccountDeactivationsPage from "./settings/account-deactivations"
 import BannersPage from "./content/banners"
 import PromotionPackagesPage from "./financial/packeges/page"
 import EventApprovalDashboard from "./EventApprovalDashboard"
@@ -165,6 +166,7 @@ const MENU_PERMISSIONS = {
   "settings-security": "settings-security",
   "settings-language": "settings-language",
   "settings-backup": "settings-backup",
+  "settings-deactivations": "settings-modules",
   support: "support",
   "support-tickets": "support-tickets",
   "support-contacts": "support-contacts",
@@ -378,6 +380,7 @@ export default function AdminDashboard({ userRole, userPermissions }: AdminDashb
         { title: "Security", id: "settings-security" },
         { title: "Language & Localization", id: "settings-language" },
         { title: "Backup & Restore", id: "settings-backup" },
+        { title: "Account deactivations", id: "settings-deactivations" },
       ],
     },
     {
@@ -558,6 +561,8 @@ export default function AdminDashboard({ userRole, userPermissions }: AdminDashb
         case "settings-backup":
           return <SettingsBackupPage />
 
+        case "settings-deactivations":
+          return <AccountDeactivationsPage />
 
       //content
       case "content-banners":

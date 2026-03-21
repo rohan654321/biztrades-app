@@ -143,10 +143,11 @@ export default function OrganizerDashboardSimplified({ organizerId }: OrganizerD
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const response = await fetch(`/api/organizers/${organizerId}/events`)
-        if (!response.ok) throw new Error("Failed to fetch events")
-        const data = await response.json()
-        setEvents(data.events)
+        const data = await apiFetch<{ success?: boolean; events: Event[] }>(
+          `/api/organizers/${organizerId}/events`,
+          { auth: true }
+        )
+        setEvents(data.events ?? [])
       } catch (error) {
         console.error("Error fetching events:", error)
       }

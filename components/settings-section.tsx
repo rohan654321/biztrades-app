@@ -15,15 +15,18 @@ interface SettingsSectionProps {
 
 export function SettingsSection({ userData, onUpdate }: SettingsSectionProps) {
   const { toast } = useToast();
-  const { 
-    settings, 
-    isLoading, 
-    updateSettings, 
-    sendEmailVerification, 
-    verifyEmailCode, 
-    deactivateAccount,
+  const {
+    settings,
+    isLoading,
+    updateSettings,
+    sendEmailVerification,
+    verifyEmailCode,
+    requestDeactivation,
+    cancelDeactivationRequest,
     isSendingCode,
-    isVerifyingCode 
+    isVerifyingCode,
+    isRequestingDeactivation,
+    isCancellingDeactivation,
   } = useSettings();
 
   const [editPhone, setEditPhone] = useState("");
@@ -190,16 +193,30 @@ const handleSaveEmailWithoutVerification = () => {
     );
   };
 
-  const handleDeactivateAccount = () => {
-    if (confirm("Are you sure you want to deactivate your account? This action can be reversed later.")) {
-      deactivateAccount(undefined, {
-        onSuccess: () => {
-          toast({
-            title: "Account deactivated",
-            description: "Your account has been deactivated successfully.",
-          });
-        }
-      });
+  const deactivation = settings?.deactivation as
+    | {
+        status: string;
+        requestedAt?: string;
+        deactivateEffectiveAt?: string;
+        rejectReason?: string | null;
+      }
+    | undefined;
+
+  const handleRequestDeactivation = () => {
+    const msg =
+      "Your account will NOT close immediately.\n\n" +
+      "1) An administrator must approve your request.\n" +
+      "2) After approval, you can still use your account for 30 days.\n" +
+      "3) After those 30 days, your account will be deactivated and you will not be able to sign in.\n\n" +
+      "Send this request to the admin now?";
+    if (confirm(msg)) {
+      requestDeactivation();
+    }
+  };
+
+  const handleCancelDeactivationRequest = () => {
+    if (confirm("Withdraw your pending deactivation request?")) {
+      cancelDeactivationRequest();
     }
   };
 
@@ -493,14 +510,71 @@ const handleSaveEmailWithoutVerification = () => {
       <section>
         <h2 className="text-lg font-semibold mb-4">Manage</h2>
         <div className="space-y-4 text-sm">
-          <div className="flex items-center justify-between text-red-600 border-b pb-4">
+          <div className="rounded-lg border border-red-200 bg-red-50/80 p-4 space-y-3">
             <div>
-              <p className="font-medium">Deactivate my account</p>
-              <p className="text-gray-500">Hide your profile from everywhere.</p>
+              <p className="font-semibold text-red-900">Deactivate my account</p>
+              <p className="text-gray-700 mt-1">
+                Request account closure. An <strong>administrator must approve</strong> it first. After
+                approval, your account stays active for <strong>30 more days</strong>, then it is
+                deactivated and you cannot sign in.
+              </p>
             </div>
-            <Button variant="ghost" onClick={handleDeactivateAccount} className="text-gray-600">
-              ›
-            </Button>
+
+            {deactivation?.status === "PENDING" && (
+              <div className="rounded-md bg-amber-100 border border-amber-200 px-3 py-2 text-amber-950 text-sm">
+                <strong>Pending admin review.</strong> Your request was submitted
+                {deactivation.requestedAt
+                  ? ` on ${new Date(deactivation.requestedAt).toLocaleString()}`
+                  : ""}
+                .
+              </div>
+            )}
+
+            {deactivation?.status === "APPROVED" && deactivation.deactivateEffectiveAt && (
+              <div className="rounded-md bg-amber-100 border border-amber-200 px-3 py-2 text-amber-950 text-sm">
+                <strong>Closure scheduled.</strong> Your account will deactivate on{" "}
+                <strong>{new Date(deactivation.deactivateEffectiveAt).toLocaleString()}</strong> (30 days
+                after admin approval).
+              </div>
+            )}
+
+            {deactivation?.status === "REJECTED" && (
+              <div className="rounded-md bg-slate-100 border border-slate-200 px-3 py-2 text-slate-800 text-sm">
+                Your previous request was rejected
+                {deactivation.rejectReason ? `: ${deactivation.rejectReason}` : ""}. You may submit a new
+                request if needed.
+              </div>
+            )}
+
+            {deactivation?.status === "COMPLETED" && (
+              <div className="rounded-md bg-slate-200 border border-slate-300 px-3 py-2 text-slate-900 text-sm">
+                This account has been deactivated.
+              </div>
+            )}
+
+            <div className="flex flex-wrap gap-2 pt-1">
+              {deactivation?.status === "PENDING" ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="border-slate-400 text-slate-900"
+                  onClick={handleCancelDeactivationRequest}
+                  disabled={isCancellingDeactivation}
+                >
+                  {isCancellingDeactivation ? "Cancelling…" : "Withdraw request"}
+                </Button>
+              ) : deactivation?.status === "APPROVED" || deactivation?.status === "COMPLETED" ? null : (
+                <Button
+                  type="button"
+                  variant="destructive"
+                  className="min-w-[200px] font-semibold shadow-sm"
+                  onClick={handleRequestDeactivation}
+                  disabled={isRequestingDeactivation}
+                >
+                  {isRequestingDeactivation ? "Submitting…" : "Request account deactivation"}
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </section>
