@@ -28,6 +28,7 @@ import {
   MousePointerClick,
   Target,
 } from "lucide-react"
+import { adminApi } from "@/lib/admin-api"
 
 type Promotion = {
   id: string
@@ -81,9 +82,8 @@ export default function ExhibitorPromotionsPage() {
   const fetchPromotions = async () => {
     try {
       setLoading(true)
-      const response = await fetch("/api/admin/exhibitor/promotions")
-      const data = await response.json()
-      setPromotions(data)
+      const data = await adminApi<Promotion[]>("/exhibitors/promotions")
+      setPromotions(Array.isArray(data) ? data : [])
     } catch (error) {
       console.error("Failed to fetch promotions:", error)
     } finally {
@@ -128,19 +128,15 @@ export default function ExhibitorPromotionsPage() {
     if (!selectedPromotion) return
 
     try {
-      const response = await fetch(`/api/admin/exhibitor/promotions/${selectedPromotion.id}`, {
+      await adminApi(`/exhibitors/promotions/${selectedPromotion.id}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+        body: {
           status: actionType,
           rejectionReason: actionType === "REJECTED" ? rejectionReason : undefined,
-        }),
+        },
       })
-
-      if (response.ok) {
-        await fetchPromotions()
-        setActionDialogOpen(false)
-      }
+      await fetchPromotions()
+      setActionDialogOpen(false)
     } catch (error) {
       console.error("Failed to update promotion:", error)
     }

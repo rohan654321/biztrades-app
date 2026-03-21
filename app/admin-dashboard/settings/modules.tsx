@@ -17,6 +17,21 @@ import {
   ToggleLeft,
   ToggleRight,
   Layers,
+  Calendar,
+  CreditCard,
+  Ticket,
+  Bell,
+  MessageSquare,
+  BarChart3,
+  FileText,
+  Building2,
+  Mic,
+  UserCheck,
+  Megaphone,
+  Video,
+  Mail,
+  Map,
+  Globe,
 } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -42,11 +57,38 @@ import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
+/** API returns Lucide icon names as strings; map to real components for JSX. */
+const MODULE_ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
+  Users,
+  Calendar,
+  CreditCard,
+  Ticket,
+  Bell,
+  MessageSquare,
+  BarChart3,
+  FileText,
+  Building2,
+  Mic2: Mic,
+  UserCheck,
+  Megaphone,
+  Video,
+  Mail,
+  Map,
+  Shield,
+  Globe,
+  Settings,
+}
+
+function resolveModuleIcon(iconName: string): React.ComponentType<{ className?: string }> {
+  return MODULE_ICON_MAP[iconName] ?? Layers
+}
+
 interface Module {
   id: string
   name: string
   description: string
-  icon: React.ElementType
+  /** Lucide icon name from API (e.g. "Users"), not a component reference */
+  icon: string
   category: string
   status: "active" | "inactive" | "maintenance"
   isCore: boolean
@@ -89,7 +131,7 @@ export default function SettingsModulesPage() {
       setLoading(true)
       const response = await fetch("/api/admin/settings/modules")
       const data = await response.json()
-      setModules(data.modules)
+      setModules(Array.isArray(data.modules) ? data.modules : [])
     } catch (error) {
       console.error("Error fetching modules:", error)
     } finally {
@@ -289,7 +331,7 @@ export default function SettingsModulesPage() {
       {/* Modules Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredModules.map((module) => {
-          const IconComponent = module.icon
+          const IconComponent = resolveModuleIcon(module.icon)
           return (
             <Card key={module.id} className="hover:shadow-lg transition-shadow">
               <CardHeader className="pb-3">
@@ -403,7 +445,7 @@ export default function SettingsModulesPage() {
             <DialogTitle className="flex items-center gap-2">
               {selectedModule && (
                 <>
-                  <selectedModule.icon className="w-5 h-5" />
+                  {createElement(resolveModuleIcon(selectedModule.icon), { className: "w-5 h-5" })}
                   Configure {selectedModule.name}
                 </>
               )}

@@ -9,7 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import { ChevronDown, ChevronRight, Eye, EyeOff } from "lucide-react"
 import { toast } from "sonner"
-import { apiClient } from "@/lib/api-client"
+import { adminApi } from "@/lib/admin-api"
 import { AuthErrorHandler } from "./auth-error-handler"
 
 interface SubAdminEditPageProps {
@@ -147,7 +147,10 @@ export default function SubAdminEditPage({ subAdmin, onSuccess, onCancel }: SubA
         updateData.password = formData.password
       }
 
-      const data = await apiClient.put(`/sub-admins/${subAdmin.id}`, updateData)
+      await adminApi(`/sub-admins/${subAdmin.id}`, {
+        method: "PATCH",
+        body: updateData,
+      })
 
       toast.success("Sub-admin updated successfully")
       

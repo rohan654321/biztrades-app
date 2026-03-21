@@ -37,6 +37,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Textarea } from "@/components/ui/textarea"
 import { Progress } from "@/components/ui/progress"
+import { adminApi } from "@/lib/admin-api"
 
 interface Language {
   id: string
@@ -73,10 +74,24 @@ interface LocaleSettings {
   firstDayOfWeek: number
 }
 
+const DEFAULT_LOCALE_SETTINGS: LocaleSettings = {
+  defaultLanguage: "en",
+  fallbackLanguage: "en",
+  autoDetect: true,
+  showLanguageSwitcher: true,
+  dateFormat: "MM/DD/YYYY",
+  timeFormat: "12h",
+  timezone: "UTC",
+  currency: "USD",
+  currencyPosition: "before",
+  numberFormat: "1,234.56",
+  firstDayOfWeek: 0,
+}
+
 export default function SettingsLanguagePage() {
   const [languages, setLanguages] = useState<Language[]>([])
   const [translations, setTranslations] = useState<Translation[]>([])
-  const [settings, setSettings] = useState<LocaleSettings | null>(null)
+  const [settings, setSettings] = useState<LocaleSettings>(DEFAULT_LOCALE_SETTINGS)
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("all")
@@ -91,11 +106,14 @@ export default function SettingsLanguagePage() {
 
   const fetchLanguageSettings = async () => {
     try {
-      const response = await fetch("/api/admin/settings/language")
-      const data = await response.json()
-      setLanguages(data.languages)
-      setTranslations(data.translations)
-      setSettings(data.settings)
+      const data = await adminApi<{
+        languages?: Language[]
+        translations?: Translation[]
+        settings?: LocaleSettings
+      }>("/settings/language")
+      setLanguages(Array.isArray(data.languages) ? data.languages : [])
+      setTranslations(Array.isArray(data.translations) ? data.translations : [])
+      if (data.settings) setSettings(data.settings)
     } catch (error) {
       console.error("Error fetching language settings:", error)
     } finally {
@@ -105,10 +123,9 @@ export default function SettingsLanguagePage() {
 
   const handleToggleLanguage = async (languageId: string, enabled: boolean) => {
     try {
-      await fetch(`/api/admin/settings/language/${languageId}`, {
+      await adminApi(`/settings/language/${languageId}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ isEnabled: enabled }),
+        body: { isEnabled: enabled },
       })
       setLanguages(languages.map((lang) => (lang.id === languageId ? { ...lang, isEnabled: enabled } : lang)))
     } catch (error) {
@@ -118,10 +135,9 @@ export default function SettingsLanguagePage() {
 
   const handleSetDefault = async (languageId: string) => {
     try {
-      await fetch(`/api/admin/settings/language/${languageId}`, {
+      await adminApi(`/settings/language/${languageId}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ isDefault: true }),
+        body: { isDefault: true },
       })
       setLanguages(
         languages.map((lang) => ({
@@ -135,13 +151,11 @@ export default function SettingsLanguagePage() {
   }
 
   const handleSaveSettings = async () => {
-    if (!settings) return
     setSaving(true)
     try {
-      await fetch("/api/admin/settings/language", {
+      await adminApi("/settings/language", {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(settings),
+        body: settings,
       })
     } catch (error) {
       console.error("Error saving settings:", error)
@@ -153,10 +167,9 @@ export default function SettingsLanguagePage() {
   const handleSaveTranslation = async () => {
     if (!selectedTranslation) return
     try {
-      await fetch(`/api/admin/settings/language/translations/${selectedTranslation.id}`, {
+      await adminApi(`/settings/language/translation/${selectedTranslation.id}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(selectedTranslation),
+        body: selectedTranslation,
       })
       setTranslations(translations.map((t) => (t.id === selectedTranslation.id ? selectedTranslation : t)))
       setShowEditTranslationDialog(false)
@@ -176,10 +189,11 @@ export default function SettingsLanguagePage() {
     { value: "notifications", label: "Notifications" },
   ]
 
-  const filteredTranslations = translations.filter((t) => {
+  const filteredTranslations = (translations ?? []).filter((t) => {
+    const values = t.translations && typeof t.translations === "object" ? Object.values(t.translations) : []
     const matchesSearch =
-      t.key.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      Object.values(t.translations).some((v) => v.toLowerCase().includes(searchQuery.toLowerCase()))
+      (t.key ?? "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+      values.some((v) => String(v).toLowerCase().includes(searchQuery.toLowerCase()))
     const matchesCategory = selectedCategory === "all" || t.category === selectedCategory
     return matchesSearch && matchesCategory
   })
