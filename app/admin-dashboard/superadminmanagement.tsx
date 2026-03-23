@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { isAuthenticated } from "@/lib/api"
+import { adminApi } from "@/lib/admin-api"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -23,10 +24,38 @@ interface SubAdmin {
   isActive: boolean
   lastLogin?: string
   createdAt: string
-  createdBy: {
+  createdBy?: {
     id: string
     name: string
     email: string
+  }
+}
+
+type ApiSubAdminRow = {
+  id: string
+  name: string
+  email: string
+  phone?: string | null
+  role?: string
+  permissions?: string[]
+  isActive: boolean
+  lastLogin?: string | null
+  createdAt: string
+  createdBy?: { id: string; name: string; email: string }
+}
+
+function mapApiSubAdminToUi(row: ApiSubAdminRow): SubAdmin {
+  return {
+    id: row.id,
+    name: row.name,
+    email: row.email,
+    phone: row.phone ?? undefined,
+    role: row.role ?? "SUB_ADMIN",
+    permissions: Array.isArray(row.permissions) ? row.permissions : [],
+    isActive: row.isActive,
+    lastLogin: row.lastLogin ?? undefined,
+    createdAt: row.createdAt,
+    createdBy: row.createdBy ?? { id: "", name: "—", email: "" },
   }
 }
 
@@ -48,24 +77,13 @@ export default function SuperAdminManagement() {
   const fetchSubAdmins = async () => {
     try {
       setLoading(true)
-      const response = await fetch('/api/sub-admins')
-      
-      if (response.status === 401) {
-        toast.error("Session expired. Please login again.")
-        router.push("/login")
-        return
-      }
-      
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || 'Failed to fetch sub-admins')
-      }
-      
-      const data = await response.json()
-      setSubAdmins(data.subAdmins)
+      const res = await adminApi<{ success?: boolean; data?: ApiSubAdminRow[] }>("/sub-admins?limit=100")
+      const rows = res.success !== false && Array.isArray(res.data) ? res.data : []
+      setSubAdmins(rows.map(mapApiSubAdminToUi))
     } catch (error) {
-      console.error('Error fetching sub-admins:', error)
-      toast.error(error instanceof Error ? error.message : 'Failed to load sub-admins')
+      console.error("Error fetching sub-admins:", error)
+      toast.error(error instanceof Error ? error.message : "Failed to load sub-admins")
+      setSubAdmins([])
     } finally {
       setLoading(false)
     }
@@ -81,22 +99,8 @@ export default function SuperAdminManagement() {
     if (!confirm('Are you sure you want to delete this sub-admin?')) return
 
     try {
-      const response = await fetch(`/api/sub-admins/${id}`, {
-        method: 'DELETE',
-      })
-
-      if (response.status === 401) {
-        toast.error("Session expired. Please login again.")
-        router.push("/login")
-        return
-      }
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || 'Failed to delete sub-admin')
-      }
-
-      toast.success('Sub-admin deleted successfully')
+      await adminApi(`/sub-admins/${id}`, { method: "DELETE" })
+      toast.success("Sub-admin deleted successfully")
       fetchSubAdmins()
     } catch (error) {
       console.error('Error deleting sub-admin:', error)
@@ -117,14 +121,12 @@ export default function SuperAdminManagement() {
   const handleAddSuccess = () => {
     setViewMode("list")
     fetchSubAdmins()
-    toast.success('Sub-admin created successfully')
   }
 
   const handleEditSuccess = () => {
     setViewMode("list")
     setSelectedSubAdmin(null)
     fetchSubAdmins()
-    toast.success('Sub-admin updated successfully')
   }
 
   const handleCancel = () => {
@@ -141,17 +143,8 @@ export default function SuperAdminManagement() {
     return roleMap[role] || role
   }
 
-  // Show loading while checking authentication
-  if (status === "loading") {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    )
-  }
-
-  if (!session) {
-    return null // Will redirect due to useEffect
+  if (!isAuthenticated()) {
+    return null
   }
 
   if (viewMode !== "list") {

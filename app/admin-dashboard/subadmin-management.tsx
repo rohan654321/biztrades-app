@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label"
 import { ChevronDown, ChevronRight } from "lucide-react"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
+import { adminApi } from "@/lib/admin-api"
 
 interface SubAdminAddPageProps {
   onSuccess?: () => void
@@ -108,32 +109,17 @@ export default function SubAdminAddPage({ onSuccess, onCancel }: SubAdminAddPage
     setLoading(true)
 
     try {
-      const response = await fetch("/api/sub-admins", {
+      await adminApi("/sub-admins", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
+        body: {
           name: formData.name,
           email: formData.email,
           password: formData.password,
-          phone: formData.phone,
+          phone: formData.phone || undefined,
           role: formData.role,
           permissions: selectedPermissions,
-        }),
+        },
       })
-
-      if (response.status === 401) {
-        toast.error("Session expired. Please login again.")
-        router.push("/sign-in")
-        return
-      }
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to create sub-admin")
-      }
 
       toast.success("Sub-admin created successfully")
       

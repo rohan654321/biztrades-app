@@ -37,6 +37,7 @@ import {
 } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { apiFetch } from "@/lib/api"
 
 interface TravelPartner {
   id: string
@@ -91,18 +92,32 @@ export default function TravelIntegrationsPage() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false)
   const [activeTab, setActiveTab] = useState("partners")
+  const [addForm, setAddForm] = useState({
+    name: "",
+    type: "hotel" as TravelPartner["type"],
+    email: "",
+    phone: "",
+    website: "",
+    contactPerson: "",
+    commissionRate: 10,
+    description: "",
+  })
+  const [addingPartner, setAddingPartner] = useState(false)
 
   useEffect(() => {
-    fetchPartners()
-    fetchBookings()
+    void fetchTravel()
   }, [])
 
-  const fetchPartners = async () => {
+  const fetchTravel = async () => {
     try {
       setLoading(true)
-      const response = await fetch("/api/admin/integrations/travel")
-      const data = await response.json()
-      setPartners(data.partners || [])
+      const res = await apiFetch<{
+        success?: boolean
+        data?: { partners?: TravelPartner[]; bookings?: Booking[] }
+      }>("/api/admin/integrations/travel", { auth: true })
+      const d = res.data
+      setPartners(d?.partners ?? [])
+      setBookings(d?.bookings ?? [])
     } catch (error) {
       console.error("Error fetching travel partners:", error)
     } finally {
@@ -110,22 +125,45 @@ export default function TravelIntegrationsPage() {
     }
   }
 
-  const fetchBookings = async () => {
+  const handleAddPartner = async () => {
+    if (!addForm.name.trim()) {
+      alert("Partner name is required")
+      return
+    }
     try {
-      const response = await fetch("/api/admin/integrations/travel/bookings")
-      const data = await response.json()
-      setBookings(data.bookings || [])
-    } catch (error) {
-      console.error("Error fetching bookings:", error)
+      setAddingPartner(true)
+      const res = await apiFetch<{ success?: boolean; data?: TravelPartner }>("/api/admin/integrations/travel/partners", {
+        method: "POST",
+        body: addForm,
+        auth: true,
+      })
+      if (res.data) setPartners((p) => [...p, res.data!])
+      setIsAddDialogOpen(false)
+      setAddForm({
+        name: "",
+        type: "hotel",
+        email: "",
+        phone: "",
+        website: "",
+        contactPerson: "",
+        commissionRate: 10,
+        description: "",
+      })
+      void fetchTravel()
+    } catch (e) {
+      console.error(e)
+      alert("Failed to add partner")
+    } finally {
+      setAddingPartner(false)
     }
   }
 
   const handleTogglePartner = async (partnerId: string, isActive: boolean) => {
     try {
-      await fetch(`/api/admin/integrations/travel/${partnerId}`, {
+      await apiFetch(`/api/admin/integrations/travel/partners/${partnerId}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ isActive }),
+        body: { isActive },
+        auth: true,
       })
       setPartners(partners.map((p) => (p.id === partnerId ? { ...p, isActive } : p)))
     } catch (error) {
@@ -135,10 +173,11 @@ export default function TravelIntegrationsPage() {
 
   const handleSyncPartner = async (partnerId: string) => {
     try {
-      await fetch(`/api/admin/integrations/travel/${partnerId}/sync`, {
+      await apiFetch(`/api/admin/integrations/travel/partners/${partnerId}/sync`, {
         method: "POST",
+        auth: true,
       })
-      fetchPartners()
+      void fetchTravel()
     } catch (error) {
       console.error("Error syncing partner:", error)
     }
@@ -678,11 +717,18 @@ export default function TravelIntegrationsPage() {
           <div className="space-y-4">
             <div className="space-y-2">
               <Label>Partner Name</Label>
-              <Input placeholder="Enter partner name" />
+              <Input
+                placeholder="Enter partner name"
+                value={addForm.name}
+                onChange={(e) => setAddForm((f) => ({ ...f, name: e.target.value }))}
+              />
             </div>
             <div className="space-y-2">
               <Label>Type</Label>
-              <Select>
+              <Select
+                value={addForm.type}
+                onValueChange={(v) => setAddForm((f) => ({ ...f, type: v as TravelPartner["type"] }))}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select type" />
                 </SelectTrigger>
@@ -697,35 +743,62 @@ export default function TravelIntegrationsPage() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Email</Label>
-                <Input type="email" placeholder="partner@example.com" />
+                <Input
+                  type="email"
+                  placeholder="partner@example.com"
+                  value={addForm.email}
+                  onChange={(e) => setAddForm((f) => ({ ...f, email: e.target.value }))}
+                />
               </div>
               <div className="space-y-2">
                 <Label>Phone</Label>
-                <Input placeholder="+1 234 567 8900" />
+                <Input
+                  placeholder="+1 234 567 8900"
+                  value={addForm.phone}
+                  onChange={(e) => setAddForm((f) => ({ ...f, phone: e.target.value }))}
+                />
               </div>
             </div>
             <div className="space-y-2">
               <Label>Website</Label>
-              <Input placeholder="https://partner.com" />
+              <Input
+                placeholder="https://partner.com"
+                value={addForm.website}
+                onChange={(e) => setAddForm((f) => ({ ...f, website: e.target.value }))}
+              />
             </div>
             <div className="space-y-2">
               <Label>Contact Person</Label>
-              <Input placeholder="John Doe" />
+              <Input
+                placeholder="John Doe"
+                value={addForm.contactPerson}
+                onChange={(e) => setAddForm((f) => ({ ...f, contactPerson: e.target.value }))}
+              />
             </div>
             <div className="space-y-2">
               <Label>Commission Rate (%)</Label>
-              <Input type="number" defaultValue="10" />
+              <Input
+                type="number"
+                value={addForm.commissionRate}
+                onChange={(e) => setAddForm((f) => ({ ...f, commissionRate: Number(e.target.value) || 0 }))}
+              />
             </div>
             <div className="space-y-2">
               <Label>Description</Label>
-              <Textarea placeholder="Enter partner description" />
+              <Textarea
+                placeholder="Enter partner description"
+                value={addForm.description}
+                onChange={(e) => setAddForm((f) => ({ ...f, description: e.target.value }))}
+              />
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={() => setIsAddDialogOpen(false)}>Add Partner</Button>
+            <Button onClick={() => void handleAddPartner()} disabled={addingPartner}>
+              {addingPartner ? "Adding…" : "Add Partner"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

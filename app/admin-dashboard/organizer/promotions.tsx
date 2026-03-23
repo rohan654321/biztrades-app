@@ -19,6 +19,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Search, Eye, CheckCircle, XCircle, Clock, TrendingUp, DollarSign, Target, Download } from "lucide-react"
 import { format } from "date-fns"
+import { adminApi } from "@/lib/admin-api"
 
 interface Promotion {
     id: string
@@ -67,10 +68,10 @@ export default function OrganizerPromotionsPage() {
     const fetchPromotions = async () => {
         try {
             setLoading(true)
-            const response = await fetch("/api/admin/organizers/promotions")
-            const data = await response.json()
-            setPromotions(data.promotions || [])
-            setFilteredPromotions(data.promotions || [])
+            const data = await adminApi<{ promotions?: Promotion[]; total?: number }>("/organizers/promotions")
+            const list = data.promotions ?? []
+            setPromotions(list)
+            setFilteredPromotions(list)
         } catch (error) {
             console.error("Error fetching promotions:", error)
         } finally {
@@ -124,22 +125,18 @@ useEffect(() => {
         if (!selectedPromotion || !actionType) return
 
         try {
-            const response = await fetch(`/api/admin/organizers/promotions/${selectedPromotion.id}`, {
+            await adminApi(`/organizers/promotions/${selectedPromotion.id}`, {
                 method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
+                body: {
                     status: actionType === "approve" ? "APPROVED" : "REJECTED",
                     rejectionReason: actionType === "reject" ? rejectionReason : undefined,
-                }),
+                },
             })
-
-            if (response.ok) {
-                fetchPromotions()
-                setActionDialogOpen(false)
-                setRejectionReason("")
-                setSelectedPromotion(null)
-                setActionType(null)
-            }
+            fetchPromotions()
+            setActionDialogOpen(false)
+            setRejectionReason("")
+            setSelectedPromotion(null)
+            setActionType(null)
         } catch (error) {
             console.error("Error updating promotion:", error)
         }

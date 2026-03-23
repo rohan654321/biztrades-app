@@ -38,6 +38,7 @@ import {
 } from "@/components/ui/dialog"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Textarea } from "@/components/ui/textarea"
+import { apiFetch } from "@/lib/api"
 
 interface EmailProvider {
   id: string
@@ -138,21 +139,21 @@ export default function CommunicationIntegrationsPage() {
   const fetchData = async () => {
     try {
       setLoading(true)
-      const [providersRes, logsRes] = await Promise.all([
-        fetch("/api/admin/integrations/communication"),
-        fetch("/api/admin/integrations/communication/logs"),
-      ])
-
-      if (providersRes.ok) {
-        const data = await providersRes.json()
-        setEmailProviders(data.emailProviders || [])
-        setSmsProviders(data.smsProviders || [])
-        setStats(data.stats || null)
-      }
-
-      if (logsRes.ok) {
-        const logsData = await logsRes.json()
-        setLogs(logsData.logs || [])
+      const res = await apiFetch<{
+        success?: boolean
+        data?: {
+          emailProviders?: EmailProvider[]
+          smsProviders?: SmsProvider[]
+          stats?: Stats
+          logs?: CommunicationLog[]
+        }
+      }>("/api/admin/integrations/communication", { auth: true })
+      const d = res.data
+      if (d) {
+        setEmailProviders(d.emailProviders ?? [])
+        setSmsProviders(d.smsProviders ?? [])
+        setStats(d.stats ?? null)
+        setLogs(d.logs ?? [])
       }
     } catch (error) {
       console.error("Error fetching communication data:", error)
@@ -163,13 +164,13 @@ export default function CommunicationIntegrationsPage() {
 
   const toggleProvider = async (type: "email" | "sms", id: string, enabled: boolean) => {
     try {
-      const res = await fetch(`/api/admin/integrations/communication/${id}`, {
+      const res = await apiFetch<{ success?: boolean }>(`/api/admin/integrations/communication/providers/${id}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type, status: enabled ? "active" : "inactive" }),
+        body: { type, status: enabled ? "active" : "inactive" },
+        auth: true,
       })
 
-      if (res.ok) {
+      if (res.success !== false) {
         if (type === "email") {
           setEmailProviders((prev) =>
             prev.map((p) => (p.id === id ? { ...p, status: enabled ? "active" : "inactive" } : p)),
@@ -189,18 +190,21 @@ export default function CommunicationIntegrationsPage() {
     if (!selectedEmailProvider || !testEmail) return
     setTesting(true)
     try {
-      const res = await fetch(`/api/admin/integrations/communication/${selectedEmailProvider.id}/test`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          type: "email",
-          recipient: testEmail,
-          subject: testEmailSubject,
-          body: testEmailBody,
-        }),
-      })
+      const res = await apiFetch<{ success?: boolean }>(
+        `/api/admin/integrations/communication/providers/${selectedEmailProvider.id}/test`,
+        {
+          method: "POST",
+          body: {
+            type: "email",
+            recipient: testEmail,
+            subject: testEmailSubject,
+            body: testEmailBody,
+          },
+          auth: true,
+        },
+      )
 
-      if (res.ok) {
+      if (res.success !== false) {
         alert("Test email sent successfully!")
         setTestEmailOpen(false)
         setTestEmail("")
@@ -219,17 +223,20 @@ export default function CommunicationIntegrationsPage() {
     if (!selectedSmsProvider || !testPhone) return
     setTesting(true)
     try {
-      const res = await fetch(`/api/admin/integrations/communication/${selectedSmsProvider.id}/test`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          type: "sms",
-          recipient: testPhone,
-          body: testSmsBody,
-        }),
-      })
+      const res = await apiFetch<{ success?: boolean }>(
+        `/api/admin/integrations/communication/providers/${selectedSmsProvider.id}/test`,
+        {
+          method: "POST",
+          body: {
+            type: "sms",
+            recipient: testPhone,
+            body: testSmsBody,
+          },
+          auth: true,
+        },
+      )
 
-      if (res.ok) {
+      if (res.success !== false) {
         alert("Test SMS sent successfully!")
         setTestSmsOpen(false)
         setTestPhone("")

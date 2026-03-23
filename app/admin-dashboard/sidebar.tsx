@@ -82,7 +82,13 @@ import SettingsNotificationsPage from "./settings/notifications"
 import SettingsSecurityPage from "./settings/security"
 import SettingsLanguagePage from "./settings/languages"
 import SettingsBackupPage from "./settings/backup"
+import AccountDeactivationsPage from "./settings/account-deactivations"
+import ReportsAnalyticsPage from "./reports/ReportsAnalyticsPage"
 import BannersPage from "./content/banners"
+import NewsAnnouncementsPage from "./content/news/page"
+import BlogArticlesPage from "./content/blog/page"
+import FeaturedEventsPage from "./content/featured-events/page"
+import MediaLibraryPage from "./content/media/page"
 import PromotionPackagesPage from "./financial/packeges/page"
 import EventApprovalDashboard from "./EventApprovalDashboard"
 
@@ -165,6 +171,7 @@ const MENU_PERMISSIONS = {
   "settings-security": "settings-security",
   "settings-language": "settings-language",
   "settings-backup": "settings-backup",
+  "settings-deactivations": "settings-modules",
   support: "support",
   "support-tickets": "support-tickets",
   "support-contacts": "support-contacts",
@@ -308,7 +315,7 @@ export default function AdminDashboard({ userRole, userPermissions }: AdminDashb
         { title: "Payments Dashboard", id: "financial-payments" },
         { title: "Subscriptions & Plans", id: "financial-subscriptions" },
         { title: "Invoices & Receipts", id: "financial-invoices" },
-        { title: "promotions", id: "admin-promotions" },
+        { title: "Promotions", id: "admin-promotions" },
         { title: "Transaction History", id: "financial-transactions" },
       ],
     },
@@ -379,6 +386,7 @@ export default function AdminDashboard({ userRole, userPermissions }: AdminDashb
         { title: "Security", id: "settings-security" },
         { title: "Language & Localization", id: "settings-language" },
         { title: "Backup & Restore", id: "settings-backup" },
+        { title: "Account deactivations", id: "settings-deactivations" },
       ],
     },
     {
@@ -415,6 +423,20 @@ export default function AdminDashboard({ userRole, userPermissions }: AdminDashb
 
   // If permission filtering removed everything (e.g. empty permissions array), show full sidebar so menu is never empty
   const filteredSidebarItems = filteredSidebarItemsRaw.length > 0 ? filteredSidebarItemsRaw : sidebarItems
+
+  /** Used by dashboard Quick Actions to switch main section (and expand that menu). */
+  const navigateFromDashboard = (sectionId: string) => {
+    setActiveSection(sectionId)
+    if (sectionId === "financial") setActiveSubSection("financial-payments")
+    else if (sectionId === "content") setActiveSubSection("content-news")
+    else if (sectionId === "integrations") setActiveSubSection("integrations-payment")
+    else setActiveSubSection("")
+    setOpenMenus((prev) => {
+      const next = new Set(prev)
+      next.add(sectionId)
+      return next
+    })
+  }
 
   const renderContent = () => {
     const section = activeSection
@@ -484,7 +506,7 @@ export default function AdminDashboard({ userRole, userPermissions }: AdminDashb
         case "venues-feedback":
           return <VenueFeedbackPage />
         case "events-approvals":
-  return <EventApprovalDashboard />
+          return <EventApprovalDashboard />
 
         // Visitors
         case "visitors-events":
@@ -496,18 +518,26 @@ export default function AdminDashboard({ userRole, userPermissions }: AdminDashb
 
         // Financial
         case "financial-payments":
-          return <div>Page will updated-----soon</div>//<FinancialPaymentsPage />
+          return <FinancialPaymentsPage />
         case "financial-subscriptions":
-          return <div>Page will updated-----soon</div>//<FinancialSubscriptionsPage />
+          return <FinancialSubscriptionsPage />
         case "financial-invoices":
-          return <div>Page will updated-----soon</div>//<FinancialInvoicesPage />
+          return <FinancialInvoicesPage />
         case "financial-transactions":
-          return <div>Page will updated-----soon</div>//<FinancialTransactionsPage />
+          return <FinancialTransactionsPage />
 
         case "admin-promotions":
           return <PromotionPackagesPage />
 
-      
+        // Reports & Analytics (data from Express: GET /api/admin/reports/overview)
+        case "reports-events":
+          return <ReportsAnalyticsPage view="events" />
+        case "reports-engagement":
+          return <ReportsAnalyticsPage view="engagement" />
+        case "reports-revenue":
+          return <ReportsAnalyticsPage view="revenue" />
+        case "reports-system":
+          return <ReportsAnalyticsPage view="system" />
 
         // Help & Support sub-sections
         case "support-tickets":
@@ -559,6 +589,8 @@ export default function AdminDashboard({ userRole, userPermissions }: AdminDashb
         case "settings-backup":
           return <SettingsBackupPage />
 
+        case "settings-deactivations":
+          return <AccountDeactivationsPage />
 
       //content
       case "content-banners":
@@ -573,7 +605,7 @@ export default function AdminDashboard({ userRole, userPermissions }: AdminDashb
     // Handle main sections
     switch (section) {
       case "dashboard":
-        return <DashboardPage />
+        return <DashboardPage onNavigate={navigateFromDashboard} />
       case "events":
         return <EventManagement />
       case "locations":
@@ -589,15 +621,15 @@ export default function AdminDashboard({ userRole, userPermissions }: AdminDashb
       case "visitors":
         return <VisitorManagement />
       case "financial":
-        return <div>Financial Management - Coming Soon</div>
+        return <FinancialPaymentsPage />
       case "content":
-        return <div>Content Management - Coming Soon</div>//<ContentManagement />
+        return <NewsAnnouncementsPage />
       case "marketing":
         return <div>Marketing Management - Coming Soon</div>
       case "reports":
-        return <div>Reports & Analytics - Coming Soon</div>
+        return <ReportsAnalyticsPage view="events" />
       case "integrations":
-        return <div>Integrations Management - Coming Soon</div>
+        return <PaymentIntegrationsPage />
       case "roles":
         return <SuperAdminManagement />
       case "settings":
@@ -605,7 +637,7 @@ export default function AdminDashboard({ userRole, userPermissions }: AdminDashb
       case "support":
         return <MainHelpSupport />
       default:
-        return <DashboardPage />
+        return <DashboardPage onNavigate={navigateFromDashboard} />
     }
   }
 

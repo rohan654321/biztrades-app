@@ -89,8 +89,8 @@ export default function BannersPage() {
   const fetchBanners = async () => {
     try {
       setLoading(true)
-      const data = await apiFetch<unknown[]>("/api/content/banners", { auth: false })
-      setBanners(Array.isArray(data) ? data : [])
+      const res = await apiFetch<{ success?: boolean; data?: Banner[] }>("/api/admin/content/banners", { auth: true })
+      setBanners(Array.isArray(res.data) ? res.data : [])
     } catch (error) {
       console.error("Error fetching banners:", error)
     } finally {
@@ -131,28 +131,48 @@ export default function BannersPage() {
     try {
       setUploading(true)
 
-      // Create FormData for file upload
       const formData = new FormData()
       formData.append("file", uploadForm.file)
-      formData.append("title", uploadForm.title)
-      formData.append("page", uploadForm.page)
-      formData.append("position", uploadForm.position)
+      formData.append("type", "image")
+      formData.append("folder", "banners")
 
-      const newBanner = await apiFetch<{ id: string; title: string; imageUrl: string; page: string }>("/api/content/banners", {
+      const up = await apiFetch<{
+        success?: boolean
+        secure_url?: string
+        public_id?: string
+        error?: string
+      }>("/api/admin/upload", {
         method: "POST",
         body: formData,
         auth: true,
       })
-      if (newBanner && typeof newBanner === "object" && "id" in newBanner) {
-        setBanners([newBanner as any, ...banners])
+
+      if (!up.success || !up.secure_url) {
+        throw new Error(up.error || "Upload failed")
+      }
+
+      const created = await apiFetch<{ success?: boolean; data?: Banner }>("/api/admin/content/banners", {
+        method: "POST",
+        body: {
+          title: uploadForm.title,
+          page: uploadForm.page,
+          position: uploadForm.position,
+          imageUrl: up.secure_url,
+          publicId: up.public_id ?? "",
+        },
+        auth: true,
+      })
+
+      if (created.data) {
+        setBanners([created.data, ...banners])
         setIsUploadDialogOpen(false)
         setUploadForm({ title: "", page: "", position: "hero", file: null })
       } else {
-        alert("Banner upload not supported by backend yet")
+        alert("Could not create banner record")
       }
     } catch (err: any) {
       console.error("Error uploading banner:", err)
-      alert(err?.message || "Banner upload not supported by backend")
+      alert(err?.message || "Banner upload failed")
     } finally {
       setUploading(false)
     }
@@ -181,15 +201,12 @@ export default function BannersPage() {
 
   const handleToggleStatus = async (bannerId: string, currentStatus: boolean) => {
     try {
-      const response = await fetch(`/api/admin/content/banners/${bannerId}`, {
+      await apiFetch(`/api/admin/content/banners/${bannerId}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ isActive: !currentStatus }),
+        body: { isActive: !currentStatus },
+        auth: true,
       })
-
-      if (response.ok) {
-        setBanners(banners.map((b) => (b.id === bannerId ? { ...b, isActive: !currentStatus } : b)))
-      }
+      setBanners(banners.map((b) => (b.id === bannerId ? { ...b, isActive: !currentStatus } : b)))
     } catch (error) {
       console.error("Error toggling banner status:", error)
     }

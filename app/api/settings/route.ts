@@ -5,10 +5,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth-options";
 
 /**
- * Settings are migrated to the backend; frontend must not use Prisma.
- * When DATABASE_URL is unset, prisma is null and the old route crashed on prisma.user.
- * This route returns session-based defaults and accepts PATCH without persisting
- * until a backend /api/settings endpoint exists.
+ * @deprecated User settings are persisted by the Express backend (`GET/PATCH /api/settings`).
+ * The dashboard uses `apiFetch` → `NEXT_PUBLIC_API_URL` (e.g. localhost:4000). This route is unused.
  */
 
 function settingsFromSession(session: { user: Record<string, unknown> }) {

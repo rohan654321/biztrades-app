@@ -36,6 +36,7 @@ import {
   Globe,
   Zap,
 } from "lucide-react"
+import { apiFetch } from "@/lib/api"
 
 interface PaymentGateway {
   id: string
@@ -92,33 +93,23 @@ export default function PaymentIntegrationsPage() {
   })
 
   useEffect(() => {
-    fetchGateways()
-    fetchTransactionLogs()
+    void fetchGateways()
   }, [])
 
   const fetchGateways = async () => {
     try {
-      const response = await fetch("/api/admin/integrations/payments")
-      const data = await response.json()
-      if (data.gateways) {
-        setGateways(data.gateways)
-      }
+      setLoading(true)
+      const res = await apiFetch<{
+        success?: boolean
+        data?: { gateways?: PaymentGateway[]; logs?: TransactionLog[] }
+      }>("/api/admin/integrations/payments", { auth: true })
+      const d = res.data
+      if (d?.gateways) setGateways(d.gateways)
+      if (d?.logs) setTransactionLogs(d.logs as TransactionLog[])
     } catch (error) {
       console.error("Error fetching gateways:", error)
     } finally {
       setLoading(false)
-    }
-  }
-
-  const fetchTransactionLogs = async () => {
-    try {
-      const response = await fetch("/api/admin/integrations/payments/logs")
-      const data = await response.json()
-      if (data.logs) {
-        setTransactionLogs(data.logs)
-      }
-    } catch (error) {
-      console.error("Error fetching transaction logs:", error)
     }
   }
 
@@ -138,10 +129,9 @@ export default function PaymentIntegrationsPage() {
     if (!selectedGateway) return
 
     try {
-      const response = await fetch(`/api/admin/integrations/payment/${selectedGateway.id}`, {
+      await apiFetch(`/api/admin/integrations/payments/gateways/${selectedGateway.id}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+        body: {
           credentials: {
             publicKey: formData.publicKey,
             secretKey: formData.secretKey,
@@ -149,13 +139,11 @@ export default function PaymentIntegrationsPage() {
             merchantId: formData.merchantId,
           },
           isTestMode: formData.isTestMode,
-        }),
+        },
+        auth: true,
       })
-
-      if (response.ok) {
-        await fetchGateways()
-        setIsConfigureOpen(false)
-      }
+      await fetchGateways()
+      setIsConfigureOpen(false)
     } catch (error) {
       console.error("Error saving configuration:", error)
     }
@@ -163,15 +151,12 @@ export default function PaymentIntegrationsPage() {
 
   const handleToggleActive = async (gateway: PaymentGateway) => {
     try {
-      const response = await fetch(`/api/admin/integrations/payment/${gateway.id}`, {
+      await apiFetch(`/api/admin/integrations/payments/gateways/${gateway.id}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ isActive: !gateway.isActive }),
+        body: { isActive: !gateway.isActive },
+        auth: true,
       })
-
-      if (response.ok) {
-        await fetchGateways()
-      }
+      await fetchGateways()
     } catch (error) {
       console.error("Error toggling gateway:", error)
     }
@@ -182,11 +167,11 @@ export default function PaymentIntegrationsPage() {
 
     setIsTestingConnection(true)
     try {
-      const response = await fetch(`/api/admin/integrations/payment/${selectedGateway.id}/test`, {
-        method: "POST",
-      })
-      const data = await response.json()
-      alert(data.success ? "Connection successful!" : "Connection failed: " + data.message)
+      const data = await apiFetch<{ success: boolean; message?: string }>(
+        `/api/admin/integrations/payments/gateways/${selectedGateway.id}/test`,
+        { method: "POST", auth: true },
+      )
+      alert(data.success ? "Connection successful!" : "Connection failed: " + (data.message ?? ""))
     } catch (error) {
       console.error("Error testing connection:", error)
       alert("Failed to test connection")
