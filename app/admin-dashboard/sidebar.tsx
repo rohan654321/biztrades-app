@@ -297,6 +297,7 @@ export default function AdminDashboard({ userRole, userPermissions }: AdminDashb
         { title: "Events by Visitor", id: "visitors-events" },
         { title: "Connections", id: "visitors-connections" },
         { title: "Appointments", id: "visitors-appointments" },
+         { title: "Exhibitor Suggestions", id: "visitors-suggestions" },
       ],
     },
     {

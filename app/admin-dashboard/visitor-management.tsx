@@ -19,9 +19,12 @@ import {
   Trash2,
   UserCheck,
   UserX,
-  FileText
+  FileText,
+  Sparkles,
+  ArrowLeft
 } from "lucide-react"
 import { adminApi } from "@/lib/admin-api"
+import { VisitorSuggestionsAdmin } from "./visitors/VisitorSuggestions"
 
 interface Visitor {
   id: string
@@ -116,6 +119,8 @@ export default function VisitorManagement() {
   const [visitors, setVisitors] = useState<Visitor[]>([])
   const [selectedVisitor, setSelectedVisitor] = useState<VisitorDetails | null>(null)
   const [showDetailsModal, setShowDetailsModal] = useState(false)
+  const [showSuggestionsModal, setShowSuggestionsModal] = useState(false)
+  const [suggestionsVisitor, setSuggestionsVisitor] = useState<{ id: string; name: string } | null>(null)
   const [showActionsMenu, setShowActionsMenu] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [exportLoading, setExportLoading] = useState(false)
@@ -314,6 +319,12 @@ export default function VisitorManagement() {
     setShowActionsMenu(null)
   }
 
+  const handleViewSuggestions = (visitorId: string, visitorName: string) => {
+    setSuggestionsVisitor({ id: visitorId, name: visitorName })
+    setShowSuggestionsModal(true)
+    setShowActionsMenu(null)
+  }
+
   const handleEditVisitor = (visitorId: string) => {
     console.log("Edit visitor:", visitorId)
     setShowActionsMenu(null)
@@ -503,6 +514,13 @@ export default function VisitorManagement() {
               {/* Actions */}
               <div className="flex items-center gap-2 relative">
                 <button
+                  onClick={() => handleViewSuggestions(visitor.id, visitor.name)}
+                  className="p-2 rounded-lg bg-yellow-100 text-yellow-600 hover:bg-yellow-200 transition-colors"
+                  title="View Exhibitor Suggestions"
+                >
+                  <Sparkles className="w-4 h-4" />
+                </button>
+                <button
                   onClick={() => handleStatusToggle(visitor.id, visitor.isActive)}
                   className={`p-2 rounded-lg ${
                     visitor.isActive
@@ -540,6 +558,13 @@ export default function VisitorManagement() {
                       >
                         <Eye className="w-4 h-4" />
                         View Details
+                      </button>
+                      <button
+                        onClick={() => handleViewSuggestions(visitor.id, visitor.name)}
+                        className="flex items-center gap-2 w-full px-4 py-2 text-sm text-yellow-600 hover:bg-yellow-50"
+                      >
+                        <Sparkles className="w-4 h-4" />
+                        Exhibitor Suggestions
                       </button>
                       {/* <button
                         onClick={() => handleEditVisitor(visitor.id)}
@@ -661,6 +686,16 @@ export default function VisitorManagement() {
                         </span>
                       )}
                     </div>
+                    <button
+                      onClick={() => {
+                        setShowDetailsModal(false)
+                        handleViewSuggestions(selectedVisitor.id, selectedVisitor.name)
+                      }}
+                      className="w-full mt-2 px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors flex items-center justify-center gap-2"
+                    >
+                      <Sparkles className="w-4 h-4" />
+                      View Exhibitor Suggestions
+                    </button>
                   </div>
                 </div>
 
@@ -719,6 +754,41 @@ export default function VisitorManagement() {
                   <p className="text-sm text-orange-600">Saved Events</p>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Visitor Suggestions Modal */}
+      {showSuggestionsModal && suggestionsVisitor && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b border-gray-200 p-4 flex justify-between items-center">
+              <div>
+                <button
+                  onClick={() => setShowSuggestionsModal(false)}
+                  className="mr-4 p-2 hover:bg-gray-100 rounded-lg transition-colors inline-flex items-center gap-2"
+                >
+                  <ArrowLeft className="w-5 h-5" />
+                  Back
+                </button>
+                <h2 className="text-xl font-bold text-gray-900 inline-block">
+                  Exhibitor Suggestions for {suggestionsVisitor.name}
+                </h2>
+              </div>
+              <button
+                onClick={() => setShowSuggestionsModal(false)}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <XCircle className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-6">
+              <VisitorSuggestionsAdmin 
+                visitorId={suggestionsVisitor.id}
+                visitorName={suggestionsVisitor.name}
+                onClose={() => setShowSuggestionsModal(false)}
+              />
             </div>
           </div>
         </div>
