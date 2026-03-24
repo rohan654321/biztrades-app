@@ -404,8 +404,9 @@ export default function Navbar() {
     handleViewAllResults(activeTab === "all" ? "events" : activeTab)
   }
 
-  const isEventTabActive = pathname === "/event" || pathname.startsWith("/event/")
-  const isSpeakersTabActive = pathname.startsWith("/speakers")
+  const isExhibitionsTabActive = pathname === "/event" || pathname.startsWith("/event/")
+  const isOrganizersTabActive = pathname === "/organizer-signup" || pathname.startsWith("/organizer-dashboard")
+  const isVenuesTabActive = pathname === "/venues" || pathname.startsWith("/venues/")
 
   return (
     <nav className="sticky top-0 z-50 border-b border-gray-200 bg-white shadow-sm">
@@ -460,7 +461,7 @@ export default function Navbar() {
         </div>
 
         {/* Desktop: logo + primary tabs */}
-        <div className="hidden items-end justify-between gap-6 pb-3 pt-4 lg:flex">
+        <div className="hidden items-end justify-between gap-6 pb-2.5 pt-3 lg:flex">
           <div className="flex min-w-0 flex-1 items-end gap-10">
             <Link href="/" className="inline-block shrink-0">
               <Image
@@ -469,29 +470,39 @@ export default function Navbar() {
                 width={360}
                 height={168}
                 priority
-                className="h-auto max-h-[4.75rem] w-auto sm:max-h-24 lg:max-h-32"
+                className="h-auto max-h-[5rem] w-auto sm:max-h-24 lg:max-h-28"
               />
             </Link>
             <div className="flex items-end gap-8">
               <Link
                 href="/event"
-                className={`pb-1 text-base font-bold tracking-tight transition-colors ${
-                  isEventTabActive
+                className={`pb-1 text-lg font-bold tracking-tight transition-colors ${
+                  isExhibitionsTabActive
                     ? "border-b-2 border-red-600 text-red-600"
-                    : "border-b-2 border-transparent text-gray-800 hover:text-gray-900"
+                    : "border-b-2 border-transparent text-gray-800 hover:text-red-600"
                 }`}
               >
-                Top 10 Must Visit
+                Exhibitions
               </Link>
               <Link
-                href="/speakers"
-                className={`pb-0.5 text-sm font-bold tracking-tight transition-colors ${
-                  isSpeakersTabActive
+                href="/organizer-signup"
+                className={`pb-1 text-lg font-bold tracking-tight transition-colors ${
+                  isOrganizersTabActive
                     ? "border-b-2 border-red-600 text-red-600"
-                    : "border-b-2 border-transparent text-gray-800 hover:text-gray-900"
+                    : "border-b-2 border-transparent text-gray-800 hover:text-red-600"
                 }`}
               >
-                Speakers
+                Organizers
+              </Link>
+              <Link
+                href="/venues"
+                className={`pb-1 text-lg font-bold tracking-tight transition-colors ${
+                  isVenuesTabActive
+                    ? "border-b-2 border-red-600 text-red-600"
+                    : "border-b-2 border-transparent text-gray-800 hover:text-red-600"
+                }`}
+              >
+                Venues
               </Link>
             </div>
           </div>
@@ -499,7 +510,8 @@ export default function Navbar() {
 
         {/* Desktop: full-width search */}
         <div className="relative hidden pb-2 lg:block" ref={searchRef}>
-          <div className="flex w-full overflow-hidden rounded-md border-2 border-red-600 bg-white shadow-sm">
+          <div className="rounded-md border-2 border-red-600 bg-white p-1 shadow-sm">
+            <div className="flex w-full overflow-hidden rounded-sm bg-white">
             <div className="relative flex shrink-0 items-center border-r border-gray-200 bg-gray-100">
               <select
                 value={activeTab}
@@ -526,10 +538,11 @@ export default function Navbar() {
             <button
               type="button"
               onClick={runSearchSubmit}
-              className="shrink-0 rounded-none bg-red-600 px-8 text-sm font-semibold text-white transition-colors hover:bg-red-700"
+              className="shrink-0 rounded-none bg-red-600 px-10 text-sm font-semibold text-white transition-colors hover:bg-red-700"
             >
               Search
             </button>
+            </div>
           </div>
           {showSearchResults && (
             <div className="absolute left-0 right-0 top-full z-50 mt-1 rounded-md border border-gray-200 bg-white shadow-lg">
@@ -701,15 +714,23 @@ export default function Navbar() {
                   onClick={() => setMobileMenuOpen(false)}
                   className="px-4 py-3 text-gray-700 hover:text-gray-900 hover:bg-gray-50 transition-colors"
                 >
-                  Top 10 Must Visit
+                  Exhibitions
                 </p>
               </Link>
-              <Link href="/speakers">
+              <Link href="/organizer-signup">
                 <p
                   onClick={() => setMobileMenuOpen(false)}
                   className="px-4 py-3 text-gray-700 hover:text-gray-900 hover:bg-gray-50 transition-colors"
                 >
-                  Speakers
+                  Organizers
+                </p>
+              </Link>
+              <Link href="/venues">
+                <p
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="px-4 py-3 text-gray-700 hover:text-gray-900 hover:bg-gray-50 transition-colors"
+                >
+                  Venues
                 </p>
               </Link>
               <p

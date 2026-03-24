@@ -123,16 +123,16 @@ function FeaturedEventCard({ event }: { event: FeaturedListEvent }) {
   return (
     <Link
       href={href}
-      className="group flex flex-col overflow-hidden rounded-xl border border-white/25 bg-white/95 shadow-md transition hover:bg-white hover:shadow-lg"
+      className="group flex h-[208px] flex-col overflow-hidden rounded-xl border border-white/25 bg-white/95 shadow-md transition hover:bg-white hover:shadow-lg sm:h-[224px] lg:h-[212px]"
     >
-      <div className="relative aspect-[4/3] w-full shrink-0 bg-gray-200">
+      <div className="relative h-[112px] w-full shrink-0 bg-gray-200 sm:h-[120px] lg:h-[112px]">
         <img
           src={img}
           alt=""
           className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.04]"
         />
       </div>
-      <div className="flex min-h-0 flex-1 flex-col gap-1 p-3">
+      <div className="flex min-h-0 flex-1 flex-col gap-0.5 p-2">
         <h4 className="line-clamp-2 text-sm font-bold leading-snug text-gray-900">{event.title}</h4>
         {dates ? <p className="text-xs text-gray-600">{dates}</p> : null}
         {loc ? <p className="line-clamp-1 text-xs text-gray-500">{loc}</p> : null}
@@ -141,16 +141,15 @@ function FeaturedEventCard({ event }: { event: FeaturedListEvent }) {
   )
 }
 
-/** Text-only rows ~2.75rem → ~9–10 categories visible before scroll. */
-const CATEGORY_LIST_MAX_H =
-  "max-h-[min(22rem,38vh)] sm:max-h-[min(25rem,44vh)] lg:max-h-[27.5rem]"
+/** Text-only rows tuned for ~8 visible categories before hover-scroll. */
+const CATEGORY_LIST_MAX_H = "max-h-[20rem] sm:max-h-[20rem] lg:max-h-[20rem]"
 
   const categoryScrollAreaClass =
-  "min-h-0 min-w-0 divide-y divide-gray-100 overflow-y-auto hover:overflow-y-scroll overscroll-y-contain rounded-xl border border-gray-200/90 bg-gray-50/40 " +
+  "min-h-0 min-w-0 divide-y divide-gray-100 overflow-y-hidden hover:overflow-y-auto overscroll-y-contain rounded-xl border border-gray-200/90 bg-gray-50/40 " +
   CATEGORY_LIST_MAX_H +
-  " px-0 py-0 [scrollbar-gutter:stable] [scrollbar-width:thin] [scrollbar-color:rgb(100,100,110)_rgb(243,244,246)] " +
-  "[&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent " +
-  "[&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-300/90 [&::-webkit-scrollbar-thumb]:hover:bg-gray-400"
+  " px-0 py-0 [scrollbar-gutter:stable] [scrollbar-width:none] hover:[scrollbar-width:thin] [scrollbar-color:transparent_transparent] hover:[scrollbar-color:rgb(203,213,225)_transparent] " +
+  "[&::-webkit-scrollbar]:w-0 hover:[&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent " +
+  "[&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-300/55 [&::-webkit-scrollbar-thumb]:hover:bg-gray-300/70"
 
 type BrowseCategory = {
   id: string
@@ -194,10 +193,21 @@ function parseVipEventsPayload(data: unknown): VipEvent[] {
 function formatTabLabel(e: VipEvent): string {
   const start = new Date(e.startDate)
   const end = new Date(e.endDate)
-  const fmt = (d: Date) =>
-    d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
-  const range =
-    start.toDateString() === end.toDateString() ? fmt(start) : `${fmt(start)} – ${fmt(end)}`
+  const monthShortWithDot = (d: Date) =>
+    `${d.toLocaleDateString("en-GB", { month: "short" }).replace(".", "")}.`
+  const year = start.getFullYear()
+  const sameDay = start.toDateString() === end.toDateString()
+  const sameMonth = start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear()
+
+  let range = ""
+  if (sameDay) {
+    range = `${start.getDate()} ${monthShortWithDot(start)} ${year}`
+  } else if (sameMonth) {
+    range = `${start.getDate()}-${end.getDate()} ${monthShortWithDot(start)} ${year}`
+  } else {
+    range = `${start.getDate()} ${monthShortWithDot(start)} - ${end.getDate()} ${monthShortWithDot(end)} ${end.getFullYear()}`
+  }
+
   const t = e.title.trim()
   const head = t.length > 36 ? `${t.slice(0, 36)}…` : t
   return `${head} (${range})`
@@ -297,9 +307,15 @@ function CategoryLinkDb({ cat }: { cat: BrowseCategory }) {
   return (
     <Link
       href={href}
-      className="block px-3 py-2.5 text-left text-sm text-gray-800 transition-colors hover:bg-white hover:text-violet-800"
+      className="group flex items-center justify-between gap-3 px-3 py-2.5 text-left text-sm text-gray-800 transition-colors hover:bg-white hover:text-red-600"
     >
-      <span className="block truncate font-medium leading-snug">{cat.name}</span>
+      <span className="block min-w-0 truncate font-medium leading-snug">{cat.name}</span>
+      <span
+        aria-hidden
+        className="shrink-0 text-base leading-none text-gray-400 transition-colors group-hover:text-red-600"
+      >
+        &rsaquo;
+      </span>
       {/* <span className="mt-0.5 block text-xs text-gray-500">
         {cat.eventCount} event{cat.eventCount === 1 ? "" : "s"}
       </span> */}
@@ -422,7 +438,7 @@ export default function HeroHighlighter() {
       aria-label="Featured shows and verified exhibitors"
     >
       <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8">
-        <div className="bg-white rounded-2xl shadow-xl shadow-black/10 overflow-hidden flex flex-col lg:flex-row lg:items-stretch min-h-0 lg:min-h-[440px]">
+        <div className="bg-white rounded-2xl shadow-xl shadow-black/10 overflow-hidden flex flex-col lg:flex-row lg:items-stretch min-h-0 lg:min-h-[410px]">
           <aside className="grid min-h-0 w-full grid-rows-[auto_minmax(0,1fr)] overflow-hidden border-b border-gray-100 bg-white p-5 sm:p-6 lg:h-full lg:w-[26%] lg:min-h-0 lg:shrink-0 lg:border-b-0 lg:border-r xl:w-[24%]">
             <h3 className="mb-3 shrink-0 text-base font-bold text-gray-900">Show Categories</h3>
             <div
@@ -443,7 +459,7 @@ export default function HeroHighlighter() {
             </div>
           </aside>
 
-          <div className="flex min-h-0 min-w-0 flex-1 flex-col self-stretch lg:min-h-[440px]">
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col self-stretch lg:min-h-[410px]">
             {vipLoading ? (
               <div className="flex flex-1 items-center justify-center min-h-[320px] text-gray-500 text-sm">
                 Loading VIP events…
@@ -459,7 +475,7 @@ export default function HeroHighlighter() {
             ) : (
               <>
                 <div
-                  className="flex flex-wrap gap-0 border-b border-gray-100 bg-gray-50/80 px-2 pt-2"
+                  className="flex flex-wrap gap-0 border-b border-gray-100 bg-gray-50/80 px-3 pt-3 sm:px-4 sm:pt-3"
                   role="tablist"
                   aria-label="VIP events"
                 >
@@ -472,9 +488,9 @@ export default function HeroHighlighter() {
                         role="tab"
                         aria-selected={isActive}
                         onClick={() => setActiveTab(i)}
-                        className={`px-3 py-2.5 sm:px-4 text-left text-xs sm:text-sm font-medium rounded-t-lg transition-all max-w-[200px] sm:max-w-none sm:flex-1 sm:min-w-0 ${
+                        className={`px-3 py-2.5 sm:px-4 text-left text-xs sm:text-sm font-medium rounded-lg transition-all max-w-[200px] sm:max-w-none sm:flex-1 sm:min-w-0 ${
                           isActive
-                            ? "bg-gradient-to-r from-red-500 to-orange-500 text-white shadow-md z-10"
+                            ? "bg-gradient-to-r from-red-600 to-orange-600 text-white shadow-md z-10"
                             : "text-gray-600 hover:text-gray-900 hover:bg-white/80"
                         }`}
                       >
@@ -485,19 +501,19 @@ export default function HeroHighlighter() {
                 </div>
 
                 {panel && (
-                  <div className="relative flex-1 min-h-[320px] sm:min-h-[380px] overflow-hidden">
+                  <div className="relative flex-1 min-h-[245px] overflow-hidden p-3 sm:min-h-[290px] sm:p-4">
                     <img
                       src={heroImage(panel)}
                       alt=""
-                      className="absolute inset-0 w-full h-full object-cover"
+                      className="absolute inset-3 h-[calc(100%-1.5rem)] w-[calc(100%-1.5rem)] rounded-xl object-cover sm:inset-4 sm:h-[calc(100%-2rem)] sm:w-[calc(100%-2rem)]"
                     />
                     <div
-                      className="absolute inset-0"
+                      className="absolute inset-3 rounded-xl sm:inset-4"
                       style={{ background: activeVipTheme.overlayCss }}
                       aria-hidden
                     />
 
-                    <div className="relative z-[1] h-full flex flex-col justify-end sm:justify-center p-5 sm:p-8 lg:p-10 max-w-2xl">
+                    <div className="relative z-[1] h-full flex flex-col justify-end p-4 sm:justify-center sm:p-6 lg:p-8 max-w-2xl">
                       <div className="flex flex-wrap gap-2 mb-4">
                         {pillsFromEvent(panel).map((name) => (
                           <span
@@ -551,15 +567,15 @@ export default function HeroHighlighter() {
             aria-hidden
           />
           <div className="absolute inset-0 " aria-hidden />
-          <div className="relative z-[1] flex flex-col gap-6 px-5 py-8 sm:px-8 sm:py-10 lg:flex-row lg:items-start lg:gap-10">
-            <div className="shrink-0 space-y-3 lg:max-w-[220px]">
-              <h3 className="text-2xl font-bold leading-tight text-white sm:text-3xl">Featured Events</h3>
-              <p className="text-sm leading-relaxed text-white/80 sm:text-base">
+          <div className="relative z-[1] flex flex-col gap-4 px-5 py-5 sm:px-7 sm:py-6 lg:flex-row lg:items-start lg:gap-7">
+            <div className="shrink-0 space-y-2 lg:max-w-[210px]">
+              <h3 className="text-xl font-bold leading-tight text-white sm:text-2xl">Featured Events</h3>
+              <p className="text-xs leading-relaxed text-white/80 sm:text-sm">
                 Handpicked events from our catalogue—open a show for details, registration, and exhibitor info.
               </p>
               <Link
                 href="/event"
-                className="inline-flex w-fit items-center justify-center rounded-lg bg-white px-6 py-2.5 text-sm font-bold text-[#3d2066] transition-colors hover:bg-gray-100"
+                className="inline-flex w-fit items-center justify-center rounded-lg bg-white px-5 py-2 text-xs font-bold text-[#3d2066] transition-colors hover:bg-gray-100 sm:text-sm"
               >
                 View all events
               </Link>
@@ -572,7 +588,7 @@ export default function HeroHighlighter() {
               ) : featuredEvents.length === 0 ? (
                 <p className="py-6 text-sm text-white/70">No featured events right now. Check back soon.</p>
               ) : (
-                <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+                <div className="grid grid-cols-2 gap-2.5 sm:gap-3 lg:grid-cols-4">
                   {featuredEvents.map((ev) => (
                     <FeaturedEventCard key={ev.id} event={ev} />
                   ))}
