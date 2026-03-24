@@ -5,7 +5,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { ChevronDown, Search, User, MapPin, Mic, Calendar, Menu, X } from "lucide-react"
 import { signIn } from "next-auth/react"
-import { useRouter } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
 import { isAuthenticated, getCurrentUserId, getCurrentUserRole, getCurrentUserDisplayName, getCurrentUserEmail, clearTokens } from "@/lib/api"
 
 interface SearchEvent {
@@ -76,6 +76,7 @@ export default function Navbar() {
   const [showMobileSearch, setShowMobileSearch] = useState(false)
 
   const router = useRouter()
+  const pathname = usePathname()
   const searchRef = useRef<HTMLDivElement>(null)
   const mobileMenuRef = useRef<HTMLDivElement>(null)
   const abortRef = useRef<AbortController | null>(null)
@@ -388,7 +389,7 @@ export default function Navbar() {
         <div className="p-3 border-t border-gray-100">
           <button
             onClick={() => handleViewAllResults(activeTab)}
-            className="w-full text-center text-sm text-blue-600 hover:text-blue-800 font-medium"
+            className="w-full text-center text-sm font-medium text-red-600 hover:text-red-700"
           >
             View all {activeTab === 'all' ? 'events' : activeTab} →
           </button>
@@ -397,182 +398,229 @@ export default function Navbar() {
     )
   }
 
+  const runSearchSubmit = () => {
+    const q = searchQuery.trim()
+    if (q.length < 2) return
+    handleViewAllResults(activeTab === "all" ? "events" : activeTab)
+  }
+
+  const isEventTabActive = pathname === "/event" || pathname.startsWith("/event/")
+  const isSpeakersTabActive = pathname.startsWith("/speakers")
+
   return (
-    <nav className="bg-white shadow-[0_4px_12px_rgba(0,0,0,0.12)] sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-20 items-center">
-          {/* Left section: Logo and mobile menu button */}
-          <div className="flex items-center space-x-4">
-            {/* Mobile menu button */}
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden p-2 rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100"
-            >
-              {mobileMenuOpen ? (
-                <X className="h-6 w-6" />
-              ) : (
-                <Menu className="h-6 w-6" />
-              )}
-            </button>
-
-            {/* Logo */}
-            <Link href="/" className="inline-block">
-              <div className="flex items-center">
-                <Image
-                  src="/logo/bizlogo.png"
-                  alt="BizTradeFairs.com"
-                  width={300}
-                  height={140}
-                  priority
-                  className="
-    h-auto
-    w-auto
-    max-h-24
-    md:max-h-28
-    lg:max-h-32
-  "
-                />
-
-              </div>
-            </Link>
-          </div>
-
-          {/* Center section: Search bar - Desktop */}
-          <div className="hidden lg:block flex-1 max-w-2xl mx-4">
-            <div className="relative" ref={searchRef}>
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="Search events, venues, speakers..."
-                  className="w-full py-2 pl-4 pr-12 bg-gray-100 rounded-lg focus:outline-none focus:ring-2  focus:bg-white text-black"
-                  value={searchQuery}
-                  onChange={(e) => handleSearchInput(e.target.value)}
-                  onFocus={() => searchQuery.length >= 2 && setShowSearchResults(true)}
-                />
-                <Search className="w-5 h-5 absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
-              </div>
-
-              {showSearchResults && (
-                <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-md shadow-lg z-50 mt-1">
-                  <div className="flex border-b border-gray-200">
-                    {(['all', 'events', 'venues', 'speakers'] as const).map((tab) => (
-                      <button
-                        key={tab}
-                        onClick={() => setActiveTab(tab)}
-                        className={`flex-1 px-4 py-2 text-sm font-medium capitalize ${activeTab === tab
-                          ? 'text-blue-600 border-b-2 border-blue-600'
-                          : 'text-gray-500 hover:text-gray-700'
-                          }`}
-                      >
-                        {tab} {tab !== 'all' && `(${searchResults[tab as keyof SearchResults]?.length || 0})`}
-                      </button>
-                    ))}
-                  </div>
-                  {renderSearchResults()}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Right section: Desktop navigation */}
-          <div className="hidden lg:flex items-center space-x-6">
-            <Link href="/event">
-              <p className="text-gray-700 hover:text-gray-900 transition-colors">Top 10 Must Visit</p>
-            </Link>
-            <Link href="/speakers">
-              <p className="text-gray-700 hover:text-gray-900 transition-colors">Speakers</p>
-            </Link>
-
-            <p onClick={handleAddevent} className="text-gray-700 hover:text-gray-900 transition-colors cursor-pointer">
-              Add Event
-            </p>
-
+    <nav className="sticky top-0 z-50 border-b border-gray-200 bg-white shadow-sm">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        {/* Desktop utility row */}
+        <div className="hidden items-center justify-end gap-3 border-b border-gray-100 py-1 text-xs text-gray-600 lg:flex">
+          <p onClick={handleAddevent} className="cursor-pointer transition-colors hover:text-gray-900">
+            Add Event
+          </p>
+          <span className="h-3 w-px bg-gray-300" aria-hidden />
+          <span className="text-gray-500">EN</span>
+          <span className="h-3 w-px bg-gray-300" aria-hidden />
+          {authenticated ? (
             <div className="relative inline-block text-left">
               <button
+                type="button"
                 onClick={handleClick}
-                className="p-2 rounded-full bg-[#002C71] text-white hover:bg-[#001a48] transition-colors focus:outline-none"
+                className="flex items-center gap-1 text-gray-700 transition-colors hover:text-gray-900"
               >
-                <User className="w-5 h-5" />
+                <User className="h-4 w-4" />
+                <span className="max-w-[140px] truncate">{displayName || "Account"}</span>
+                <ChevronDown className="h-3.5 w-3.5 opacity-60" />
               </button>
-
               {showMenu && (
-                <div className="absolute right-0 mt-2 w-48 bg-white border rounded-lg shadow-lg z-50">
-                  {authenticated ? (
-                    <>
-                      <div className="px-4 py-3 border-b">
-                        <p className="text-sm font-medium text-gray-900">{displayName}</p>
-                        <p className="text-xs text-gray-500">{userEmail}</p>
-                      </div>
-                      <button
-                        onClick={handleDashboard}
-                        className="block w-full px-4 py-3 text-left hover:bg-gray-50 text-gray-700 border-b transition-colors"
-                      >
-                        Dashboard
-                      </button>
-                      <button
-                        onClick={handleLogout}
-                        className="block w-full px-4 py-3 text-left hover:bg-red-50 text-red-600 transition-colors"
-                      >
-                        Logout
-                      </button>
-                    </>
-                  ) : (
-                    <button
-                      onClick={handleLogin}
-                      className="block w-full px-4 py-3 text-left hover:bg-blue-50 text-blue-600 transition-colors"
-                    >
-                      Login / Sign Up
-                    </button>
-                  )}
+                <div className="absolute right-0 z-50 mt-2 w-52 rounded-lg border border-gray-200 bg-white shadow-lg">
+                  <div className="border-b px-4 py-3">
+                    <p className="text-sm font-medium text-gray-900">{displayName}</p>
+                    <p className="text-xs text-gray-500">{userEmail}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleDashboard}
+                    className="block w-full border-b px-4 py-3 text-left text-gray-700 transition-colors hover:bg-gray-50"
+                  >
+                    Dashboard
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="block w-full px-4 py-3 text-left text-red-600 transition-colors hover:bg-red-50"
+                  >
+                    Logout
+                  </button>
                 </div>
               )}
             </div>
+          ) : (
+            <button type="button" onClick={handleLogin} className="text-gray-700 transition-colors hover:text-red-600">
+              Login / Sign Up
+            </button>
+          )}
+        </div>
+
+        {/* Desktop: logo + primary tabs */}
+        <div className="hidden items-end justify-between gap-6 pb-3 pt-4 lg:flex">
+          <div className="flex min-w-0 flex-1 items-end gap-10">
+            <Link href="/" className="inline-block shrink-0">
+              <Image
+                src="/logo/bizlogo.png"
+                alt="BizTradeFairs.com"
+                width={360}
+                height={168}
+                priority
+                className="h-auto max-h-[4.75rem] w-auto sm:max-h-24 lg:max-h-32"
+              />
+            </Link>
+            <div className="flex items-end gap-8">
+              <Link
+                href="/event"
+                className={`pb-1 text-base font-bold tracking-tight transition-colors ${
+                  isEventTabActive
+                    ? "border-b-2 border-red-600 text-red-600"
+                    : "border-b-2 border-transparent text-gray-800 hover:text-gray-900"
+                }`}
+              >
+                Top 10 Must Visit
+              </Link>
+              <Link
+                href="/speakers"
+                className={`pb-0.5 text-sm font-bold tracking-tight transition-colors ${
+                  isSpeakersTabActive
+                    ? "border-b-2 border-red-600 text-red-600"
+                    : "border-b-2 border-transparent text-gray-800 hover:text-gray-900"
+                }`}
+              >
+                Speakers
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        {/* Desktop: full-width search */}
+        <div className="relative hidden pb-2 lg:block" ref={searchRef}>
+          <div className="flex w-full overflow-hidden rounded-md border-2 border-red-600 bg-white shadow-sm">
+            <div className="relative flex shrink-0 items-center border-r border-gray-200 bg-gray-100">
+              <select
+                value={activeTab}
+                onChange={(e) => setActiveTab(e.target.value as typeof activeTab)}
+                className="h-9 cursor-pointer appearance-none bg-transparent py-1.5 pl-3 pr-9 text-sm font-medium text-gray-700 focus:outline-none"
+                aria-label="Search scope"
+              >
+                <option value="all">All</option>
+                <option value="events">Events</option>
+                <option value="venues">Venues</option>
+                <option value="speakers">Speakers</option>
+              </select>
+              <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-500" />
+            </div>
+            <input
+              type="text"
+              placeholder="Search events, venues, speakers..."
+              className="min-w-0 flex-1 border-0 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-0"
+              value={searchQuery}
+              onChange={(e) => handleSearchInput(e.target.value)}
+              onFocus={() => searchQuery.length >= 2 && setShowSearchResults(true)}
+              onKeyDown={(e) => e.key === "Enter" && runSearchSubmit()}
+            />
+            <button
+              type="button"
+              onClick={runSearchSubmit}
+              className="shrink-0 rounded-none bg-red-600 px-8 text-sm font-semibold text-white transition-colors hover:bg-red-700"
+            >
+              Search
+            </button>
+          </div>
+          {showSearchResults && (
+            <div className="absolute left-0 right-0 top-full z-50 mt-1 rounded-md border border-gray-200 bg-white shadow-lg">
+              <div className="flex border-b border-gray-200">
+                {(["all", "events", "venues", "speakers"] as const).map((tab) => (
+                  <button
+                    key={tab}
+                    type="button"
+                    onClick={() => setActiveTab(tab)}
+                    className={`flex-1 px-4 py-2 text-sm font-medium capitalize ${
+                      activeTab === tab
+                        ? "border-b-2 border-red-600 text-red-600"
+                        : "text-gray-500 hover:text-gray-700"
+                    }`}
+                  >
+                    {tab}{" "}
+                    {tab !== "all" && `(${searchResults[tab as keyof SearchResults]?.length || 0})`}
+                  </button>
+                ))}
+              </div>
+              {renderSearchResults()}
+            </div>
+          )}
+        </div>
+
+        {/* Mobile header */}
+        <div className="flex h-12 items-center justify-between py-0.5 sm:h-14 lg:hidden">
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="rounded-md p-2 text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+            >
+              {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </button>
+            <Link href="/" className="inline-block">
+              <Image
+                src="/logo/bizlogo.png"
+                alt="BizTradeFairs.com"
+                width={300}
+                height={140}
+                priority
+                className="h-auto max-h-8 w-auto sm:max-h-10"
+              />
+            </Link>
           </div>
 
-          {/* Mobile search and profile buttons */}
-          <div className="flex lg:hidden items-center space-x-4">
-            {/* Mobile search button */}
+          <div className="flex items-center gap-2">
             <button
+              type="button"
               onClick={() => setShowMobileSearch(!showMobileSearch)}
-              className="p-2 rounded-full text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+              className="rounded-full p-2 text-gray-700 hover:bg-gray-100"
             >
               <Search className="h-5 w-5" />
             </button>
-
-            {/* Mobile profile button */}
             <div className="relative">
               <button
+                type="button"
                 onClick={handleClick}
-                className="p-2 rounded-full bg-[#002C71] text-white hover:bg-[#001a48]"
+                className="rounded-full bg-red-600 p-2 text-white hover:bg-red-700"
               >
                 <User className="h-5 w-5" />
               </button>
-
               {showMenu && (
-                <div className="absolute right-0 mt-2 w-48 bg-white border rounded-lg shadow-lg z-50">
+                <div className="absolute right-0 z-50 mt-2 w-48 rounded-lg border border-gray-200 bg-white shadow-lg">
                   {authenticated ? (
                     <>
-                      <div className="px-4 py-3 border-b">
+                      <div className="border-b px-4 py-3">
                         <p className="text-sm font-medium text-gray-900">{displayName}</p>
                         <p className="text-xs text-gray-500">{userEmail}</p>
                       </div>
                       <button
+                        type="button"
                         onClick={handleDashboard}
-                        className="block w-full px-4 py-3 text-left hover:bg-gray-50 text-gray-700 border-b"
+                        className="block w-full border-b px-4 py-3 text-left text-gray-700 hover:bg-gray-50"
                       >
                         Dashboard
                       </button>
                       <button
+                        type="button"
                         onClick={handleLogout}
-                        className="block w-full px-4 py-3 text-left hover:bg-red-50 text-red-600"
+                        className="block w-full px-4 py-3 text-left text-red-600 hover:bg-red-50"
                       >
                         Logout
                       </button>
                     </>
                   ) : (
                     <button
+                      type="button"
                       onClick={handleLogin}
-                      className="block w-full px-4 py-3 text-left hover:bg-blue-50 text-blue-600"
+                      className="block w-full px-4 py-3 text-left text-red-600 hover:bg-red-50"
                     >
                       Login / Sign Up
                     </button>
@@ -585,32 +633,56 @@ export default function Navbar() {
 
         {/* Mobile search bar */}
         {showMobileSearch && (
-          <div className="lg:hidden pb-4 px-2" ref={searchRef}>
-            <div className="relative">
+          <div className="relative pb-2 lg:hidden">
+            <div className="flex w-full overflow-hidden rounded-md border-2 border-red-600 bg-white shadow-sm">
+              <div className="relative flex shrink-0 items-center border-r border-gray-200 bg-gray-100">
+                <select
+                  value={activeTab}
+                  onChange={(e) => setActiveTab(e.target.value as typeof activeTab)}
+                  className="h-9 max-w-[5.5rem] cursor-pointer appearance-none bg-transparent py-1.5 pl-2 pr-7 text-xs font-medium text-gray-700 focus:outline-none sm:max-w-none sm:pl-3 sm:pr-9 sm:text-sm"
+                  aria-label="Search scope"
+                >
+                  <option value="all">All</option>
+                  <option value="events">Events</option>
+                  <option value="venues">Venues</option>
+                  <option value="speakers">Speakers</option>
+                </select>
+                <ChevronDown className="pointer-events-none absolute right-1.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-500 sm:right-2 sm:h-4 sm:w-4" />
+              </div>
               <input
                 type="text"
                 placeholder="Search events, venues, speakers..."
-                className="w-full py-3 pl-4 pr-12 bg-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white text-black"
+                className="min-w-0 flex-1 border-0 bg-white px-2 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-0 sm:px-3"
                 value={searchQuery}
                 onChange={(e) => handleSearchInput(e.target.value)}
                 onFocus={() => searchQuery.length >= 2 && setShowSearchResults(true)}
+                onKeyDown={(e) => e.key === "Enter" && runSearchSubmit()}
               />
-              <Search className="w-5 h-5 absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <button
+                type="button"
+                onClick={runSearchSubmit}
+                className="shrink-0 bg-red-600 px-3 text-xs font-semibold text-white transition-colors hover:bg-red-700 sm:px-6 sm:text-sm"
+              >
+                Search
+              </button>
             </div>
 
             {showSearchResults && (
-              <div className="absolute left-4 right-4 bg-white border border-gray-200 rounded-md shadow-lg z-50 mt-1 max-h-80 overflow-y-auto">
+              <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-80 overflow-y-auto rounded-md border border-gray-200 bg-white shadow-lg">
                 <div className="flex border-b border-gray-200">
-                  {(['all', 'events', 'venues', 'speakers'] as const).map((tab) => (
+                  {(["all", "events", "venues", "speakers"] as const).map((tab) => (
                     <button
                       key={tab}
+                      type="button"
                       onClick={() => setActiveTab(tab)}
-                      className={`flex-1 px-4 py-3 text-sm font-medium capitalize ${activeTab === tab
-                        ? 'text-blue-600 border-b-2 border-blue-600'
-                        : 'text-gray-500 hover:text-gray-700'
-                        }`}
+                      className={`flex-1 px-2 py-2 text-xs font-medium capitalize sm:px-4 sm:py-3 sm:text-sm ${
+                        activeTab === tab
+                          ? "border-b-2 border-red-600 text-red-600"
+                          : "text-gray-500 hover:text-gray-700"
+                      }`}
                     >
-                      {tab} {tab !== 'all' && `(${searchResults[tab as keyof SearchResults]?.length || 0})`}
+                      {tab}{" "}
+                      {tab !== "all" && `(${searchResults[tab as keyof SearchResults]?.length || 0})`}
                     </button>
                   ))}
                 </div>
@@ -671,7 +743,7 @@ export default function Navbar() {
                 ) : (
                   <button
                     onClick={handleLogin}
-                    className="w-full text-left px-4 py-3 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-600 transition-colors"
+                    className="w-full rounded-lg bg-red-50 px-4 py-3 text-left text-red-600 transition-colors hover:bg-red-100"
                   >
                     Login / Sign Up
                   </button>
