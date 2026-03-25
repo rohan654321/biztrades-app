@@ -282,17 +282,17 @@ function ShowOpeningCountdown({ startDateIso }: { startDateIso: string }) {
       aria-live="polite"
       aria-label="Countdown to show opening"
     >
-      <p className="mb-2 text-center text-[10px] font-semibold uppercase tracking-[0.12em] text-white/95 sm:text-[11px]">
+      <p className="mb-2 text-center text-[10px] font-semibold uppercase tracking-[0.12em] text-gray-700 sm:text-[11px]">
         Show Opening
       </p>
       <div className="flex items-stretch gap-2 sm:gap-2">
         {units.map(({ value, label }) => (
           <div
             key={label}
-            className="flex min-w-0 flex-1 flex-col items-center justify-center rounded-lg bg-black/45 px-1.5 py-2 sm:px-2 sm:py-2.5"
+            className="flex min-w-0 flex-1 flex-col items-center justify-center rounded-lg bg-white px-2 py-2.5 border border-gray-200"
           >
-            <span className="text-lg font-bold tabular-nums leading-none text-white sm:text-xl">{value}</span>
-            <span className="mt-1 text-[8px] font-medium uppercase tracking-wide text-white/65 sm:text-[9px]">
+            <span className="text-lg font-bold text-gray-900">{value}</span>
+            <span className="mt-1 text-[8px] font-medium uppercase tracking-wide text-gray-500 sm:text-[9px]">
               {label}
             </span>
           </div>
