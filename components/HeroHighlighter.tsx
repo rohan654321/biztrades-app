@@ -427,6 +427,19 @@ export default function HeroHighlighter() {
 
   const panel = vipEvents[activeTab]
   const activeVipTheme = getVipTheme(activeTab)
+  function formatTabDate(e: VipEvent): string {
+  const start = new Date(e.startDate)
+  const end = new Date(e.endDate)
+
+  const month = start.toLocaleString("en-GB", { month: "short" })
+  const year = start.getFullYear()
+
+  if (start.toDateString() === end.toDateString()) {
+    return `${start.getDate()} ${month} ${year}`
+  }
+
+  return `${start.getDate()}-${end.getDate()} ${month} ${year}`
+}
 
   return (
     <section
@@ -519,7 +532,19 @@ export default function HeroHighlighter() {
                             : "text-gray-600 hover:text-gray-900 hover:bg-white/80"
                         }`}
                       >
-                        <span className="line-clamp-2 sm:line-clamp-none">{formatTabLabel(e)}</span>
+                        <div className="flex flex-col gap-1">
+
+  {/* EVENT NAME */}
+  <span className="text-sm font-semibold truncate">
+    {e.title}
+  </span>
+
+  {/* DATE */}
+  <span className={`text-xs ${isActive ? "text-white/90" : "text-gray-500"}`}>
+    {formatTabDate(e)}
+  </span>
+
+</div>
                       </button>
                     )
                   })}
