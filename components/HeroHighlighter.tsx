@@ -272,7 +272,7 @@ function ShowOpeningCountdown({ startDateIso }: { startDateIso: string }) {
     { value: String(days), label: "Days" },
     { value: pad(hours), label: "Hours" },
     { value: pad(minutes), label: "Min" },
-    { value: pad(seconds), label: "Sec" },
+    // { value: pad(seconds), label: "Sec" },
   ]
 
   return (
@@ -285,7 +285,7 @@ function ShowOpeningCountdown({ startDateIso }: { startDateIso: string }) {
       <p className="mb-2 text-center text-[10px] font-semibold uppercase tracking-[0.12em] text-white/95 sm:text-[11px]">
         Show Opening
       </p>
-      <div className="flex items-stretch gap-1.5 sm:gap-2">
+      <div className="flex items-stretch gap-2 sm:gap-2">
         {units.map(({ value, label }) => (
           <div
             key={label}
@@ -526,21 +526,22 @@ export default function HeroHighlighter() {
                         role="tab"
                         aria-selected={isActive}
                         onClick={() => setActiveTab(i)}
-                        className={`px-3 py-2.5 sm:px-4 text-left text-xs sm:text-sm font-medium rounded-lg transition-all max-w-[200px] sm:max-w-none sm:flex-1 sm:min-w-0 ${
-                          isActive
-                            ? "bg-gradient-to-r from-red-600 to-orange-600 text-white shadow-md z-10"
-                            : "text-gray-600 hover:text-gray-900 hover:bg-white/80"
-                        }`}
-                      >
-                        <div className="flex flex-col gap-1">
+  className={`h-[56px] px-3 py-2.5 sm:px-4 text-left text-xs sm:text-sm font-medium rounded-lg transition-colors max-w-[200px] sm:flex-1 ${
+  isActive
+    ? "bg-gradient-to-r from-red-600 to-orange-600 text-white"
+    : "text-gray-600 hover:text-gray-900 hover:bg-white"
+}`}>
+      <div className="flex flex-col gap-1">
 
   {/* EVENT NAME */}
-  <span className="text-sm font-semibold truncate">
+  <span className="text-sm font-semibold truncate text-left">
     {e.title}
   </span>
 
-  {/* DATE */}
-  <span className={`text-xs ${isActive ? "text-white/90" : "text-gray-500"}`}>
+  {/* DATE CENTERED */}
+  <span className={`text-xs text-center ${
+    isActive ? "text-white/90" : "text-gray-500"
+  }`}>
     {formatTabDate(e)}
   </span>
 
