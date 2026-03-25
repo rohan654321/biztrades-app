@@ -277,7 +277,7 @@ function ShowOpeningCountdown({ startDateIso }: { startDateIso: string }) {
 
   return (
     <div
-      className="absolute top-3 right-3 z-[2] rounded-xl bg-black/55 px-3 py-2.5 shadow-md backdrop-blur-md sm:top-4 sm:right-4 sm:px-3.5 sm:py-3"
+      className="absolute top-4 right-6 sm:right-8 z-[2] rounded-xl bg-black/55 px-3 py-2.5 shadow-md backdrop-blur-md"
       role="timer"
       aria-live="polite"
       aria-label="Countdown to show opening"
@@ -526,15 +526,17 @@ export default function HeroHighlighter() {
                         role="tab"
                         aria-selected={isActive}
                         onClick={() => setActiveTab(i)}
-  className={`h-[56px] px-3 py-2.5 sm:px-4 text-left text-xs sm:text-sm font-medium rounded-lg transition-colors max-w-[200px] sm:flex-1 ${
+className={`h-[56px] px-3 py-2.5 sm:px-4 text-left text-xs sm:text-sm font-medium rounded-sm 
+transition-all duration-300 ease-out max-w-[200px] sm:flex-1 transform
+${
   isActive
-    ? "bg-gradient-to-r from-red-600 to-orange-600 text-white"
-    : "text-gray-600 hover:text-gray-900 hover:bg-white"
+    ? "bg-gradient-to-r from-red-600 to-orange-600 text-white scale-[1.11] shadow-md"
+    : "text-gray-600 hover:text-gray-900 hover:bg-white hover:scale-[1.03]"
 }`}>
       <div className="flex flex-col gap-1">
 
   {/* EVENT NAME */}
-  <span className="text-sm font-semibold truncate text-left">
+  <span className="text-sm font-semibold truncate text-center">
     {e.title}
   </span>
 
