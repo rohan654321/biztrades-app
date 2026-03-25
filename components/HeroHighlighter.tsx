@@ -277,7 +277,7 @@ function ShowOpeningCountdown({ startDateIso }: { startDateIso: string }) {
 
   return (
     <div
-      className="absolute top-4 right-6 sm:right-8 z-[2] rounded-xl bg-black/55 px-3 py-2.5 shadow-md backdrop-blur-md"
+      className="absolute top-4 right-6 sm:right-8 z-[2] rounded-xl bg-white px-4 py-3 shadow-lg border border-gray-200"
       role="timer"
       aria-live="polite"
       aria-label="Countdown to show opening"
@@ -530,14 +530,14 @@ className={`h-[56px] px-3 py-2.5 sm:px-4 text-left text-xs sm:text-sm font-mediu
 transition-all duration-300 ease-out max-w-[200px] sm:flex-1 transform
 ${
   isActive
-    ? "bg-gradient-to-r from-red-600 to-orange-600 text-white scale-[1.11] shadow-md"
-    : "text-gray-600 hover:text-gray-900 hover:bg-white hover:scale-[1.03]"
+    ? "bg-gradient-to-r from-red-600 to-orange-600 text-white scale-[1.15] shadow-md"
+    : "text-gray-600 hover:text-red-600 hover:scale-[1.04]"
 }`}>
       <div className="flex flex-col gap-1">
 
   {/* EVENT NAME */}
   <span className="text-sm font-semibold truncate text-center">
-    {e.title}
+    {e.title.trim().length >30 ? `${e.title.trim().slice(0, 30)}...` : e.title.trim()}
   </span>
 
   {/* DATE CENTERED */}
@@ -567,16 +567,7 @@ ${
                     />
 
                     <div className="relative z-[1] h-full flex flex-col justify-end p-4 sm:justify-center sm:p-6 lg:p-8 max-w-2xl">
-                      <div className="flex flex-wrap gap-2 mb-4">
-                        {pillsFromEvent(panel).map((name) => (
-                          <span
-                            key={name}
-                            className="inline-block text-[10px] sm:text-xs font-semibold uppercase tracking-wide text-white/90 bg-white/10 backdrop-blur-sm px-2.5 py-1 rounded border border-white/20"
-                          >
-                            {name}
-                          </span>
-                        ))}
-                      </div>
+
                       <h2 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-white tracking-tight leading-tight mb-3">
                         {panel.title.toUpperCase()}
                       </h2>
