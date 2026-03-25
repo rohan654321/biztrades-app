@@ -277,7 +277,7 @@ function ShowOpeningCountdown({ startDateIso }: { startDateIso: string }) {
 
   return (
     <div
-      className="absolute top-4 right-6 sm:right-8 z-[2] rounded-xl bg-white px-4 py-3 shadow-lg border border-gray-200"
+      className="absolute top-4 right-6 sm:right-8 z-[2] rounded-xl bg-black px-4 py-3 shadow-lg border border-gray-200"
       role="timer"
       aria-live="polite"
       aria-label="Countdown to show opening"
