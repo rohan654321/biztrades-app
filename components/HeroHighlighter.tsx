@@ -438,7 +438,32 @@ export default function HeroHighlighter() {
       aria-label="Featured shows and verified exhibitors"
     >
       <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8">
-        <div className="bg-white rounded-2xl shadow-xl shadow-black/10 overflow-hidden flex flex-col lg:flex-row lg:items-stretch min-h-0 lg:min-h-[410px]">
+        {/* 🔥 TOP PROMO BANNER */}
+<div className="flex items-center justify-center gap-10 px-6 py-4">
+
+  {/* LEFT TEXT */}
+<div className="text-center">
+
+  <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white">
+    April 2026 Global Sources Hong Kong Shows
+  </h2>
+
+  <p className="text-4xl sm:text-2xl text-white mt-2">
+    The Top Destination for Global Sourcing in AI-Integrated Consumer & Mobile Electronics ...
+  </p>
+
+</div>
+
+  {/* RIGHT BUTTON */}
+  <Link
+    href="/event"
+    className="bg-white text-blue-700 px-6 py-2 rounded-full font-semibold"
+  >
+    Register Now
+  </Link>
+
+</div>
+        <div className="bg-white rounded-xl shadow-[0_10px_40px_rgba(0,0,0,0.12)] overflow-hidden flex flex-col lg:flex-row lg:items-stretch min-h-0 lg:min-h-[410px]">
           <aside className="grid min-h-0 w-full grid-rows-[auto_minmax(0,1fr)] overflow-hidden border-b border-gray-100 bg-white p-5 sm:p-6 lg:h-full lg:w-[26%] lg:min-h-0 lg:shrink-0 lg:border-b-0 lg:border-r xl:w-[24%]">
             <h3 className="mb-3 shrink-0 text-base font-bold text-gray-900">Show Categories</h3>
             <div
@@ -528,28 +553,36 @@ export default function HeroHighlighter() {
                         {panel.title.toUpperCase()}
                       </h2>
                       <p className="text-sm sm:text-base text-white/85 mb-6 max-w-lg">{formatSubline(panel)}</p>
-                      <div className="flex flex-col sm:flex-row flex-wrap gap-3">
-                        <Link
-                          href={`${eventBasePath(panel)}/register`}
-                          className={`inline-flex items-center justify-center rounded-lg px-6 py-2.5 text-sm font-semibold shadow-lg transition-opacity ${activeVipTheme.registerClass}`}
-                        >
-                          Register Now
-                        </Link>
-                        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-                          <Link
-                            href={eventBasePath(panel)}
-                            className="inline-flex justify-center items-center px-4 py-2.5 rounded-lg bg-white text-gray-900 text-sm font-semibold hover:bg-gray-50 transition-colors"
-                          >
-                            Who Should Visit
-                          </Link>
-                          <Link
-                            href={`${eventBasePath(panel)}/exhibit`}
-                            className="inline-flex justify-center items-center px-4 py-2.5 rounded-lg bg-white text-gray-900 text-sm font-semibold hover:bg-gray-50 transition-colors"
-                          >
-                            Exhibitor List
-                          </Link>
-                        </div>
-                      </div>
+                     <div className="flex flex-col gap-3 w-full max-w-md">
+
+  {/* 🔴 REGISTER BUTTON (FULL WIDTH) */}
+  <Link
+    href={`${eventBasePath(panel)}/register`}
+    className={`w-full text-center px-6 py-3 rounded-sm text-sm font-semibold text-white ${activeVipTheme.registerClass}`}
+  >
+    Register Now
+  </Link>
+
+  {/* ⚪ TWO BUTTONS BELOW */}
+  <div className="grid grid-cols-2 gap-3">
+    
+    <Link
+      href={eventBasePath(panel)}
+      className="text-center px-4 py-3 rounded-sm bg-white text-gray-900 text-sm font-semibold hover:bg-gray-100"
+    >
+      Show Info
+    </Link>
+
+    <Link
+      href={`${eventBasePath(panel)}/exhibit`}
+      className="text-center px-4 py-3 rounded-sm bg-white text-gray-900 text-sm font-semibold hover:bg-gray-100"
+    >
+      Exhibitor List
+    </Link>
+
+  </div>
+
+</div>
                     </div>
 
                     <ShowOpeningCountdown startDateIso={panel.startDate} />

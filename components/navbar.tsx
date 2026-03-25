@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { ChevronDown, Search, User, MapPin, Mic, Calendar, Menu, X } from "lucide-react"
+import { ChevronDown, Search, User, MapPin, Mic, Calendar, Menu, X, Globe } from "lucide-react"
 import { signIn } from "next-auth/react"
 import { useRouter, usePathname } from "next/navigation"
 import { isAuthenticated, getCurrentUserId, getCurrentUserRole, getCurrentUserDisplayName, getCurrentUserEmail, clearTokens } from "@/lib/api"
@@ -74,24 +74,40 @@ export default function Navbar() {
   const [activeTab, setActiveTab] = useState<'all' | 'events' | 'venues' | 'speakers'>('all')
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [showMobileSearch, setShowMobileSearch] = useState(false)
+  const [showLangMenu, setShowLangMenu] = useState(false)
+  const [showUserMenu, setShowUserMenu] = useState(false)
 
   const router = useRouter()
   const pathname = usePathname()
   const searchRef = useRef<HTMLDivElement>(null)
   const mobileMenuRef = useRef<HTMLDivElement>(null)
+  const langMenuRef = useRef<HTMLDivElement>(null)
+  const userMenuRef = useRef<HTMLDivElement>(null)
   const abortRef = useRef<AbortController | null>(null)
   const debounceRef = useRef<NodeJS.Timeout | null>(null)
 
   const toggleExplore = () => setExploreOpen((prev) => !prev)
+  const toggleLangMenu = () => setShowLangMenu((prev) => !prev)
+  const toggleUserMenu = () => setShowUserMenu((prev) => !prev)
 
   const authenticated = isAuthenticated()
   const userId = getCurrentUserId()
   const role = getCurrentUserRole()
   const displayName = getCurrentUserDisplayName()
   const userEmail = getCurrentUserEmail()
-  const [showMenu, setShowMenu] = useState(false)
 
-  // Close search results when clicking outside
+  // Languages for dropdown
+  const languages = [
+    { code: "en", name: "English", active: true },
+    { code: "es", name: "Español", active: false },
+    { code: "de", name: "Deutsch", active: false },
+    { code: "fr", name: "Français", active: false },
+    { code: "pt", name: "Português", active: false },
+    { code: "id", name: "Bahasa indonesia", active: false },
+    { code: "ar", name: "العربية", active: false },
+  ]
+
+  // Close menus when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
@@ -99,6 +115,12 @@ export default function Navbar() {
       }
       if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target as Node)) {
         setMobileMenuOpen(false)
+      }
+      if (langMenuRef.current && !langMenuRef.current.contains(event.target as Node)) {
+        setShowLangMenu(false)
+      }
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setShowUserMenu(false)
       }
     }
 
@@ -112,12 +134,10 @@ export default function Navbar() {
 
     const query = value.trim()
 
-    // Clear previous debounce
     if (debounceRef.current) {
       clearTimeout(debounceRef.current)
     }
 
-    // Cancel previous request
     if (abortRef.current) {
       abortRef.current.abort()
     }
@@ -155,7 +175,7 @@ export default function Navbar() {
       } finally {
         setIsSearching(false)
       }
-    }, 500) // 🔥 debounce delay
+    }, 500)
   }
 
   // Navigation handlers
@@ -183,7 +203,6 @@ export default function Navbar() {
     setShowMobileSearch(false)
   }
 
-  // UPDATED: Navigate to existing pages with search query
   const handleViewAllResults = (type: string = 'all') => {
     switch (type) {
       case 'events':
@@ -249,21 +268,20 @@ export default function Navbar() {
       router.push("/login")
     }
     setMobileMenuOpen(false)
-  }
-
-  const handleClick = () => {
-    setShowMenu(!showMenu)
+    setShowUserMenu(false)
   }
 
   const handleLogin = () => {
     signIn(undefined, { callbackUrl: "/" })
     setMobileMenuOpen(false)
+    setShowUserMenu(false)
   }
 
   const handleLogout = () => {
     clearTokens()
     router.push("/login")
     setMobileMenuOpen(false)
+    setShowUserMenu(false)
   }
 
   // Helper function to render search results
@@ -409,139 +427,191 @@ export default function Navbar() {
   const isVenuesTabActive = pathname === "/venues" || pathname.startsWith("/venues/")
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-gray-200 bg-white shadow-sm">
+    <nav className="sticky top-0 z-50 bg-white shadow-sm">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        {/* Desktop utility row */}
-        <div className="hidden items-center justify-end gap-3 border-b border-gray-100 py-1 text-xs text-gray-600 lg:flex">
-          <p onClick={handleAddevent} className="cursor-pointer transition-colors hover:text-gray-900">
-            Add Event
-          </p>
-          <span className="h-3 w-px bg-gray-300" aria-hidden />
-          <span className="text-gray-500">EN</span>
-          <span className="h-3 w-px bg-gray-300" aria-hidden />
-          {authenticated ? (
-            <div className="relative inline-block text-left">
-              <button
-                type="button"
-                onClick={handleClick}
-                className="flex items-center gap-1 text-gray-700 transition-colors hover:text-gray-900"
-              >
-                <User className="h-4 w-4" />
-                <span className="max-w-[140px] truncate">{displayName || "Account"}</span>
-                <ChevronDown className="h-3.5 w-3.5 opacity-60" />
+        {/* Top row: Logo, Navigation Tabs, and User Actions */}
+        <div className="hidden items-center py-5 lg:flex">
+          {/* Logo */}
+          <div className="flex items-center w-[260px]">
+  <Link href="/" className="block">
+            <Image
+              src="/logo/bizlogo.png"
+              alt="BizTradeFairs.com"
+              width={500}
+              height={200}
+              priority
+              className="h-[80px] w-auto object-contain"
+            />
+          </Link>
+          </div>
+
+          {/* Navigation Tabs */}
+          <div className="flex flex-1 justify-center items-center gap-12">
+            <Link
+              href="/event"
+             className={`text-xl font-semibold tracking-tight transition-colors ${
+  isExhibitionsTabActive
+    ? "text-red-600 border-b-2 border-red-600"
+    : "text-gray-800 hover:text-red-600"
+}`}
+            >
+              Exhibitions
+            </Link>
+            <Link
+              href="/organizer-signup"
+              className={`text-xl font-semibold tracking-tight transition-colors ${
+                isOrganizersTabActive
+                  ? "text-red-600 border-b-2 border-red-600"
+                  : "text-gray-800 hover:text-red-600"
+              }`}
+            >
+              Buyer Services
+            </Link>
+            <Link
+              href="/venues"
+              className={`text-xl font-semibold tracking-tight transition-colors ${
+                isVenuesTabActive
+                  ? "text-red-600 border-b-2 border-red-600"
+                  : "text-gray-800 hover:text-red-600"
+              }`}
+            >
+              Supplier Services
+            </Link>
+            <Link
+              href="/about"
+              className="text-xl font-semibold tracking-tight transition-colors text-gray-800 hover:text-red-600"
+            >
+              About Us
+            </Link>
+          </div>
+
+          {/* Right side actions */}
+          <div className="flex items-center gap-6">
+            <div className="relative" ref={langMenuRef}>
+              <button onClick={toggleLangMenu} className="flex items-center gap-1 text-xl font-semibold text-gray-700 hover:text-red-600 transition-colors">
+                {/* <Globe className="h-4 w-4" /> */}
+                <span>EN</span>
+                <ChevronDown className="h-4 w-4" />
               </button>
-              {showMenu && (
-                <div className="absolute right-0 z-50 mt-2 w-52 rounded-lg border border-gray-200 bg-white shadow-lg">
+              {showLangMenu && (
+                <div className="absolute right-0 top-full mt-2 w-40 rounded-lg border border-gray-200 bg-white shadow-lg py-1 z-50">
+                  {languages.map((lang) => (
+                    <button
+                      key={lang.code}
+                      className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-50 transition-colors ${
+                        lang.active ? "text-red-600 font-medium" : "text-gray-700"
+                      }`}
+                    >
+                      {lang.name}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="relative" ref={userMenuRef}>
+              {authenticated ? (
+                <button onClick={toggleUserMenu} className="flex items-center gap-1 text-base font-semibold text-gray-700 hover:text-red-600 transition-colors">
+                  <User className="h-4 w-4" />
+                  <span className="max-w-[120px] truncate">{displayName || "Account"}</span>
+                  <ChevronDown className="h-4 w-4" />
+                </button>
+              ) : (
+                <button onClick={handleLogin} className="text-xl font-semibold text-gray-700 hover:text-red-600 transition-colors">
+                  Sign in / Register
+                </button>
+              )}
+              {showUserMenu && authenticated && (
+                <div className="absolute right-0 top-full mt-2 w-56 rounded-lg border border-gray-200 bg-white shadow-lg z-50">
                   <div className="border-b px-4 py-3">
-                    <p className="text-sm font-medium text-gray-900">{displayName}</p>
-                    <p className="text-xs text-gray-500">{userEmail}</p>
+                    <p className="text-sm font-semibold text-gray-900">{displayName}</p>
+                    <p className="text-xs text-gray-500 truncate">{userEmail}</p>
                   </div>
                   <button
-                    type="button"
                     onClick={handleDashboard}
-                    className="block w-full border-b px-4 py-3 text-left text-gray-700 transition-colors hover:bg-gray-50"
+                    className="block w-full px-4 py-3 text-left text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                   >
                     Dashboard
                   </button>
                   <button
-                    type="button"
                     onClick={handleLogout}
-                    className="block w-full px-4 py-3 text-left text-red-600 transition-colors hover:bg-red-50"
+                    className="block w-full px-4 py-3 text-left text-sm text-red-600 hover:bg-red-50 transition-colors"
                   >
                     Logout
                   </button>
                 </div>
               )}
             </div>
-          ) : (
-            <button type="button" onClick={handleLogin} className="text-gray-700 transition-colors hover:text-red-600">
-              Login / Sign Up
-            </button>
-          )}
-        </div>
-
-        {/* Desktop: logo + primary tabs */}
-        <div className="hidden items-end justify-between gap-6 pb-2.5 pt-3 lg:flex">
-          <div className="flex min-w-0 flex-1 items-end gap-10">
-            <Link href="/" className="inline-block shrink-0">
-              <Image
-                src="/logo/bizlogo.png"
-                alt="BizTradeFairs.com"
-                width={360}
-                height={168}
-                priority
-                className="h-auto max-h-[5rem] w-auto sm:max-h-24 lg:max-h-28"
-              />
-            </Link>
-            <div className="flex items-end gap-8">
-              <Link
-                href="/event"
-                className={`pb-1 text-lg font-bold tracking-tight transition-colors ${
-                  isExhibitionsTabActive
-                    ? "border-b-2 border-red-600 text-red-600"
-                    : "border-b-2 border-transparent text-gray-800 hover:text-red-600"
-                }`}
-              >
-                Exhibitions
-              </Link>
-              <Link
-                href="/organizer-signup"
-                className={`pb-1 text-lg font-bold tracking-tight transition-colors ${
-                  isOrganizersTabActive
-                    ? "border-b-2 border-red-600 text-red-600"
-                    : "border-b-2 border-transparent text-gray-800 hover:text-red-600"
-                }`}
-              >
-                Organizers
-              </Link>
-              <Link
-                href="/venues"
-                className={`pb-1 text-lg font-bold tracking-tight transition-colors ${
-                  isVenuesTabActive
-                    ? "border-b-2 border-red-600 text-red-600"
-                    : "border-b-2 border-transparent text-gray-800 hover:text-red-600"
-                }`}
-              >
-                Venues
-              </Link>
-            </div>
           </div>
         </div>
 
-        {/* Desktop: full-width search */}
-        <div className="relative hidden pb-2 lg:block" ref={searchRef}>
-          <div className="rounded-md border-2 border-red-600 bg-white p-1 shadow-sm">
+        {/* Second row: Online Sourcing / Exhibitions */}
+       {/* Second row: Tabs */}
+<div className="hidden lg:flex justify-center items-center gap-12 mt-4 mb-4">
+
+  {/* Online Sourcing */}
+  <Link
+    href="/"
+    className={`relative text-lg font-semibold ${
+      !pathname.startsWith("/event")
+        ? "text-red-600"
+        : "text-gray-800 hover:text-red-600"
+    }`}
+  >
+    Online Sourcing
+    {!pathname.startsWith("/event") && (
+      <span className="absolute left-0 -bottom-1 w-full h-[2px] bg-red-600"></span>
+    )}
+  </Link>
+
+  {/* Exhibitions */}
+  <Link
+    href="/event"
+    className={`relative text-lg font-semibold ${
+      pathname.startsWith("/event")
+        ? "text-red-600"
+        : "text-gray-800 hover:text-red-600"
+    }`}
+  >
+    Exhibitions
+    {pathname.startsWith("/event") && (
+      <span className="absolute left-0 -bottom-1 w-full h-[2px] bg-red-600"></span>
+    )}
+  </Link>
+
+</div>
+
+        {/* Third row: Search Bar */}
+        <div className="relative hidden pb-6 lg:block" ref={searchRef}>
+          <div className="rounded-md border-2 border-red-600 bg-white shadow-sm">
             <div className="flex w-full overflow-hidden rounded-sm bg-white">
-            <div className="relative flex shrink-0 items-center border-r border-gray-200 bg-gray-100">
-              <select
-                value={activeTab}
-                onChange={(e) => setActiveTab(e.target.value as typeof activeTab)}
-                className="h-9 cursor-pointer appearance-none bg-transparent py-1.5 pl-3 pr-9 text-sm font-medium text-gray-700 focus:outline-none"
-                aria-label="Search scope"
+              <div className="relative flex shrink-0 items-center border-r border-gray-200 bg-gray-50">
+                <select
+                  value={activeTab}
+                  onChange={(e) => setActiveTab(e.target.value as typeof activeTab)}
+                  className="h-12 cursor-pointer appearance-none bg-transparent py-2 pl-4 pr-9 text-sm font-medium text-gray-700 focus:outline-none"
+                  aria-label="Search scope"
+                >
+                  <option value="all">Products</option>
+                  <option value="events">Suppliers</option>
+                </select>
+                <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
+              </div>
+              <input
+                type="text"
+                placeholder="I'm looking for..."
+                className="min-w-0 flex-1 border-0 bg-white px-4 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-0"
+                value={searchQuery}
+                onChange={(e) => handleSearchInput(e.target.value)}
+                onFocus={() => searchQuery.length >= 2 && setShowSearchResults(true)}
+                onKeyDown={(e) => e.key === "Enter" && runSearchSubmit()}
+              />
+              <button
+                type="button"
+                onClick={runSearchSubmit}
+                className="shrink-0 bg-gradient-to-r from-red-600 to-orange-500 px-8 text-sm font-semibold text-white transition-colors hover:opacity-90"
               >
-                <option value="all">All</option>
-                <option value="events">Events</option>
-                <option value="venues">Venues</option>
-                <option value="speakers">Speakers</option>
-              </select>
-              <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-500" />
-            </div>
-            <input
-              type="text"
-              placeholder="Search events, venues, speakers..."
-              className="min-w-0 flex-1 border-0 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-0"
-              value={searchQuery}
-              onChange={(e) => handleSearchInput(e.target.value)}
-              onFocus={() => searchQuery.length >= 2 && setShowSearchResults(true)}
-              onKeyDown={(e) => e.key === "Enter" && runSearchSubmit()}
-            />
-            <button
-              type="button"
-              onClick={runSearchSubmit}
-              className="shrink-0 rounded-none bg-red-600 px-10 text-sm font-semibold text-white transition-colors hover:bg-red-700"
-            >
-              Search
-            </button>
+                Search
+              </button>
             </div>
           </div>
           {showSearchResults && (
@@ -582,8 +652,8 @@ export default function Navbar() {
               <Image
                 src="/logo/bizlogo.png"
                 alt="BizTradeFairs.com"
-                width={300}
-                height={140}
+                width={200}
+                height={93}
                 priority
                 className="h-auto max-h-8 w-auto sm:max-h-10"
               />
@@ -601,12 +671,12 @@ export default function Navbar() {
             <div className="relative">
               <button
                 type="button"
-                onClick={handleClick}
+                onClick={toggleUserMenu}
                 className="rounded-full bg-red-600 p-2 text-white hover:bg-red-700"
               >
                 <User className="h-5 w-5" />
               </button>
-              {showMenu && (
+              {showUserMenu && (
                 <div className="absolute right-0 z-50 mt-2 w-48 rounded-lg border border-gray-200 bg-white shadow-lg">
                   {authenticated ? (
                     <>
@@ -647,6 +717,15 @@ export default function Navbar() {
         {/* Mobile search bar */}
         {showMobileSearch && (
           <div className="relative pb-2 lg:hidden">
+            <div className="mb-2">
+              <div className="flex items-center gap-2 text-xs">
+                <span className="font-medium text-gray-600">Online Sourcing</span>
+                <span className="text-gray-400">/</span>
+                <Link href="/event" className="font-semibold text-gray-900">
+                  Exhibitions
+                </Link>
+              </div>
+            </div>
             <div className="flex w-full overflow-hidden rounded-md border-2 border-red-600 bg-white shadow-sm">
               <div className="relative flex shrink-0 items-center border-r border-gray-200 bg-gray-100">
                 <select
@@ -655,16 +734,14 @@ export default function Navbar() {
                   className="h-9 max-w-[5.5rem] cursor-pointer appearance-none bg-transparent py-1.5 pl-2 pr-7 text-xs font-medium text-gray-700 focus:outline-none sm:max-w-none sm:pl-3 sm:pr-9 sm:text-sm"
                   aria-label="Search scope"
                 >
-                  <option value="all">All</option>
-                  <option value="events">Events</option>
-                  <option value="venues">Venues</option>
-                  <option value="speakers">Speakers</option>
+                  <option value="all">Products</option>
+                  <option value="events">Suppliers</option>
                 </select>
                 <ChevronDown className="pointer-events-none absolute right-1.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-500 sm:right-2 sm:h-4 sm:w-4" />
               </div>
               <input
                 type="text"
-                placeholder="Search events, venues, speakers..."
+                placeholder="I'm looking for..."
                 className="min-w-0 flex-1 border-0 bg-white px-2 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-0 sm:px-3"
                 value={searchQuery}
                 onChange={(e) => handleSearchInput(e.target.value)}
@@ -674,7 +751,7 @@ export default function Navbar() {
               <button
                 type="button"
                 onClick={runSearchSubmit}
-                className="shrink-0 bg-red-600 px-3 text-xs font-semibold text-white transition-colors hover:bg-red-700 sm:px-6 sm:text-sm"
+                className="shrink-0 bg-gradient-to-r from-red-600 to-orange-500 px-3 text-xs font-semibold text-white transition-colors hover:opacity-90 sm:px-6 sm:text-sm"
               >
                 Search
               </button>
@@ -722,7 +799,7 @@ export default function Navbar() {
                   onClick={() => setMobileMenuOpen(false)}
                   className="px-4 py-3 text-gray-700 hover:text-gray-900 hover:bg-gray-50 transition-colors"
                 >
-                  Organizers
+                  Buyer Services
                 </p>
               </Link>
               <Link href="/venues">
@@ -730,7 +807,15 @@ export default function Navbar() {
                   onClick={() => setMobileMenuOpen(false)}
                   className="px-4 py-3 text-gray-700 hover:text-gray-900 hover:bg-gray-50 transition-colors"
                 >
-                  Venues
+                  Supplier Services
+                </p>
+              </Link>
+              <Link href="/about">
+                <p
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="px-4 py-3 text-gray-700 hover:text-gray-900 hover:bg-gray-50 transition-colors"
+                >
+                  About Us
                 </p>
               </Link>
               <p
