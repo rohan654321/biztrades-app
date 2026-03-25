@@ -88,7 +88,9 @@ export default function BrowseByCity() {
     return count.toString()
   }
 
-  const skeletonCount = 12
+  const cityDisplayLimit = 12
+  const visibleCities = cities.slice(0, cityDisplayLimit)
+  const skeletonCount = cityDisplayLimit
 
   if (loading) {
     return (
@@ -140,7 +142,7 @@ export default function BrowseByCity() {
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
-          {cities.map((city) => {
+          {visibleCities.map((city) => {
             const count = getCityCount(city.name)
             const iconSrc =
               city.image && city.image.trim() !== "" ? city.image : "/placeholder.svg"

@@ -10,12 +10,16 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Mail, ArrowLeft, Loader2, CheckCircle, AlertCircle } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000"
+
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("")
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
+  /** "otp" = sub/super admin (code email); "link" = portal user reset link */
+  const [resetMode, setResetMode] = useState<"link" | "otp" | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -38,7 +42,7 @@ export default function ForgotPasswordPage() {
     setSuccess("")
 
     try {
-      const response = await fetch("/api/auth/forgot-password", {
+      const response = await fetch(`${API_BASE}/api/auth/forgot-password`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -46,17 +50,22 @@ export default function ForgotPasswordPage() {
         body: JSON.stringify({ email: email.trim() }),
       })
 
-      const data = await response.json()
+      const data = await response.json().catch(() => ({}))
 
       if (response.ok) {
         if (data.success) {
-          setSuccess(data.message || "Password reset link sent successfully!")
+          setResetMode(data.resetMode === "otp" ? "otp" : "link")
+          setSuccess(
+            data.message ||
+              (data.resetMode === "otp"
+                ? "A 6-digit code was sent to your email."
+                : "Password reset link sent successfully!"),
+          )
           setIsSubmitted(true)
         } else {
           setError(data.error || "Something went wrong. Please try again.")
         }
       } else {
-        // Handle different error statuses
         if (response.status === 404) {
           setError("No account found with this email address.")
         } else if (response.status === 403) {
@@ -64,7 +73,7 @@ export default function ForgotPasswordPage() {
         } else if (response.status === 429) {
           setError("Too many reset attempts. Please try again later.")
         } else if (response.status === 400) {
-          setError(data.details || "Invalid email format.")
+          setError(data.details || data.error || "Invalid email format.")
         } else {
           setError(data.error || "Failed to send reset link. Please try again.")
         }
@@ -82,6 +91,7 @@ export default function ForgotPasswordPage() {
     setError("")
     setSuccess("")
     setEmail("")
+    setResetMode(null)
   }
 
   return (
@@ -103,8 +113,10 @@ export default function ForgotPasswordPage() {
             
             <p className="text-sm text-gray-600">
               {isSubmitted
-                ? "We've sent password reset instructions to your email."
-                : "Enter your email to receive a password reset link."}
+                ? resetMode === "otp"
+                  ? "We sent a 6-digit code to your admin email."
+                  : "We've sent password reset instructions to your email."
+                : "Enter your account email (portal users get a link; admin accounts get a code)."}
             </p>
           </div>
         </CardHeader>
@@ -201,11 +213,22 @@ export default function ForgotPasswordPage() {
                       <Mail className="w-5 h-5 text-blue-600" />
                     </div>
                     <div className="text-left">
-                      <p className="text-sm font-medium text-blue-900">Email sent to:</p>
+                      <p className="text-sm font-medium text-blue-900">Sent to:</p>
                       <p className="text-sm text-blue-700 break-all">{email}</p>
                     </div>
                   </div>
                 </div>
+
+                {resetMode === "otp" && (
+                  <div className="mb-4">
+                    <Link
+                      href={`/admin-reset-password?email=${encodeURIComponent(email)}`}
+                      className="block w-full text-center rounded-lg bg-blue-600 text-white py-2.5 text-sm font-medium hover:bg-blue-700"
+                    >
+                      Enter code &amp; new password
+                    </Link>
+                  </div>
+                )}
 
                 <div className="space-y-3 text-left">
                   <div className="flex items-start space-x-2">
@@ -213,7 +236,9 @@ export default function ForgotPasswordPage() {
                       <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
                     </div>
                     <p className="text-sm text-gray-600">
-                      Check your inbox for the password reset email
+                      {resetMode === "otp"
+                        ? "Check your inbox for the 6-digit code (expires in 15 minutes)"
+                        : "Check your inbox for the password reset email"}
                     </p>
                   </div>
                   <div className="flex items-start space-x-2">
@@ -221,7 +246,9 @@ export default function ForgotPasswordPage() {
                       <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
                     </div>
                     <p className="text-sm text-gray-600">
-                      The link will expire in 1 hour for security
+                      {resetMode === "otp"
+                        ? "Use the button above to enter your code and set a new password"
+                        : "The link will expire in 1 hour for security"}
                     </p>
                   </div>
                   <div className="flex items-start space-x-2">

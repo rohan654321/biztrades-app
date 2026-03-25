@@ -10,6 +10,8 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Lock, ArrowLeft, Loader2, Eye, EyeOff, CheckCircle } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000"
+
 export default function ResetPasswordPage() {
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -42,7 +44,7 @@ export default function ResetPasswordPage() {
 
   const verifyToken = async (token: string, email: string) => {
     try {
-      const response = await fetch("/api/auth/verify-reset-token", {
+      const response = await fetch(`${API_BASE}/api/auth/verify-reset-token`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token, email }),
@@ -95,14 +97,14 @@ export default function ResetPasswordPage() {
     setError("")
 
     try {
-      const response = await fetch("/api/auth/reset-password", {
+      const response = await fetch(`${API_BASE}/api/auth/reset-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          token, 
-          email, 
-          password, 
-          confirmPassword 
+        body: JSON.stringify({
+          token,
+          email,
+          password,
+          confirmPassword,
         }),
       })
 

@@ -117,6 +117,9 @@ export default function BrowseByCountry() {
     return count.toString()
   }
 
+  const countryDisplayLimit = 12
+  const visibleCountries = countries.slice(0, countryDisplayLimit)
+
   if (loading) {
     return (
       <div className="w-full max-w-7xl mx-auto mb-12">
@@ -160,7 +163,7 @@ export default function BrowseByCountry() {
         {/* Country Grid */}
         <div className="p-6">
           <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-4">
-            {countries.map((country) => {
+            {visibleCountries.map((country) => {
               const eventCount = getCountryCount(country.name)
               const flagSrc =
                 country.flag && country.flag.trim() !== ""
