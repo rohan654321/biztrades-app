@@ -277,27 +277,38 @@ function ShowOpeningCountdown({ startDateIso }: { startDateIso: string }) {
 
 return (
   <div
-    className="absolute top-4 right-6 sm:right-8 z-[2] bg-gray-900 px-6 py-2 shadow-lg border border-gray-200"
+    className="absolute top-4 right-6 sm:right-8 z-[2] rounded-md overflow-hidden shadow-lg"
     role="timer"
     aria-live="polite"
     aria-label="Countdown to show opening"
   >
-    <p className="mb-1 text-center text-[9px] font-semibold uppercase tracking-[0.12em] text-gray-400 sm:text-[10px]">
-      Show Opening
-    </p>
 
-    <div className="flex items-stretch gap-2">
-      {units.map(({ value, label }) => (
-        <div
-          key={label}
-          className="flex flex-col items-center justify-center rounded-[2px] bg-white px-3 py-1.5 border border-gray-200"
-        >
-          <span className="text-base font-bold text-gray-900">{value}</span>
-          <span className="mt-0.5 text-[7px] font-medium uppercase tracking-wide text-gray-500">
-            {label}
-          </span>
-        </div>
-      ))}
+    {/* TOP (DARK GLASS) */}
+    <div className="bg-black/70 backdrop-blur-md px-4 py-2">
+      <p className="text-center text-[10px] font-semibold uppercase tracking-wide text-white">
+        Show Opening
+      </p>
+    </div>
+
+    {/* BOTTOM (LIGHT GLASS) */}
+    <div className="bg-white/80 backdrop-blur-md px-3 py-2">
+      <div className="flex gap-2">
+
+        {units.map(({ value, label }) => (
+          <div
+            key={label}
+            className="flex flex-col items-center justify-center bg-white rounded-[4px] px-3 py-2 shadow-sm"
+          >
+            <span className="text-lg font-bold text-gray-900">
+              {value}
+            </span>
+            <span className="text-[9px] uppercase text-gray-500">
+              {label}
+            </span>
+          </div>
+        ))}
+
+      </div>
     </div>
   </div>
 )
