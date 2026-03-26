@@ -526,13 +526,17 @@ export default function HeroHighlighter() {
         role="tab"
         aria-selected={isActive}
         onClick={() => setActiveTab(i)}
-        className={`flex-1 min-w-[120px] h-[56px] px-3 py-2.5 sm:px-4 text-left text-xs sm:text-sm font-medium rounded-sm 
-        transition-all duration-300 ease-out transform
-        ${
-          isActive
-            ? "bg-gradient-to-r from-red-600 to-orange-600 text-white scale-[1.02] shadow-md"
-            : "text-gray-600 hover:text-red-600 hover:scale-[1.01]"
-        }`}
+        className={`
+          relative flex-1 min-w-[120px] h-[56px] px-3 py-2.5 sm:px-4 
+          text-left text-xs sm:text-sm font-medium rounded-sm 
+          transition-all duration-300 ease-out 
+          transform-gpu will-change-transform
+          ${
+            isActive
+              ? "bg-gradient-to-r from-red-600 to-orange-600 text-white scale-100 shadow-md z-10"
+              : "text-gray-600 hover:text-red-600 hover:scale-105 hover:shadow-md hover:z-10"
+          }
+        `}
       >
         <div className="flex flex-col gap-1">
           {/* EVENT NAME */}
@@ -542,7 +546,7 @@ export default function HeroHighlighter() {
 
           {/* DATE CENTERED */}
           <span className={`text-xs text-center ${
-            isActive ? "text-white/90" : "text-gray-500"
+            isActive ? "text-white/90" : "text-gray-500 group-hover:text-red-600"
           }`}>
             {formatTabDate(e)}
           </span>
@@ -552,60 +556,59 @@ export default function HeroHighlighter() {
   })}
 </div>
 
-                {panel && (
-                  <div className="relative flex-1 min-h-[245px] overflow-hidden p-3 sm:min-h-[290px] sm:p-4">
-                    <img
-                      src={heroImage(panel)}
-                      alt=""
-                      className="absolute inset-3 h-[calc(100%-1.5rem)] w-[calc(100%-1.5rem)] rounded-xl object-cover sm:inset-4 sm:h-[calc(100%-2rem)] sm:w-[calc(100%-2rem)]"
-                    />
-                    <div
-                      className="absolute inset-3 rounded-xl sm:inset-4"
-                      style={{ background: activeVipTheme.overlayCss }}
-                      aria-hidden
-                    />
-
-                    <div className="relative z-[1] h-full flex flex-col justify-end p-4 sm:justify-center sm:p-6 lg:p-8 max-w-2xl">
-
-                      <h2 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-white tracking-tight leading-tight mb-3">
-                        {panel.title.toUpperCase()}
-                      </h2>
-                      <p className="text-sm sm:text-base text-white/85 mb-6 max-w-lg">{formatSubline(panel)}</p>
-                     <div className="flex flex-col gap-3 w-full max-w-md">
-
-  {/* 🔴 REGISTER BUTTON (FULL WIDTH) */}
-  <Link
-    href={`${eventBasePath(panel)}/register`}
-    className={`w-full text-center px-6 py-3 rounded-sm text-sm font-semibold text-white ${activeVipTheme.registerClass}`}
-  >
-    Register Now
-  </Link>
-
-  {/* ⚪ TWO BUTTONS BELOW */}
-  <div className="grid grid-cols-2 gap-3">
-    
-    <Link
-      href={eventBasePath(panel)}
-      className="text-center px-4 py-3 rounded-sm bg-white text-gray-900 text-sm font-semibold hover:bg-gray-100"
+{panel && (
+  <div className="relative flex-1 min-h-[245px] overflow-hidden p-3 sm:min-h-[290px] sm:p-4">
+    {/* Sliding Animation Container */}
+    <div 
+      className="absolute inset-0 transition-transform duration-500 ease-in-out"
+      style={{
+        transform: `translateX(0)`,
+      }}
     >
-      Show Info
-    </Link>
+      <img
+        src={heroImage(panel)}
+        alt=""
+        className="absolute inset-3 h-[calc(100%-1.5rem)] w-[calc(100%-1.5rem)] rounded-xl object-cover sm:inset-4 sm:h-[calc(100%-2rem)] sm:w-[calc(100%-2rem)]"
+      />
+      <div
+        className="absolute inset-3 rounded-xl sm:inset-4"
+        style={{ background: activeVipTheme.overlayCss }}
+        aria-hidden
+      />
+    </div>
 
-    <Link
-      href={`${eventBasePath(panel)}/exhibit`}
-      className="text-center px-4 py-3 rounded-sm bg-white text-gray-900 text-sm font-semibold hover:bg-gray-100"
-    >
-      Exhibitor List
-    </Link>
+    <div className="relative z-[1] h-full flex flex-col justify-end p-4 sm:justify-center sm:p-6 lg:p-8 max-w-2xl">
+      <h2 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-white tracking-tight leading-tight mb-3">
+        {panel.title.toUpperCase()}
+      </h2>
+      <p className="text-sm sm:text-base text-white/85 mb-6 max-w-lg">{formatSubline(panel)}</p>
+      <div className="flex flex-col gap-3 w-full max-w-md">
+        <Link
+          href={`${eventBasePath(panel)}/register`}
+          className={`w-full text-center px-6 py-3 rounded-sm text-sm font-semibold text-white ${activeVipTheme.registerClass}`}
+        >
+          Register Now
+        </Link>
+        <div className="grid grid-cols-2 gap-3">
+          <Link
+            href={eventBasePath(panel)}
+            className="text-center px-4 py-3 rounded-sm bg-white text-gray-900 text-sm font-semibold hover:bg-gray-100"
+          >
+            Show Info
+          </Link>
+          <Link
+            href={`${eventBasePath(panel)}/exhibit`}
+            className="text-center px-4 py-3 rounded-sm bg-white text-gray-900 text-sm font-semibold hover:bg-gray-100"
+          >
+            Exhibitor List
+          </Link>
+        </div>
+      </div>
+    </div>
 
+    <ShowOpeningCountdown startDateIso={panel.startDate} />
   </div>
-
-</div>
-                    </div>
-
-                    <ShowOpeningCountdown startDateIso={panel.startDate} />
-                  </div>
-                )}
+)}
               </>
             )}
           </div>

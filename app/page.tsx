@@ -10,6 +10,8 @@ import HeroHighlighter from "../components/HeroHighlighter";
 import { PageBanner } from "@/components/page-banner";
 import { InlineBanner } from "@/components/inline-banner";
 import FeaturedSpeakers from "@/components/FeaturedSpeaker";
+import RFQComponent from "@/components/Rfq";
+import CategoryGrid from "@/components/catagories";
 // import TrandingEvents from "@/components/trandingEvents";
 
 export default function Home() {
@@ -20,6 +22,7 @@ export default function Home() {
         <div className="px-6 py-6 border-b border-gray-200 max-w-7xl mx-auto">
         <PageBanner page="homepage" height={150} autoplay={true} autoplayInterval={5000} showControls={true} />
       </div>
+      <CategoryGrid/>
       <EventReviews />
        {/* <FeaturedEvents />                                */}
        <BrowseEventsByCity />
@@ -27,16 +30,19 @@ export default function Home() {
          <PageBanner page="events" height={150} autoplay={true} autoplayInterval={5000} showControls={true} className="my-8" />
           
       </div>
+      <RFQComponent/>
        <BrowseByCountry />
+       
        <ExploreVenues />
        <FeaturedOrganizers />
        
        
        {/* <GetAppSection /> */}
-       <div className="px-6 py-6 border-b border-gray-200 max-w-6xl mx-auto">
+
+       <FeaturedSpeakers/>
+              <div className="px-6 py-6 border-b border-gray-200 max-w-7xl mx-auto">
         <InlineBanner page="speakers" maxBanners={3} dismissible={true} />
        </div>
-       <FeaturedSpeakers/>
     </div>
     </div>
   );
