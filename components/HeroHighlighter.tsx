@@ -269,26 +269,30 @@ function ShowOpeningCountdown({ startDateIso }: { startDateIso: string }) {
   const pad = (n: number) => n.toString().padStart(2, "0")
 
   const units: { value: string; label: string }[] = [
-    { value: String(days), label: "DAYS" },
-    { value: pad(hours), label: "HOURS" },
-    { value: pad(minutes), label: "MINUTES" },
+    { value: String(days), label: "Days" },
+    { value: pad(hours), label: "Hours" },
+    { value: pad(minutes), label: "Min" },
+    // { value: pad(seconds), label: "Sec" },
   ]
 
   return (
     <div
-      className="absolute top-4 right-[12%] translate-x-[50%] z-[2] bg-black/80 backdrop-blur-sm text-white px-4 py-2 shadow-lg rounded-lg min-w-[220px]"
+      className="absolute top-4 right-[15%] translate-x-[50%] z-[2] bg-gray-900/90 backdrop-blur-sm text-white px-3 py-1.5 shadow-lg border border-gray-700"
       role="timer"
       aria-live="polite"
       aria-label="Countdown to show opening"
     >
-      <p className="text-center text-[10px] font-semibold uppercase tracking-wider text-gray-300 mb-1.5">
+      <p className="mb-1 text-center text-[9px] font-semibold uppercase tracking-[0.1em] text-gray-300 sm:text-[10px]">
         Show Opening
       </p>
-      <div className="flex items-center justify-center gap-3">
+      <div className="flex items-stretch gap-1.5 sm:gap-2">
         {units.map(({ value, label }) => (
-          <div key={label} className="flex flex-col items-center">
-            <span className="text-xl font-bold text-white leading-none">{value}</span>
-            <span className="text-[8px] font-medium uppercase tracking-wide text-gray-400 mt-1">
+          <div
+            key={label}
+            className="flex min-w-0 flex-1 flex-col items-center justify-center bg-white px-1.5 py-1  border border-gray-700"
+          >
+            <span className="text-sm font-bold text-black sm:text-base">{value}</span>
+            <span className="mt-0.5 text-[7px] font-medium uppercase tracking-wide text-gray-400 sm:text-[8px]">
               {label}
             </span>
           </div>
