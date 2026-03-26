@@ -144,7 +144,7 @@ function FeaturedEventCard({ event }: { event: FeaturedListEvent }) {
 /** Text-only rows tuned for ~8 visible categories before hover-scroll. */
 const CATEGORY_LIST_MAX_H = "max-h-[20rem] sm:max-h-[20rem] lg:max-h-[20rem]"
 
-  const categoryScrollAreaClass =
+const categoryScrollAreaClass =
   "min-h-0 min-w-0 divide-y divide-gray-100 overflow-y-hidden hover:overflow-y-auto overscroll-y-contain rounded-xl border border-gray-200/90 bg-gray-50/40 " +
   CATEGORY_LIST_MAX_H +
   " px-0 py-0 [scrollbar-gutter:stable] [scrollbar-width:none] hover:[scrollbar-width:thin] [scrollbar-color:transparent_transparent] hover:[scrollbar-color:rgb(203,213,225)_transparent] " +
@@ -272,7 +272,6 @@ function ShowOpeningCountdown({ startDateIso }: { startDateIso: string }) {
     { value: String(days), label: "Days" },
     { value: pad(hours), label: "Hours" },
     { value: pad(minutes), label: "Min" },
-    // { value: pad(seconds), label: "Sec" },
   ]
 
   return (
@@ -289,7 +288,7 @@ function ShowOpeningCountdown({ startDateIso }: { startDateIso: string }) {
         {units.map(({ value, label }) => (
           <div
             key={label}
-            className="flex min-w-0 flex-1 flex-col items-center justify-center bg-white px-1.5 py-1  border border-gray-700"
+            className="flex min-w-0 flex-1 flex-col items-center justify-center bg-white px-1.5 py-1 border border-gray-700"
           >
             <span className="text-sm font-bold text-black sm:text-base">{value}</span>
             <span className="mt-0.5 text-[7px] font-medium uppercase tracking-wide text-gray-400 sm:text-[8px]">
@@ -316,15 +315,15 @@ function CategoryLinkDb({ cat }: { cat: BrowseCategory }) {
       >
         &rsaquo;
       </span>
-      {/* <span className="mt-0.5 block text-xs text-gray-500">
-        {cat.eventCount} event{cat.eventCount === 1 ? "" : "s"}
-      </span> */}
     </Link>
   )
 }
 
 export default function HeroHighlighter() {
   const [activeTab, setActiveTab] = useState(0)
+  const [prevActiveTab, setPrevActiveTab] = useState(0)
+  const [slideDirection, setSlideDirection] = useState<'left' | 'right'>('right')
+  const [isAnimating, setIsAnimating] = useState(false)
 
   const [vipEvents, setVipEvents] = useState<VipEvent[]>([])
   const [vipLoading, setVipLoading] = useState(true)
@@ -337,6 +336,22 @@ export default function HeroHighlighter() {
   const [featuredEvents, setFeaturedEvents] = useState<FeaturedListEvent[]>([])
   const [featuredLoading, setFeaturedLoading] = useState(true)
   const [featuredError, setFeaturedError] = useState<string | null>(null)
+
+  // Handle tab change animation
+  useEffect(() => {
+    if (activeTab !== prevActiveTab) {
+      setIsAnimating(true)
+      setSlideDirection(activeTab > prevActiveTab ? 'left' : 'right')
+      
+      const timer = setTimeout(() => {
+        setIsAnimating(false)
+      }, 500)
+      
+      setPrevActiveTab(activeTab)
+      
+      return () => clearTimeout(timer)
+    }
+  }, [activeTab, prevActiveTab])
 
   useEffect(() => {
     let cancelled = false
@@ -427,55 +442,45 @@ export default function HeroHighlighter() {
 
   const panel = vipEvents[activeTab]
   const activeVipTheme = getVipTheme(activeTab)
+  
   function formatTabDate(e: VipEvent): string {
-  const start = new Date(e.startDate)
-  const end = new Date(e.endDate)
-
-  const month = start.toLocaleString("en-GB", { month: "short" })
-  const year = start.getFullYear()
-
-  if (start.toDateString() === end.toDateString()) {
-    return `${start.getDate()} ${month} ${year}`
+    const start = new Date(e.startDate)
+    const end = new Date(e.endDate)
+    const month = start.toLocaleString("en-GB", { month: "short" })
+    const year = start.getFullYear()
+    if (start.toDateString() === end.toDateString()) {
+      return `${start.getDate()} ${month} ${year}`
+    }
+    return `${start.getDate()}-${end.getDate()} ${month} ${year}`
   }
-
-  return `${start.getDate()}-${end.getDate()} ${month} ${year}`
-}
 
   return (
     <section
       className="relative bg-cover bg-center bg-no-repeat py-8 sm:py-10 px-4 sm:px-6"
       style={{
-        backgroundImage:
-          " url('/images/homebg.png')",
+        backgroundImage: " url('/images/homebg.png')",
       }}
       aria-label="Featured shows and verified exhibitors"
     >
       <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8">
-        {/* 🔥 TOP PROMO BANNER */}
-<div className="flex items-center justify-center gap-10 px-6 py-4">
-
-  {/* LEFT TEXT */}
-<div className="text-center">
-
-  <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white">
-    April 2026 Global Sources Hong Kong Shows
-  </h2>
-
-  <p className="text-4xl sm:text-2xl text-white mt-2">
-    The Top Destination for Global Sourcing in AI-Integrated Consumer & Mobile Electronics ...
-  </p>
-
-</div>
-
-  {/* RIGHT BUTTON */}
-  <Link
-    href="/event"
-    className="bg-white text-blue-700 px-6 py-2 rounded-full font-semibold"
-  >
-    Register Now
-  </Link>
-
-</div>
+        {/* TOP PROMO BANNER */}
+        <div className="flex items-center justify-center gap-10 px-6 py-4">
+          <div className="text-center">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white">
+              April 2026 Global Sources Hong Kong Shows
+            </h2>
+            <p className="text-4xl sm:text-2xl text-white mt-2">
+              The Top Destination for Global Sourcing in AI-Integrated Consumer & Mobile Electronics ...
+            </p>
+          </div>
+          <Link
+            href="/event"
+            className="bg-white text-blue-700 px-6 py-2 rounded-full font-semibold"
+          >
+            Register Now
+          </Link>
+        </div>
+        
         <div className="bg-white rounded-xl shadow-[0_10px_40px_rgba(0,0,0,0.12)] overflow-hidden flex flex-col lg:flex-row lg:items-stretch min-h-0 lg:min-h-[410px]">
           <aside className="grid min-h-0 w-full grid-rows-[auto_minmax(0,1fr)] overflow-hidden border-b border-gray-100 bg-white p-5 sm:p-6 lg:h-full lg:w-[26%] lg:min-h-0 lg:shrink-0 lg:border-b-0 lg:border-r xl:w-[24%]">
             <h3 className="mb-3 shrink-0 text-base font-bold text-gray-900">Show Categories</h3>
@@ -512,103 +517,126 @@ export default function HeroHighlighter() {
               </div>
             ) : (
               <>
-<div
-  className="flex flex-wrap gap-2 border-b border-gray-100 bg-gray-50/80 px-3 pt-3 sm:px-4 sm:pt-3"
-  role="tablist"
-  aria-label="VIP events"
->
-  {vipEvents.map((e, i) => {
-    const isActive = activeTab === i
-    return (
-      <button
-        key={e.id}
-        type="button"
-        role="tab"
-        aria-selected={isActive}
-        onClick={() => setActiveTab(i)}
-        className={`
-          relative flex-1 min-w-[120px] h-[56px] px-3 py-2.5 sm:px-4 
-          text-left text-xs sm:text-sm font-medium rounded-sm 
-          transition-all duration-300 ease-out 
-          transform-gpu will-change-transform
-          ${
-            isActive
-              ? "bg-gradient-to-r from-red-600 to-orange-600 text-white scale-100 shadow-md z-10"
-              : "text-gray-600 hover:text-red-600 hover:scale-105 hover:shadow-md hover:z-10"
-          }
-        `}
-      >
-        <div className="flex flex-col gap-1">
-          {/* EVENT NAME */}
-          <span className="text-sm font-semibold truncate text-center">
-            {e.title.trim().length > 30 ? `${e.title.trim().slice(0, 30)}...` : e.title.trim()}
-          </span>
+                <div
+                  className="flex flex-wrap gap-2 border-b border-gray-100 bg-gray-50/80 px-3 pt-3 sm:px-4 sm:pt-3"
+                  role="tablist"
+                  aria-label="VIP events"
+                >
+                  {vipEvents.map((e, i) => {
+                    const isActive = activeTab === i
+                    return (
+                      <button
+                        key={e.id}
+                        type="button"
+                        role="tab"
+                        aria-selected={isActive}
+                        onClick={() => setActiveTab(i)}
+                        className={`
+                          relative flex-1 min-w-[120px] h-[56px] px-3 py-2.5 sm:px-4 
+                          text-left text-xs sm:text-sm font-medium rounded-sm 
+                          transition-all duration-300 ease-out 
+                          transform-gpu will-change-transform
+                          ${
+                            isActive
+                              ? "bg-gradient-to-r from-red-600 to-orange-500 text-white scale-100 shadow-md z-10"
+                              : "text-gray-600 hover:text-red-600 hover:scale-105 hover:shadow-md hover:z-10"
+                          }
+                        `}
+                      >
+                        <div className="flex flex-col gap-1">
+                          <span className="text-sm font-semibold truncate text-center">
+                            {e.title.trim().length > 30 ? `${e.title.trim().slice(0, 30)}...` : e.title.trim()}
+                          </span>
+                          <span className={`text-xs text-center transition-colors duration-300 ${
+                            isActive ? "text-white/90" : "text-gray-500"
+                          }`}>
+                            {formatTabDate(e)}
+                          </span>
+                        </div>
+                      </button>
+                    )
+                  })}
+                </div>
 
-          {/* DATE CENTERED */}
-          <span className={`text-xs text-center ${
-            isActive ? "text-white/90" : "text-gray-500 group-hover:text-red-600"
-          }`}>
-            {formatTabDate(e)}
-          </span>
-        </div>
-      </button>
-    )
-  })}
-</div>
+                {panel && (
+                  <div className="relative flex-1 min-h-[245px] overflow-hidden p-3 sm:min-h-[290px] sm:p-4">
+                    {/* Exiting Animation Container */}
+                    <div 
+                      className={`absolute inset-0 transition-transform duration-500 ease-in-out ${
+                        isAnimating 
+                          ? slideDirection === 'left' 
+                            ? '-translate-x-full' 
+                            : 'translate-x-full'
+                          : 'translate-x-0'
+                      }`}
+                    >
+                      <img
+                        src={heroImage(panel)}
+                        alt=""
+                        className="absolute inset-3 h-[calc(100%-1.5rem)] w-[calc(100%-1.5rem)] rounded-xl object-cover sm:inset-4 sm:h-[calc(100%-2rem)] sm:w-[calc(100%-2rem)]"
+                      />
+                      <div
+                        className="absolute inset-3 rounded-xl sm:inset-4"
+                        style={{ background: activeVipTheme.overlayCss }}
+                        aria-hidden
+                      />
+                    </div>
 
-{panel && (
-  <div className="relative flex-1 min-h-[245px] overflow-hidden p-3 sm:min-h-[290px] sm:p-4">
-    {/* Sliding Animation Container */}
-    <div 
-      className="absolute inset-0 transition-transform duration-500 ease-in-out"
-      style={{
-        transform: `translateX(0)`,
-      }}
-    >
-      <img
-        src={heroImage(panel)}
-        alt=""
-        className="absolute inset-3 h-[calc(100%-1.5rem)] w-[calc(100%-1.5rem)] rounded-xl object-cover sm:inset-4 sm:h-[calc(100%-2rem)] sm:w-[calc(100%-2rem)]"
-      />
-      <div
-        className="absolute inset-3 rounded-xl sm:inset-4"
-        style={{ background: activeVipTheme.overlayCss }}
-        aria-hidden
-      />
-    </div>
+                    {/* Entering Animation Container */}
+                    <div 
+                      className={`absolute inset-0 transition-transform duration-500 ease-in-out ${
+                        isAnimating 
+                          ? slideDirection === 'left' 
+                            ? 'translate-x-full' 
+                            : '-translate-x-full'
+                          : 'translate-x-0'
+                      }`}
+                    >
+                      <img
+                        src={heroImage(panel)}
+                        alt=""
+                        className="absolute inset-3 h-[calc(100%-1.5rem)] w-[calc(100%-1.5rem)] rounded-xl object-cover sm:inset-4 sm:h-[calc(100%-2rem)] sm:w-[calc(100%-2rem)]"
+                      />
+                      <div
+                        className="absolute inset-3 rounded-xl sm:inset-4"
+                        style={{ background: activeVipTheme.overlayCss }}
+                        aria-hidden
+                      />
+                    </div>
 
-    <div className="relative z-[1] h-full flex flex-col justify-end p-4 sm:justify-center sm:p-6 lg:p-8 max-w-2xl">
-      <h2 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-white tracking-tight leading-tight mb-3">
-        {panel.title.toUpperCase()}
-      </h2>
-      <p className="text-sm sm:text-base text-white/85 mb-6 max-w-lg">{formatSubline(panel)}</p>
-      <div className="flex flex-col gap-3 w-full max-w-md">
-        <Link
-          href={`${eventBasePath(panel)}/register`}
-          className={`w-full text-center px-6 py-3 rounded-sm text-sm font-semibold text-white ${activeVipTheme.registerClass}`}
-        >
-          Register Now
-        </Link>
-        <div className="grid grid-cols-2 gap-3">
-          <Link
-            href={eventBasePath(panel)}
-            className="text-center px-4 py-3 rounded-sm bg-white text-gray-900 text-sm font-semibold hover:bg-gray-100"
-          >
-            Show Info
-          </Link>
-          <Link
-            href={`${eventBasePath(panel)}/exhibit`}
-            className="text-center px-4 py-3 rounded-sm bg-white text-gray-900 text-sm font-semibold hover:bg-gray-100"
-          >
-            Exhibitor List
-          </Link>
-        </div>
-      </div>
-    </div>
+                    {/* Content Overlay (always visible) */}
+                    <div className="relative z-[1] h-full flex flex-col justify-end p-4 sm:justify-center sm:p-6 lg:p-8 max-w-2xl">
+                      <h2 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-white tracking-tight leading-tight mb-3">
+                        {panel.title.toUpperCase()}
+                      </h2>
+                      <p className="text-sm sm:text-base text-white/85 mb-6 max-w-lg">{formatSubline(panel)}</p>
+                      <div className="flex flex-col gap-3 w-full max-w-md">
+                        <Link
+                          href={`${eventBasePath(panel)}/register`}
+                          className={`w-full text-center px-6 py-3 rounded-sm text-sm font-semibold text-white ${activeVipTheme.registerClass}`}
+                        >
+                          Register Now
+                        </Link>
+                        <div className="grid grid-cols-2 gap-3">
+                          <Link
+                            href={eventBasePath(panel)}
+                            className="text-center px-4 py-3 rounded-sm bg-white text-gray-900 text-sm font-semibold hover:bg-gray-100"
+                          >
+                            Show Info
+                          </Link>
+                          <Link
+                            href={`${eventBasePath(panel)}/exhibit`}
+                            className="text-center px-4 py-3 rounded-sm bg-white text-gray-900 text-sm font-semibold hover:bg-gray-100"
+                          >
+                            Exhibitor List
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
 
-    <ShowOpeningCountdown startDateIso={panel.startDate} />
-  </div>
-)}
+                    <ShowOpeningCountdown startDateIso={panel.startDate} />
+                  </div>
+                )}
               </>
             )}
           </div>
@@ -620,7 +648,7 @@ export default function HeroHighlighter() {
             style={{ backgroundImage: "url('/images/featured.jpg')" }}
             aria-hidden
           />
-          <div className="absolute inset-0 " aria-hidden />
+          <div className="absolute inset-0" aria-hidden />
           <div className="relative z-[1] flex flex-col gap-4 px-5 py-5 sm:px-7 sm:py-6 lg:flex-row lg:items-start lg:gap-7">
             <div className="shrink-0 space-y-2 lg:max-w-[210px]">
               <h3 className="text-xl font-bold leading-tight text-white sm:text-2xl">Featured Events</h3>
