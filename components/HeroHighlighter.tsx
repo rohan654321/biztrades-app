@@ -525,38 +525,43 @@ export default function HeroHighlighter() {
   {vipEvents.map((e, i) => {
     const isActive = activeTab === i
     return (
-      <button
-        key={e.id}
-        type="button"
-        role="tab"
-        aria-selected={isActive}
-        onClick={() => setActiveTab(i)}
-        className={`
-          relative flex-1 min-w-[120px] h-[56px] px-3 py-2.5 sm:px-4 
-          text-left text-xs sm:text-sm font-medium rounded-sm 
-          transition-all duration-300 ease-out 
-          transform-gpu will-change-transform
-          ${
-            isActive
-              ? "bg-gradient-to-r from-red-600 to-orange-600 text-white scale-100 shadow-md z-10"
-              : "text-gray-600 hover:text-red-600 hover:scale-105 hover:shadow-md hover:z-10"
-          }
-        `}
-      >
-        <div className="flex flex-col gap-1">
-          {/* EVENT NAME */}
-          <span className="text-sm font-semibold truncate text-center">
-            {e.title.trim().length > 30 ? `${e.title.trim().slice(0, 30)}...` : e.title.trim()}
-          </span>
+     <button
+  key={e.id}
+  type="button"
+  role="tab"
+  aria-selected={isActive}
+  onClick={() => setActiveTab(i)}
+  className={`
+    relative flex-1 min-w-[130px] h-[58px] px-4 py-2
+    rounded-md text-center
+    transition-all duration-500 ease-in-out
+    transform-gpu
 
-          {/* DATE CENTERED */}
-          <span className={`text-xs text-center ${
-            isActive ? "text-white/90" : "text-gray-500 group-hover:text-red-600"
-          }`}>
-            {formatTabDate(e)}
-          </span>
-        </div>
-      </button>
+    ${
+      isActive
+        ? "bg-gradient-to-r from-red-600 to-orange-500 text-white scale-110 shadow-xl z-20"
+        : "bg-white text-gray-600 scale-95 hover:scale-100 hover:text-red-600"
+    }
+  `}
+>
+  <div className="flex flex-col items-center justify-center gap-1">
+    
+    {/* TITLE */}
+    <span className="text-sm font-semibold truncate">
+      {e.title.trim().length > 30
+        ? `${e.title.trim().slice(0, 30)}...`
+        : e.title.trim()}
+    </span>
+
+    {/* DATE */}
+    <span className={`text-xs ${
+      isActive ? "text-white/90" : "text-gray-500"
+    }`}>
+      {formatTabDate(e)}
+    </span>
+
+  </div>
+</button>
     )
   })}
 </div>
