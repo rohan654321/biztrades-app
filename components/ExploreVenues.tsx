@@ -40,7 +40,7 @@ export default function ExploreVenues() {
         </div>
 
         {/* Horizontal Scroll */}
-        <div className="flex gap-4 overflow-x-auto scrollbar-hide">
+        <div className="flex gap-4 overflow-x-auto scroll-smooth no-scrollbar">
           {venues.map((venue) => (
             <div
   key={venue.id}

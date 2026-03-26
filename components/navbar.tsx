@@ -9,10 +9,13 @@ import { usePathname } from "next/navigation"
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [showLangMenu, setShowLangMenu] = useState(false)
+  const [openDropdown, setOpenDropdown] = useState(false)
+  const [selected, setSelected] = useState("Products")
   const pathname = usePathname()
 
   const mobileMenuRef = useRef<HTMLDivElement>(null)
   const langMenuRef = useRef<HTMLButtonElement>(null)
+  const dropdownRef = useRef<HTMLDivElement>(null)
 
   // Close menus when clicking outside
   useEffect(() => {
@@ -22,6 +25,9 @@ export default function Navbar() {
       }
       if (langMenuRef.current && !langMenuRef.current.contains(event.target as Node)) {
         setShowLangMenu(false)
+      }
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setOpenDropdown(false)
       }
     }
 
@@ -109,67 +115,88 @@ export default function Navbar() {
         </div>
 
         {/* Second Row - Centered Tabs (NO BORDER) */}
-        <div className="hidden lg:flex justify-center items-center gap-6 ">
-          <Link
-            href="/"
-            className={`relative text-sm font-semibold ${
-              !pathname.startsWith("/event")
-                ? "text-red-600"
-                : "text-gray-600 hover:text-red-600"
-            }`}
-          >
-            Online Sourcing
-            {!pathname.startsWith("/event") && (
-              <span className="absolute left-0 bottom-0 w-full h-[2px] bg-red-600"></span>
-            )}
-          </Link>
+        <div className="hidden lg:flex justify-center items-center gap-6">
+       <Link
+  href="/"
+  className={`relative text-[28px] leading-none font-semibold px-4 py-0 ${
+    !pathname.startsWith("/event")
+      ? "text-red-600"
+      : "text-gray-600 hover:text-red-600"
+  }`}
+>
+  Online Sourcing
+  {!pathname.startsWith("/event") && (
+    <span className="absolute left-0 -bottom-1 w-full h-[2px] bg-red-600"></span>
+  )}
+</Link>
 
-          <Link
-            href="/event"
-            className={`relative text-sm font-semibold ${
-              pathname.startsWith("/event")
-                ? "text-red-600"
-                : "text-gray-600 hover:text-red-600"
-            }`}
-          >
-            Exhibitions
-            {pathname.startsWith("/event") && (
-              <span className="absolute left-0 bottom-0 w-full h-[2px] bg-red-600"></span>
-            )}
-          </Link>
+<Link
+  href="/event"
+  className={`relative text-[28px] leading-none font-semibold px-4 py-0 ${
+    pathname.startsWith("/event")
+      ? "text-red-600"
+      : "text-gray-600 hover:text-red-600"
+  }`}
+>
+  Exhibitions
+  {pathname.startsWith("/event") && (
+    <span className="absolute left-0 bottom-0 w-full h-[2px] bg-red-600"></span>
+  )}
+</Link>
         </div>
 
-        {/* Third Row - Search Bar (REDUCED WIDTH) */}
-        <div className="hidden lg:flex justify-center py-1 mt-2">
+        {/* Third Row - Search Bar */}
+        <div className="hidden lg:flex justify-center py-3 mt-1">
           <div className="w-full max-w-7xl">
-            <div className="border border-gray-300 rounded-md overflow-hidden bg-white">
-              <div className="flex w-full bg-white h-9 items-center">
+            <div className="border-2 border-red-500 rounded p-1 bg-white">
+              <div className="flex w-full bg-white h-11 items-center">
                 {/* Dropdown */}
-                <div className="relative flex shrink-0 items-center bg-white px-2.5">
-                  <select
-                    className="h-full cursor-pointer appearance-none bg-transparent pr-5 text-xs font-medium text-gray-700 focus:outline-none"
-                    aria-label="Search scope"
+                <div className="relative h-full" ref={dropdownRef}>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setOpenDropdown(!openDropdown)
+                    }}
+                    className="flex items-center justify-between bg-gray-100 px-5 h-full text-sm font-medium text-gray-800 min-w-[140px] gap-2 hover:bg-gray-200 transition-colors"
                   >
-                    <option value="all">Products</option>
-                    <option value="events">Suppliers</option>
-                  </select>
-                  <ChevronDown className="pointer-events-none absolute right-1.5 top-1/2 h-3 w-3 -translate-y-1/2 text-gray-500" />
-                </div>
+                    {selected}
+                    <ChevronDown
+                      className={`h-4 w-4 transition-transform duration-200 ${
+                        openDropdown ? "rotate-180" : ""
+                      }`}
+                    />
+                  </button>
 
-                {/* Divider */}
-                <div className="h-5 w-px bg-gray-300"></div>
+                  {/* Dropdown Menu */}
+                  {openDropdown && (
+                    <div className="absolute left-0 top-full mt-0 w-full min-w-[140px] bg-white shadow-lg rounded-md border border-gray-200 z-[9999] overflow-hidden">
+                      {["Products", "Suppliers"].map((item) => (
+                        <button
+                          key={item}
+                          onClick={() => {
+                            setSelected(item)
+                            setOpenDropdown(false)
+                          }}
+                          className="w-full px-5 py-3 text-sm text-gray-700 hover:bg-gray-50 text-left transition-colors"
+                        >
+                          {item}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
 
                 {/* Input */}
                 <input
                   type="text"
-                  placeholder="hdmi"
-                  className="flex-1 h-full border-0 bg-white px-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none"
+                  placeholder="Search for products, suppliers..."
+                  className="flex-1 h-full border-0 bg-white px-4 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-0"
                 />
 
                 {/* Search Button */}
                 <button
                   type="button"
-                  className="bg-red-600 h-full px-5 text-sm font-semibold text-white hover:bg-red-700 transition-colors"
+                  className="bg-red-600 h-full px-14 text-sm font-semibold text-white hover:bg-red-700 transition-colors whitespace-nowrap"
                 >
                   Search
                 </button>
@@ -207,30 +234,35 @@ export default function Navbar() {
             <Link
               href="/event"
               className="block px-4 py-1.5 text-sm font-semibold text-gray-800 hover:text-red-600"
+              onClick={() => setMobileMenuOpen(false)}
             >
               Exhibitions
             </Link>
             <Link
               href="/organizer-signup"
               className="block px-4 py-1.5 text-sm font-semibold text-gray-800 hover:text-red-600"
+              onClick={() => setMobileMenuOpen(false)}
             >
               Buyer Services
             </Link>
             <Link
               href="/venues"
               className="block px-4 py-1.5 text-sm font-semibold text-gray-800 hover:text-red-600"
+              onClick={() => setMobileMenuOpen(false)}
             >
               Supplier Services
             </Link>
             <Link
               href="/about"
               className="block px-4 py-1.5 text-sm font-semibold text-gray-800 hover:text-red-600"
+              onClick={() => setMobileMenuOpen(false)}
             >
               About Us
             </Link>
             <Link
               href="/login"
               className="block px-4 py-1.5 text-sm font-semibold text-gray-800 hover:text-red-600"
+              onClick={() => setMobileMenuOpen(false)}
             >
               Sign in
             </Link>

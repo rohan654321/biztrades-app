@@ -144,8 +144,8 @@ function FeaturedEventCard({ event }: { event: FeaturedListEvent }) {
 /** Text-only rows tuned for ~8 visible categories before hover-scroll. */
 const CATEGORY_LIST_MAX_H = "max-h-[20rem] sm:max-h-[20rem] lg:max-h-[20rem]"
 
-  const categoryScrollAreaClass =
-  "min-h-0 min-w-0 divide-y divide-gray-100 overflow-y-hidden hover:overflow-y-auto overscroll-y-contain rounded-xl border border-gray-200/90 bg-gray-50/40 " +
+const categoryScrollAreaClass =
+  "min-h-0 min-w-0 overflow-y-hidden hover:overflow-y-auto overscroll-y-contain " +
   CATEGORY_LIST_MAX_H +
   " px-0 py-0 [scrollbar-gutter:stable] [scrollbar-width:none] hover:[scrollbar-width:thin] [scrollbar-color:transparent_transparent] hover:[scrollbar-color:rgb(203,213,225)_transparent] " +
   "[&::-webkit-scrollbar]:w-0 hover:[&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent " +
@@ -309,7 +309,9 @@ function CategoryLinkDb({ cat }: { cat: BrowseCategory }) {
       href={href}
       className="group flex items-center justify-between gap-3 px-3 py-2.5 text-left text-sm text-gray-800 transition-colors hover:bg-white hover:text-red-600"
     >
-      <span className="block min-w-0 truncate font-medium leading-snug">{cat.name}</span>
+      <span className="block min-w-0 truncate font-normal leading-snug">
+  {cat.name}
+</span>
       <span
         aria-hidden
         className="shrink-0 text-base leading-none text-gray-400 transition-colors group-hover:text-red-600"
@@ -452,31 +454,34 @@ export default function HeroHighlighter() {
     >
       <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8">
         {/* 🔥 TOP PROMO BANNER */}
-<div className="flex items-center justify-center gap-10 px-6 py-4">
+<div className="flex items-center justify-between px-6">
 
-  {/* LEFT TEXT */}
-<div className="text-center">
+  {/* LEFT EMPTY (for perfect center alignment) */}
+  <div className="w-[180px]" />
 
-  <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white">
-    April 2026 Global Sources Hong Kong Shows
-  </h2>
+  {/* CENTER TEXT */}
+  <div className="text-center">
+    <h2 className="text-2xl sm:text-3xl font-bold text-white leading-tight">
+      April 2026 Global Sources Hong Kong Shows
+    </h2>
 
-  <p className="text-4xl sm:text-2xl text-white mt-2">
-    The Top Destination for Global Sourcing in AI-Integrated Consumer & Mobile Electronics ...
-  </p>
-
-</div>
+    <p className="mt-1 text-base sm:text-xl text-white/90 leading-tight">
+      The Top Destination for Global Sourcing in AI-Integrated Consumer & Mobile Electronics ...
+    </p>
+  </div>
 
   {/* RIGHT BUTTON */}
-  <Link
-    href="/event"
-    className="bg-white text-blue-700 px-6 py-2 rounded-full font-semibold"
-  >
-    Register Now
-  </Link>
+  <div className="w-[180px] flex justify-end">
+    <Link
+      href="/event"
+      className="bg-gray-200 text-blue-700 px-6 py-2 rounded-full font-semibold hover:bg-white transition"
+    >
+      Register Now
+    </Link>
+  </div>
 
 </div>
-        <div className="bg-white rounded-xl shadow-[0_10px_40px_rgba(0,0,0,0.12)] overflow-hidden flex flex-col lg:flex-row lg:items-stretch min-h-0 lg:min-h-[410px]">
+        <div className="bg-white rounded-[8px] shadow-[0_10px_40px_rgba(0,0,0,0.12)] overflow-hidden flex flex-col lg:flex-row lg:items-stretch min-h-0 lg:min-h-[410px]">
           <aside className="grid min-h-0 w-full grid-rows-[auto_minmax(0,1fr)] overflow-hidden border-b border-gray-100 bg-white p-5 sm:p-6 lg:h-full lg:w-[26%] lg:min-h-0 lg:shrink-0 lg:border-b-0 lg:border-r xl:w-[24%]">
             <h3 className="mb-3 shrink-0 text-base font-bold text-gray-900">Show Categories</h3>
             <div

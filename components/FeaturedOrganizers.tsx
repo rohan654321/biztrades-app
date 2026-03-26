@@ -126,25 +126,26 @@ export default function FeaturedOrganizers() {
               <div
                 key={org.id}
                 onClick={() => router.push(`/organizer/${org.id}`)}
-                className="flex flex-col items-center min-w-[100px] cursor-pointer"
+                className="flex flex-col items-center min-w-[100px] cursor-pointer group"
               >
-                {/* Circle */}
-                <div className="w-[90px] h-[90px] bg-white rounded-full flex items-center justify-center shadow-sm">
+                {/* Circle Container */}
+                <div className="w-[90px] h-[90px] bg-white rounded-full flex items-center justify-center shadow-sm overflow-hidden">
                   <img
                     src={org.image || "/placeholder.svg"}
                     alt={displayName}
-                    className="w-12 h-12 object-contain"
+                    className="w-full h-full object-cover"
                     onError={(e) => {
                       const target = e.target as HTMLImageElement
                       target.src = "/placeholder.svg"
+                      target.className = "w-12 h-12 object-contain"
                     }}
                   />
                 </div>
-
-                {/* Name */}
-                <p className="text-sm text-gray-700 mt-3 text-center line-clamp-2">
+                
+                {/* Optional: Add organizer name below the logo */}
+                {/* <span className="mt-2 text-xs text-gray-600 text-center max-w-[90px] truncate group-hover:text-red-600 transition-colors">
                   {displayName}
-                </p>
+                </span> */}
               </div>
             )
           })}

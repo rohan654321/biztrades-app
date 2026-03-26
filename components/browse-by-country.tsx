@@ -22,7 +22,7 @@ export default function BrowseByCountry() {
       {/* Header */}
       <div className="mb-4">
         <h2 className="text-lg font-semibold text-gray-900">
-          Source by Region
+          Source by Country
         </h2>
         <p className="text-sm text-gray-500">
           Facilitate world wholesale, retail and E-commerce businesses. Global sourcing is easy!
