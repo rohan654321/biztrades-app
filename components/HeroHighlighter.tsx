@@ -277,7 +277,7 @@ function ShowOpeningCountdown({ startDateIso }: { startDateIso: string }) {
 
   return (
     <div
-      className="absolute top-4 right-6 sm:right-8 z-[2] rounded-xl bg-gray-900 test-white px-4 py-3 shadow-lg border border-gray-200"
+      className="absolute top-4 right-6 sm:right-8 z-[2]  bg-gray-900 test-white px-4 py-3 shadow-lg border border-gray-200"
       role="timer"
       aria-live="polite"
       aria-label="Countdown to show opening"
@@ -289,7 +289,7 @@ function ShowOpeningCountdown({ startDateIso }: { startDateIso: string }) {
         {units.map(({ value, label }) => (
           <div
             key={label}
-            className="flex min-w-0 flex-1 flex-col items-center justify-center rounded-lg bg-white px-2 py-2.5 border border-gray-200"
+            className="flex min-w-0 flex-1 flex-col items-center justify-center rounded-sm bg-white px-2 py-2.5 border border-gray-200"
           >
             <span className="text-lg font-bold text-gray-900">{value}</span>
             <span className="mt-1 text-[8px] font-medium uppercase tracking-wide text-gray-500 sm:text-[9px]">
