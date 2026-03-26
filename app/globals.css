@@ -180,3 +180,10 @@
 .animate-scroll {
   animation: scroll 25s linear infinite;
 }
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

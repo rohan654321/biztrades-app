@@ -5,33 +5,32 @@ import { ChevronLeft, ChevronRight } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { apiFetch } from "@/lib/api"
 
-export default function FeaturedOrganizers() {
+export default function FeaturedSpeakers() {
   const scrollRef = useRef<HTMLDivElement | null>(null)
   const [isHovering, setIsHovering] = useState(false)
-  const [organizers, setOrganizers] = useState<any[]>([])
+  const [speakers, setSpeakers] = useState<any[]>([])
   const [showLeft, setShowLeft] = useState(false)
   const [showRight, setShowRight] = useState(false)
 
   const router = useRouter()
 
-  // 🔥 FETCH DATA
+  // 🔥 Fetch Speakers
   useEffect(() => {
-    async function fetchOrganizer() {
+    async function fetchSpeakers() {
       try {
-        const data = await apiFetch<any>("/api/organizers", { auth: false })
+        const data = await apiFetch<any>("/api/speakers", { auth: false })
 
-        console.log("🔥 FULL API RESPONSE:", data)
-        console.log("🔥 ORGANIZERS ARRAY:", data?.organizers)
+        console.log("🔥 SPEAKERS:", data)
 
-        setOrganizers(data.organizers || [])
+        setSpeakers(data.speakers || [])
       } catch (err) {
-        console.error("❌ Error fetching organizers:", err)
+        console.error("❌ Error fetching speakers:", err)
       }
     }
-    fetchOrganizer()
+    fetchSpeakers()
   }, [])
 
-  // 🔥 SCROLL BUTTON LOGIC
+  // 🔥 Scroll Button Logic
   useEffect(() => {
     const container = scrollRef.current
     if (!container) return
@@ -53,7 +52,7 @@ export default function FeaturedOrganizers() {
       container.removeEventListener("scroll", updateButtons)
       window.removeEventListener("resize", updateButtons)
     }
-  }, [organizers])
+  }, [speakers])
 
   const scrollByAmount = (amount: number) => {
     scrollRef.current?.scrollBy({ left: amount, behavior: "smooth" })
@@ -65,10 +64,10 @@ export default function FeaturedOrganizers() {
       {/* Header */}
       <div className="mb-4">
         <h2 className="text-xl font-semibold text-gray-900">
-          Featured Organizer
+          Featured Speakers
         </h2>
         <p className="text-sm text-gray-500">
-          The most in-demand categories among buyers.
+          Learn from industry experts and keynote speakers.
         </p>
       </div>
 
@@ -83,7 +82,7 @@ export default function FeaturedOrganizers() {
         <button
           onClick={() => scrollByAmount(-280)}
           className={`absolute left-2 top-1/2 -translate-y-1/2 z-10 
-          bg-white rounded-full shadow-md p-2 transition duration-200
+          bg-white rounded-full shadow-md p-2 transition
           ${
             isHovering && showLeft
               ? "opacity-100"
@@ -97,7 +96,7 @@ export default function FeaturedOrganizers() {
         <button
           onClick={() => scrollByAmount(280)}
           className={`absolute right-2 top-1/2 -translate-y-1/2 z-10 
-          bg-white rounded-full shadow-md p-2 transition duration-200
+          bg-white rounded-full shadow-md p-2 transition
           ${
             isHovering && showRight
               ? "opacity-100"
@@ -112,28 +111,24 @@ export default function FeaturedOrganizers() {
           ref={scrollRef}
           className="flex gap-8 overflow-x-auto scroll-smooth no-scrollbar items-center"
         >
-          {organizers.map((org: any) => {
-            // 🔥 DEBUG EACH ITEM
-            console.log("👉 Organizer Item:", org)
-
-            // ✅ FINAL NAME LOGIC
-            const displayName =
-              org.company?.trim()
-                ? org.company
-                : org.name?.trim() || "Organizer"
+          {speakers.map((spk: any) => {
+            const name =
+              `${spk.firstName || ""} ${spk.lastName || ""}`.trim() ||
+              spk.name ||
+              "Speaker"
 
             return (
               <div
-                key={org.id}
-                onClick={() => router.push(`/organizer/${org.id}`)}
+                key={spk.id}
+                onClick={() => router.push(`/speaker/${spk.id}`)}
                 className="flex flex-col items-center min-w-[100px] cursor-pointer"
               >
-                {/* Circle */}
-                <div className="w-[90px] h-[90px] bg-white rounded-full flex items-center justify-center shadow-sm">
+                {/* Circle Image */}
+                <div className="w-[90px] h-[90px] bg-white rounded-full flex items-center justify-center shadow-sm overflow-hidden">
                   <img
-                    src={org.image || "/placeholder.svg"}
-                    alt={displayName}
-                    className="w-12 h-12 object-contain"
+                    src={spk.avatar || spk.image || "/placeholder.svg"}
+                    alt={name}
+                    className="w-full h-full object-cover rounded-full"
                     onError={(e) => {
                       const target = e.target as HTMLImageElement
                       target.src = "/placeholder.svg"
@@ -143,7 +138,7 @@ export default function FeaturedOrganizers() {
 
                 {/* Name */}
                 <p className="text-sm text-gray-700 mt-3 text-center line-clamp-2">
-                  {displayName}
+                  {name}
                 </p>
               </div>
             )

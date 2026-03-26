@@ -9,6 +9,7 @@ import FeaturedOrganizers from "../components/FeaturedOrganizers";
 import HeroHighlighter from "../components/HeroHighlighter";
 import { PageBanner } from "@/components/page-banner";
 import { InlineBanner } from "@/components/inline-banner";
+import FeaturedSpeakers from "@/components/FeaturedSpeaker";
 // import TrandingEvents from "@/components/trandingEvents";
 
 export default function Home() {
@@ -35,6 +36,7 @@ export default function Home() {
        <div className="px-6 py-6 border-b border-gray-200 max-w-6xl mx-auto">
         <InlineBanner page="speakers" maxBanners={3} dismissible={true} />
        </div>
+       <FeaturedSpeakers/>
     </div>
     </div>
   );
