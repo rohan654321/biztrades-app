@@ -3,124 +3,134 @@
 import { useEffect, useRef, useState } from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { useRouter } from "next/navigation"
-import Link from "next/link"
-import "./hide-scrollbar.css" // 👈 optional external file (see below)
 import { apiFetch } from "@/lib/api"
 
 export default function FeaturedOrganizers() {
   const scrollRef = useRef<HTMLDivElement | null>(null)
   const [isHovering, setIsHovering] = useState(false)
   const [organizers, setOrganizers] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
+  const [showLeft, setShowLeft] = useState(false)
+  const [showRight, setShowRight] = useState(false)
+
   const router = useRouter()
 
   useEffect(() => {
     async function fetchOrganizer() {
       try {
         const data = await apiFetch<any>("/api/organizers", { auth: false })
-        setOrganizers(data.organizers)
+        setOrganizers(data.organizers || [])
       } catch (err) {
-        console.error("Error fetching organizers:", err)
-      } finally {
-        setLoading(false)
+        console.error(err)
       }
     }
     fetchOrganizer()
   }, [])
 
+  // ✅ FIXED scroll detection
+  useEffect(() => {
+    const container = scrollRef.current
+    if (!container) return
+
+    const updateButtons = () => {
+      const { scrollLeft, scrollWidth, clientWidth } = container
+
+      setShowLeft(scrollLeft > 5)
+      setShowRight(scrollLeft + clientWidth < scrollWidth - 5)
+    }
+
+    // run after render
+    const timeout = setTimeout(updateButtons, 100)
+
+    container.addEventListener("scroll", updateButtons)
+    window.addEventListener("resize", updateButtons)
+
+    return () => {
+      clearTimeout(timeout)
+      container.removeEventListener("scroll", updateButtons)
+      window.removeEventListener("resize", updateButtons)
+    }
+  }, [organizers])
+
   const scrollByAmount = (amount: number) => {
     scrollRef.current?.scrollBy({ left: amount, behavior: "smooth" })
   }
 
-  // 🌀 Auto-scroll
-  useEffect(() => {
-    if (!scrollRef.current) return
-    const scrollContainer = scrollRef.current
-    const scrollStep = 300
-    const intervalTime = 3000
-
-    const interval = setInterval(() => {
-      if (!isHovering && scrollContainer) {
-        if (
-          scrollContainer.scrollLeft + scrollContainer.clientWidth >=
-          scrollContainer.scrollWidth - 10
-        ) {
-          scrollContainer.scrollTo({ left: 0, behavior: "smooth" })
-        } else {
-          scrollContainer.scrollBy({ left: scrollStep, behavior: "smooth" })
-        }
-      }
-    }, intervalTime)
-
-    return () => clearInterval(interval)
-  }, [isHovering, organizers])
-
-  if (loading) return <p className="text-center py-10">Loading organizers...</p>
-
   return (
-    <div className="w-full max-w-7xl mx-auto px-4">
-      <div className="py-6 border-b border-gray-200 text-left">
-        <h2 className="text-2xl font-semibold text-gray-900 mb-1">
-          Featured Organizers
+    <div className="max-w-7xl mx-auto px-4 py-6">
+
+      {/* Header */}
+      <div className="mb-4">
+        <h2 className="text-xl font-semibold text-gray-900">
+          Featured Categories
         </h2>
-        <p className="text-gray-600">Worldwide Organizers</p>
+        <p className="text-sm text-gray-500">
+          The most in-demand categories among buyers.
+        </p>
       </div>
 
+      {/* Container */}
       <div
-        className="relative group"
+        className="relative bg-gray-100 rounded-[10px] px-6 py-6 group"
         onMouseEnter={() => setIsHovering(true)}
         onMouseLeave={() => setIsHovering(false)}
       >
-        {/* Scroll Buttons */}
+
+        {/* LEFT BUTTON */}
         <button
-          onClick={() => scrollByAmount(-300)}
-          className="absolute left-2 top-1/2 -translate-y-1/2 z-10 p-2 bg-white/90 rounded-full shadow-md hover:bg-white transition-all opacity-0 group-hover:opacity-100"
+          onClick={() => scrollByAmount(-280)}
+          className={`absolute left-2 top-1/2 -translate-y-1/2 z-10 
+          bg-white rounded-full shadow-md p-2 transition duration-200
+          ${
+            isHovering && showLeft
+              ? "opacity-100"
+              : "opacity-0 pointer-events-none"
+          }`}
         >
           <ChevronLeft className="w-5 h-5 text-gray-700" />
         </button>
 
+        {/* RIGHT BUTTON */}
         <button
-          onClick={() => scrollByAmount(300)}
-          className="absolute right-2 top-1/2 -translate-y-1/2 z-10 p-2 bg-white/90 rounded-full shadow-md hover:bg-white transition-all opacity-0 group-hover:opacity-100"
+          onClick={() => scrollByAmount(280)}
+          className={`absolute right-2 top-1/2 -translate-y-1/2 z-10 
+          bg-white rounded-full shadow-md p-2 transition duration-200
+          ${
+            isHovering && showRight
+              ? "opacity-100"
+              : "opacity-0 pointer-events-none"
+          }`}
         >
           <ChevronRight className="w-5 h-5 text-gray-700" />
         </button>
 
-        {/* Scrollable Logos */}
+        {/* Scroll Row */}
         <div
           ref={scrollRef}
-          className="flex gap-6 overflow-x-auto scroll-smooth py-6 hide-scrollbar items-center"
+          className="flex gap-8 overflow-x-auto scroll-smooth no-scrollbar items-center"
         >
-          {organizers.map((organizer: any) => (
+          {organizers.map((org: any) => (
             <div
-              onClick={() => router.push(`/organizer/${organizer.id}`)}
-              key={organizer.id}
-              className="w-[200px] h-[120px] flex items-center justify-center 
-                         bg-white border border-gray-200 rounded-lg p-4 
-                         flex-shrink-0 hover:shadow-lg hover:border-blue-300 
-                         transition duration-200 cursor-pointer"
+              key={org.id}
+              onClick={() => router.push(`/organizer/${org.id}`)}
+              className="flex flex-col items-center min-w-[100px] cursor-pointer"
             >
-              <img
-                src={organizer.image}
-                alt={organizer.name}
-                className="max-h-full max-w-full object-contain"
-              />
+              {/* Circle */}
+              <div className="w-[90px] h-[90px] bg-white rounded-full flex items-center justify-center shadow-sm">
+                <img
+                  src={org.image || "/placeholder.svg"}
+                  alt={org.name}
+                  className="w-12 h-12 object-contain"
+                />
+              </div>
+
+              {/* Label */}
+              <p className="text-sm text-gray-700 mt-3 text-center">
+                {org.name}
+              </p>
             </div>
           ))}
-
-          <Link href="/organizers">
-            <button
-              className="w-[200px] h-[120px] flex items-center justify-center 
-                         bg-gray-50 border-2 border-dashed border-gray-300 
-                         rounded-lg hover:border-blue-400 hover:bg-blue-50 
-                         transition-all duration-200 flex-shrink-0"
-            >
-              <span className="text-sm font-medium text-gray-600 group-hover:text-blue-600">
-                View All
-              </span>
-            </button>
-          </Link>
         </div>
+
       </div>
     </div>
   )

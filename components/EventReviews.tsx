@@ -192,156 +192,62 @@ export default function EventReviews() {
     return currentMonthEvents.slice(0, 4)
   }
 
-  return (
-    <section className="py-12 px-4 max-w-7xl mx-auto">
-      {/* Heading */}
-      <div className="text-center mb-10">
-        <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3">
-          Trending Upcoming Events
+return (
+  <section className="max-w-7xl mx-auto px-4 py-6">
+
+    {/* Container */}
+    <div className="bg-gray-100 rounded-[6px] p-6">
+
+      {/* Header */}
+      <div className="mb-4">
+        <h2 className="text-lg font-semibold text-gray-900">
+          Trending Events
         </h2>
-        <p className="text-gray-600 max-w-3xl mx-auto">
-          Connecting the global B2B trade fair community—where new business opportunities begin every minute.
+        <p className="text-sm text-gray-500">
+          Explore the trending events happening in the country this week
         </p>
       </div>
 
-      {/* Carousel container */}
-      {currentMonthEvents.length > 0 && (
-        <div 
-          className="relative"
-          onMouseEnter={() => setIsAutoScrolling(false)}
-          onMouseLeave={() => setIsAutoScrolling(true)}
-        >
-          {/* Cards grid - always shows 4 cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {getEventsForCurrentSlide().map((event, index) => {
-              const totalFollowers = typeof (event as any).followersCount === "number"
-                ? (event as any).followersCount
-                : typeof event.followers === "number"
-                  ? event.followers
-                  : 0
-              const formattedFollowers = formatFollowers(totalFollowers)
-              
-              return (
-                <div
-                  key={`${currentSlide}-${event.id || index}`}
-                  className="bg-white border border-gray-200 rounded-lg overflow-hidden cursor-pointer hover:border-gray-300 transition-colors duration-200"
-                  onClick={() => handleCardClick(event)}
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(e: React.KeyboardEvent) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      handleCardClick(event)
-                    }
+      {/* Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+
+        {currentMonthEvents.length > 0
+          ? currentMonthEvents.slice(0, 3).map((event, index) => (
+              <div
+                key={event.id || index}
+                onClick={() => handleCardClick(event)}
+                className="bg-white rounded-[6px] p-2 cursor-pointer"
+              >
+                {/* Image */}
+                <img
+                  src={
+                    event.bannerImage ||
+                    event.logo ||
+                    "/herosection-images/food.jpg"
+                  }
+                  alt={event.title}
+                  className="w-full h-[140px] object-cover rounded-[4px]"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement
+                    target.src = "/herosection-images/food.jpg"
                   }}
-                >
-                  {/* Image Container */}
-                  <div className="relative h-48 w-full bg-gray-100 overflow-hidden">
-                    <img
-                      src={event.logo || event.bannerImage || "/herosection-images/food.jpg"}
-                      alt={`${event.title} logo`}
-                      className="w-full h-full object-cover"
-                    />
-                    
-                    {/* Date Badge */}
-                    <div className="absolute top-3 left-3">
-                      <div className="flex items-center bg-white px-3 py-1.5 rounded shadow-sm">
-                        <Calendar className="w-4 h-4 text-gray-600 mr-2" />
-                        <span className="text-sm font-medium text-gray-800">
-                          {new Date(event.startDate).toLocaleDateString("en-GB", {
-                            day: "2-digit",
-                          })}
-                          {event.endDate
-                            ? ` - ${new Date(event.endDate).toLocaleDateString("en-GB", {
-                                day: "2-digit",
-                                month: "short",
-                                year: "numeric",
-                              })}`
-                            : ""}
-                        </span>
-                      </div>
-                    </div>
+                />
 
-                    {/* Categories - Optional */}
-                    {/* <div className="absolute top-3 right-3 flex gap-2">
-                      {event.categories?.slice(0, 2).map((cat, idx) => (
-                        <span
-                          key={idx}
-                          className="bg-white text-gray-700 text-xs px-2 py-1 rounded"
-                        >
-                          {cat}
-                        </span>
-                      ))}
-                    </div> */}
-                  </div>
+                {/* Title */}
+                <p className="text-sm font-medium text-gray-800 mt-2 line-clamp-2">
+                  {event.title || "Event Title"}
+                </p>
+              </div>
+            ))
+          : // Skeleton (like your screenshot)
+            Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="bg-white rounded-[6px] p-2">
+                <div className="w-full h-[140px] bg-gray-200 rounded-[4px]" />
+              </div>
+            ))}
+      </div>
 
-                  {/* Content */}
-                  <div className="p-5">
-                    {/* Event Title */}
-                    <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-2">
-                      {event.title || "Event Title"}
-                    </h3>
-
-                    {/* Location */}
-                    <div className="flex items-center mb-4">
-                      <svg className="w-4 h-4 text-gray-400 mr-2" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
-                      </svg>
-                      <p className="text-gray-600 text-sm">
-                        {event.location?.venue ? `${event.location.venue}, ` : ""}
-                        {event.location?.city}
-                      </p>
-                    </div>
-
-                    {/* Display address if available */}
-                    {/* {event.location?.address && (
-                      <div className="mb-4">
-                        <p className="text-gray-600 text-xs line-clamp-2 pl-6">{event.location.address}</p>
-                      </div>
-                    )} */}
-
-                    {/* Followers Section */}
-                    <div className="pt-4 border-t border-gray-100">
-                      <div className="flex items-center">
-                        <Users className="w-4 h-4 text-gray-500 mr-2" />
-                        <div>
-                          <span className="text-gray-900 font-semibold">
-                            {formattedFollowers}
-                          </span>
-                          <span className="text-gray-500 text-sm ml-1">Followers</span>
-                        </div>
-                      </div>
-                      
-                      {/* Save button - Optional */}
-                      {/* <div className="mt-4">
-                        <button
-                          className="w-full flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm font-medium"
-                          aria-label="Save event"
-                          onClick={(e) => handleVisitClick(e, event, index)}
-                        >
-                          <UserPlus className="w-4 h-4 mr-2" />
-                          Save Event
-                        </button>
-                      </div> */}
-                    </div>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-
-          {/* Carousel indicators (hidden - removed from UI) */}
-          {/* Navigation dots are hidden as requested */}
-        </div>
-      )}
-
-      {/* Fallback message if no current month events */}
-      {currentMonthEvents.length === 0 && (
-        <div className="text-center py-12">
-          <p className="text-gray-600">
-            No events scheduled for this month. Check back soon for upcoming events!
-          </p>
-        </div>
-      )}
-    </section>
-  )
+    </div>
+  </section>
+)
 }

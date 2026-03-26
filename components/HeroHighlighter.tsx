@@ -275,31 +275,32 @@ function ShowOpeningCountdown({ startDateIso }: { startDateIso: string }) {
     // { value: pad(seconds), label: "Sec" },
   ]
 
-  return (
-    <div
-      className="absolute top-4 right-6 sm:right-8 z-[2]  bg-gray-900 test-white px-4 py-3 shadow-lg border border-gray-200"
-      role="timer"
-      aria-live="polite"
-      aria-label="Countdown to show opening"
-    >
-      <p className="mb-2 text-center text-[10px] font-semibold uppercase tracking-[0.12em] text-gray-700 sm:text-[11px]">
-        Show Opening
-      </p>
-      <div className="flex items-stretch gap-2 sm:gap-2">
-        {units.map(({ value, label }) => (
-          <div
-            key={label}
-            className="flex min-w-0 flex-1 flex-col items-center justify-center rounded-sm bg-white px-2 py-2.5 border border-gray-200"
-          >
-            <span className="text-lg font-bold text-gray-900">{value}</span>
-            <span className="mt-1 text-[8px] font-medium uppercase tracking-wide text-gray-500 sm:text-[9px]">
-              {label}
-            </span>
-          </div>
-        ))}
-      </div>
+return (
+  <div
+    className="absolute top-4 right-6 sm:right-8 z-[2] bg-gray-900 px-6 py-2 shadow-lg border border-gray-200"
+    role="timer"
+    aria-live="polite"
+    aria-label="Countdown to show opening"
+  >
+    <p className="mb-1 text-center text-[9px] font-semibold uppercase tracking-[0.12em] text-gray-400 sm:text-[10px]">
+      Show Opening
+    </p>
+
+    <div className="flex items-stretch gap-2">
+      {units.map(({ value, label }) => (
+        <div
+          key={label}
+          className="flex flex-col items-center justify-center rounded-[2px] bg-white px-3 py-1.5 border border-gray-200"
+        >
+          <span className="text-base font-bold text-gray-900">{value}</span>
+          <span className="mt-0.5 text-[7px] font-medium uppercase tracking-wide text-gray-500">
+            {label}
+          </span>
+        </div>
+      ))}
     </div>
-  )
+  </div>
+)
 }
 
 function CategoryLinkDb({ cat }: { cat: BrowseCategory }) {
@@ -521,34 +522,32 @@ export default function HeroHighlighter() {
                     const isActive = activeTab === i
                     return (
                       <button
-                        key={e.id}
-                        type="button"
-                        role="tab"
-                        aria-selected={isActive}
-                        onClick={() => setActiveTab(i)}
-className={`h-[56px] px-3 py-2.5 sm:px-4 text-left text-xs sm:text-sm font-medium rounded-sm 
-transition-all duration-300 ease-out max-w-[200px] sm:flex-1 transform
-${
-  isActive
-    ? "bg-gradient-to-r from-red-600 to-orange-600 text-white scale-[1.15] shadow-md"
-    : "text-gray-600 hover:text-red-600 hover:scale-[1.04]"
-}`}>
-      <div className="flex flex-col gap-1">
+  key={e.id}
+  type="button"
+  role="tab"
+  aria-selected={isActive}
+  onClick={() => setActiveTab(i)}
+  className={`min-w-[220px] flex-shrink-0 px-4 py-3 text-center rounded-md transition-all duration-300
+  ${
+    isActive
+      ? "bg-gradient-to-r from-red-600 to-orange-600 text-white shadow-md"
+      : "bg-white text-gray-700 hover:text-red-600 border border-gray-200"
+  }`}
+>
+  <div className="flex flex-col gap-1 items-center">
 
-  {/* EVENT NAME */}
-  <span className="text-sm font-semibold truncate text-center">
-    {e.title.trim().length >30 ? `${e.title.trim().slice(0, 30)}...` : e.title.trim()}
-  </span>
+    <span className="text-sm font-semibold truncate">
+      {e.title.trim().length > 30
+        ? `${e.title.trim().slice(0, 30)}...`
+        : e.title.trim()}
+    </span>
 
-  {/* DATE CENTERED */}
-  <span className={`text-xs text-center ${
-    isActive ? "text-white/90" : "text-gray-500"
-  }`}>
-    {formatTabDate(e)}
-  </span>
+    <span className={`text-xs ${isActive ? "text-white/90" : "text-gray-500"}`}>
+      {formatTabDate(e)}
+    </span>
 
-</div>
-                      </button>
+  </div>
+</button>
                     )
                   })}
                 </div>
