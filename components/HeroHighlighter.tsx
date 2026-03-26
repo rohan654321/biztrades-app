@@ -277,22 +277,22 @@ function ShowOpeningCountdown({ startDateIso }: { startDateIso: string }) {
 
   return (
     <div
-      className="absolute top-4 right-6 sm:right-8 z-[2] rounded-xl bg-gray-900 test-white px-4 py-3 shadow-lg border border-gray-200"
+      className="absolute top-4 left-6 sm:left-8 z-[2] bg-gray-900/90 backdrop-blur-sm text-white px-3 py-1.5 shadow-lg border border-gray-700 rounded-lg"
       role="timer"
       aria-live="polite"
       aria-label="Countdown to show opening"
     >
-      <p className="mb-2 text-center text-[10px] font-semibold uppercase tracking-[0.12em] text-gray-700 sm:text-[11px]">
+      <p className="mb-1 text-center text-[9px] font-semibold uppercase tracking-[0.1em] text-gray-300 sm:text-[10px]">
         Show Opening
       </p>
-      <div className="flex items-stretch gap-2 sm:gap-2">
+      <div className="flex items-stretch gap-1.5 sm:gap-2">
         {units.map(({ value, label }) => (
           <div
             key={label}
-            className="flex min-w-0 flex-1 flex-col items-center justify-center rounded-lg bg-white px-2 py-2.5 border border-gray-200"
+            className="flex min-w-0 flex-1 flex-col items-center justify-center bg-black/50 px-1.5 py-1 rounded-md border border-gray-700"
           >
-            <span className="text-lg font-bold text-gray-900">{value}</span>
-            <span className="mt-1 text-[8px] font-medium uppercase tracking-wide text-gray-500 sm:text-[9px]">
+            <span className="text-sm font-bold text-white sm:text-base">{value}</span>
+            <span className="mt-0.5 text-[7px] font-medium uppercase tracking-wide text-gray-400 sm:text-[8px]">
               {label}
             </span>
           </div>
@@ -512,46 +512,45 @@ export default function HeroHighlighter() {
               </div>
             ) : (
               <>
-                <div
-                  className="flex flex-wrap gap-0 border-b border-gray-100 bg-gray-50/80 px-3 pt-3 sm:px-4 sm:pt-3"
-                  role="tablist"
-                  aria-label="VIP events"
-                >
-                  {vipEvents.map((e, i) => {
-                    const isActive = activeTab === i
-                    return (
-                      <button
-                        key={e.id}
-                        type="button"
-                        role="tab"
-                        aria-selected={isActive}
-                        onClick={() => setActiveTab(i)}
-className={`h-[56px] px-3 py-2.5 sm:px-4 text-left text-xs sm:text-sm font-medium rounded-sm 
-transition-all duration-300 ease-out max-w-[200px] sm:flex-1 transform
-${
-  isActive
-    ? "bg-gradient-to-r from-red-600 to-orange-600 text-white scale-[1.15] shadow-md"
-    : "text-gray-600 hover:text-red-600 hover:scale-[1.04]"
-}`}>
-      <div className="flex flex-col gap-1">
+<div
+  className="flex flex-wrap gap-2 border-b border-gray-100 bg-gray-50/80 px-3 pt-3 sm:px-4 sm:pt-3"
+  role="tablist"
+  aria-label="VIP events"
+>
+  {vipEvents.map((e, i) => {
+    const isActive = activeTab === i
+    return (
+      <button
+        key={e.id}
+        type="button"
+        role="tab"
+        aria-selected={isActive}
+        onClick={() => setActiveTab(i)}
+        className={`flex-1 min-w-[120px] h-[56px] px-3 py-2.5 sm:px-4 text-left text-xs sm:text-sm font-medium rounded-sm 
+        transition-all duration-300 ease-out transform
+        ${
+          isActive
+            ? "bg-gradient-to-r from-red-600 to-orange-600 text-white scale-[1.02] shadow-md"
+            : "text-gray-600 hover:text-red-600 hover:scale-[1.01]"
+        }`}
+      >
+        <div className="flex flex-col gap-1">
+          {/* EVENT NAME */}
+          <span className="text-sm font-semibold truncate text-center">
+            {e.title.trim().length > 30 ? `${e.title.trim().slice(0, 30)}...` : e.title.trim()}
+          </span>
 
-  {/* EVENT NAME */}
-  <span className="text-sm font-semibold truncate text-center">
-    {e.title.trim().length >30 ? `${e.title.trim().slice(0, 30)}...` : e.title.trim()}
-  </span>
-
-  {/* DATE CENTERED */}
-  <span className={`text-xs text-center ${
-    isActive ? "text-white/90" : "text-gray-500"
-  }`}>
-    {formatTabDate(e)}
-  </span>
-
+          {/* DATE CENTERED */}
+          <span className={`text-xs text-center ${
+            isActive ? "text-white/90" : "text-gray-500"
+          }`}>
+            {formatTabDate(e)}
+          </span>
+        </div>
+      </button>
+    )
+  })}
 </div>
-                      </button>
-                    )
-                  })}
-                </div>
 
                 {panel && (
                   <div className="relative flex-1 min-h-[245px] overflow-hidden p-3 sm:min-h-[290px] sm:p-4">
