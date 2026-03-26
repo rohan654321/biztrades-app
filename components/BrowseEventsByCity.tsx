@@ -1,13 +1,12 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { apiFetch } from "@/lib/api"
 
 export default function BrowseByCity() {
   const router = useRouter()
   const [cities, setCities] = useState<any[]>([])
-  const scrollRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const load = async () => {
@@ -16,29 +15,6 @@ export default function BrowseByCity() {
     }
     load()
   }, [])
-
-  // ✅ STEP SCROLL (pause → move → pause)
-  useEffect(() => {
-    const container = scrollRef.current
-    if (!container) return
-
-    const interval = setInterval(() => {
-      container.scrollBy({
-        left: 280, // card width
-        behavior: "smooth",
-      })
-
-      // reset when end reached
-      if (
-        container.scrollLeft + container.clientWidth >=
-        container.scrollWidth - 10
-      ) {
-        container.scrollTo({ left: 0, behavior: "smooth" })
-      }
-    }, 2500) // ⏱ pause time (2.5 sec)
-
-    return () => clearInterval(interval)
-  }, [cities])
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6">
@@ -53,11 +29,8 @@ export default function BrowseByCity() {
         </p>
       </div>
 
-      {/* Scroll Container */}
-      <div
-        ref={scrollRef}
-        className="flex gap-4 overflow-x-auto scroll-smooth no-scrollbar"
-      >
+      {/* Grid Container - 3 columns */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {cities.map((city, index) => {
           const bgColors = [
             "bg-green-50",
@@ -73,9 +46,9 @@ export default function BrowseByCity() {
               onClick={() =>
                 router.push(`/event?location=${city.name}`)
               }
-              className={`min-w-[260px] flex items-center justify-center gap-3 px-6 py-5 
+              className={`flex items-center justify-center gap-3 px-6 py-5 
               ${bgColors[index % bgColors.length]} 
-              rounded-[6px] hover:shadow-sm transition`}
+              rounded-[6px] hover:shadow-sm transition w-full`}
             >
               <img
                 src={city.image || "/placeholder.svg"}

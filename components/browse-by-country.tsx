@@ -1,13 +1,12 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { apiFetch } from "@/lib/api"
 
 export default function BrowseByCountry() {
   const router = useRouter()
   const [countries, setCountries] = useState<any[]>([])
-  const scrollRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const load = async () => {
@@ -16,29 +15,6 @@ export default function BrowseByCountry() {
     }
     load()
   }, [])
-
-  // ✅ STEP AUTO SCROLL (same as city)
-  useEffect(() => {
-    const container = scrollRef.current
-    if (!container) return
-
-    const interval = setInterval(() => {
-      container.scrollBy({
-        left: 300,
-        behavior: "smooth",
-      })
-
-      // reset when end reached
-      if (
-        container.scrollLeft + container.clientWidth >=
-        container.scrollWidth - 10
-      ) {
-        container.scrollTo({ left: 0, behavior: "smooth" })
-      }
-    }, 2500)
-
-    return () => clearInterval(interval)
-  }, [countries])
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6">
@@ -53,11 +29,8 @@ export default function BrowseByCountry() {
         </p>
       </div>
 
-      {/* Scroll Container */}
-      <div
-        ref={scrollRef}
-        className="flex gap-4 overflow-x-auto scroll-smooth no-scrollbar"
-      >
+      {/* Grid Container - 3 columns */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {countries.map((country, index) => {
           const bgColors = [
             "bg-green-50",
@@ -71,9 +44,9 @@ export default function BrowseByCountry() {
             <button
               key={country.id}
               onClick={() => router.push(`/event?country=${country.name}`)}
-              className={`min-w-[280px] flex items-center justify-center gap-3 px-6 py-6 
+              className={`flex items-center justify-center gap-3 px-6 py-6 
               ${bgColors[index % bgColors.length]} 
-              rounded-[6px] hover:shadow-sm transition`}
+              rounded-[6px] hover:shadow-sm transition w-full`}
             >
               <img
                 src={country.flag || "/placeholder.svg"}
