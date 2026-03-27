@@ -541,7 +541,7 @@ export default function HeroHighlighter() {
                         onClick={() => setActiveTab(i)}
                         className={`
                           relative flex-1 min-w-[130px] h-[58px] px-4 py-2
-                          rounded-md text-center
+                          rounded-sm text-center
                           transition-all duration-500 ease-in-out
                           transform-gpu
 
