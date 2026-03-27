@@ -122,7 +122,7 @@ export function InlineBanner({
   if (isLoading) {
     return (
       <div className={`space-y-4 ${className}`}>
-        <div className="h-40 bg-gray-200 animate-pulse rounded-xl" />
+        <div className="h-30 bg-gray-200 animate-pulse rounded-sm" />
       </div>
     )
   }
@@ -136,10 +136,10 @@ export function InlineBanner({
       {visibleBanners.map((banner) => (
         <div
           key={banner.id}
-          className="relative group overflow-hidden rounded-xl shadow-lg"
+          className="relative group overflow-hidden rounded-sm shadow-lg"
         >
           {/* Background Image */}
-          <div className="relative h-40 w-full">
+          <div className="relative h-30 w-full">
             <Image
               src={banner.imageUrl || "/placeholder.svg"}
               alt={banner.title}

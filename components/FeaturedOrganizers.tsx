@@ -74,7 +74,7 @@ export default function FeaturedOrganizers() {
 
       {/* Container */}
       <div
-        className="relative bg-gray-100 rounded-[10px] px-6 py-6 group"
+        className="relative bg-white rounded-sm px-6 py-6 group"
         onMouseEnter={() => setIsHovering(true)}
         onMouseLeave={() => setIsHovering(false)}
       >

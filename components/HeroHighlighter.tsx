@@ -123,7 +123,7 @@ function FeaturedEventCard({ event }: { event: FeaturedListEvent }) {
   return (
     <Link
       href={href}
-      className="group flex h-[208px] flex-col overflow-hidden rounded-xl border border-white/25 bg-white/95 shadow-md transition hover:bg-white hover:shadow-lg sm:h-[224px] lg:h-[212px]"
+      className="group flex h-[208px] flex-col overflow-hidden rounded-sm border border-white/25 bg-white/95 shadow-md transition hover:bg-white hover:shadow-lg sm:h-[224px] lg:h-[212px]"
     >
       <div className="relative h-[112px] w-full shrink-0 bg-gray-200 sm:h-[120px] lg:h-[112px]">
         <img
@@ -632,7 +632,7 @@ export default function HeroHighlighter() {
           </div>
         </div>
 
-        <div className="relative overflow-hidden rounded-2xl border border-white/10 shadow-xl">
+        <div className="relative overflow-hidden rounded-sm border border-white/10 shadow-xl">
           <div
             className="absolute inset-0 bg-cover bg-center"
             style={{ backgroundImage: "url('/logo/bg_Featured.jpg.jpeg')" }}
