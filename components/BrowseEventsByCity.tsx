@@ -49,7 +49,7 @@ export default function BrowseByCity() {
     <div className="max-w-7xl mx-auto px-4 py-6">
 
       {/* Outer Container */}
-      <div className="bg-gray-100 rounded-[4px] p-6">
+      <div className="bg-gray-200 rounded-[4px] p-6">
 
         {/* Header */}
         <div className="mb-6">
