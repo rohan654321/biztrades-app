@@ -460,7 +460,7 @@ export default function HeroHighlighter() {
       }}
       aria-label="Featured shows and verified exhibitors"
     >
-      <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-8">
         {/* 🔥 TOP PROMO BANNER - Removed top gap */}
         <div className="flex items-center justify-between px-6 -mt-2">
 
