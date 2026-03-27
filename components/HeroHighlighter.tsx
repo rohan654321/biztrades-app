@@ -648,39 +648,39 @@ const visibleFeatured = featuredEvents.slice(
         <div className="relative overflow-hidden rounded-sm border border-white/10 shadow-xl">
           <div
             className="absolute inset-0 bg-cover bg-center"
-            style={{ backgroundImage: "url('/logo/bg_Featured.jpg.jpeg')" }}
+            style={{ backgroundImage: "url('/logo/bg_Featured.jpg (1).jpeg')" }}
             aria-hidden
           />
           <div className="absolute inset-0 " aria-hidden />
-          <div className="relative z-[1] flex flex-col gap-4 px-5 py-5 sm:px-7 sm:py-6 lg:flex-row lg:items-start lg:gap-7">
-            <div className="shrink-0 space-y-2 lg:max-w-[210px]">
-              <h3 className="text-xl font-bold leading-tight text-white sm:text-2xl">Featured Events</h3>
-              <p className="text-xs leading-relaxed text-white/80 sm:text-sm">
-                Handpicked events from our catalogue—open a show for details, registration, and exhibitor info.
-              </p>
-              <Link
-                href="/event"
-                className="inline-flex w-fit items-center justify-center rounded-lg bg-white px-5 py-2 text-xs font-bold text-[#3d2066] transition-colors hover:bg-gray-100 sm:text-sm"
-              >
-                View all events
-              </Link>
-            </div>
-            <div className="min-w-0 flex-1">
-              {featuredLoading ? (
-                <p className="py-8 text-center text-sm text-white/70">Loading featured events…</p>
-              ) : featuredError ? (
-                <p className="py-4 text-sm text-amber-200">{featuredError}</p>
-              ) : featuredEvents.length === 0 ? (
-                <p className="py-6 text-sm text-white/70">No featured events right now. Check back soon.</p>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-  {visibleFeatured.map((ev) => (
-    <FeaturedEventCard key={ev.id} event={ev} />
-  ))}
+          <div className="relative z-[1] flex items-center px-8 py-6 gap-8">
+
+  {/* LEFT TEXT BLOCK (FIXED WIDTH) */}
+  <div className="w-[320px] shrink-0 space-y-4">
+    <h3 className="text-2xl font-bold text-white leading-tight">
+      Meet the <span className="bg-blue-500 text-white px-2 rounded-md">Verified</span><br />
+      Exhibitors at the Show
+    </h3>
+
+    <p className="text-sm text-white/80 leading-relaxed">
+      Discover the exhibitor list and trending products at 2026 April shows.
+    </p>
+
+    <Link
+      href="/event"
+      className="inline-block bg-white text-[#3d2066] font-semibold px-6 py-2 rounded-md hover:bg-gray-100 transition"
+    >
+      Explore Now
+    </Link>
+  </div>
+
+  {/* RIGHT CARDS */}
+  <div className="flex-1 grid grid-cols-3 gap-6">
+    {visibleFeatured.map((ev) => (
+      <FeaturedEventCard key={ev.id} event={ev} />
+    ))}
+  </div>
+
 </div>
-              )}
-            </div>
-          </div>
         </div>
       </div>
     </section>
