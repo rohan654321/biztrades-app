@@ -19,7 +19,7 @@ export default function ExploreVenues() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6">
-      <div className="bg-gray-100  p-6">
+      <div className="bg-white  p-6">
         
         {/* Header */}
         <div className="flex justify-between items-start mb-4">
@@ -45,7 +45,7 @@ export default function ExploreVenues() {
             <div
   key={venue.id}
   onClick={() => router.push(`/venue/${venue.id}`)}
-  className="min-w-[300px] bg-white rounded-[4px] p-3 cursor-pointer"
+  className="min-w-[300px] bg-[#EBF0F7] rounded-[4px] p-3 cursor-pointer"
 >
   <img
     src={

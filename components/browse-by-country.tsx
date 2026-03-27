@@ -46,7 +46,7 @@ export default function BrowseByCountry() {
     <div className="max-w-7xl mx-auto px-4 py-6">
 
       {/* Outer Container */}
-      <div className="bg-gray-200 rounded-md p-6">
+      <div className="bg-white rounded-md p-6">
 
         {/* Header */}
         <div className="mb-5">

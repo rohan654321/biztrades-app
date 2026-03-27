@@ -196,7 +196,7 @@ return (
   <section className="max-w-7xl mx-auto px-4 py-6">
 
     {/* Container */}
-    <div className="bg-gray-100 rounded-[6px] p-6">
+    <div className="bg-white rounded-[6px] p-6">
 
       {/* Header */}
       <div className="mb-4">
@@ -216,7 +216,7 @@ return (
               <div
                 key={event.id || index}
                 onClick={() => handleCardClick(event)}
-                className="bg-white rounded-[6px] p-2 cursor-pointer"
+                className="bg-gray-100 rounded-[6px] p-2 cursor-pointer"
               >
                 {/* Image */}
                 <img

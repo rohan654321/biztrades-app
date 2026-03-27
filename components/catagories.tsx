@@ -53,7 +53,7 @@ export default function CategoryGrid() {
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="bg-gray-200 animate-pulse rounded-xl h-24" />
+            <div key={i} className="bg-white animate-pulse rounded-xl h-24" />
           ))}
         </div>
       </div>
@@ -95,7 +95,7 @@ export default function CategoryGrid() {
       </div>
 
       {/* OUTER CONTAINER */}
-      <div className="bg-gray-50 rounded-sm p-6">
+      <div className="bg-white rounded-sm p-6">
 
         {/* GRID */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

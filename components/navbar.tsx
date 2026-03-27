@@ -47,7 +47,7 @@ export default function Navbar() {
           {/* Logo */}
           <Link href="/" className="block flex-shrink-0">
             <Image
-              src="/logo/biztradefairs_Logo.png"
+              src="/logo/biztradefairs_Logo2.png"
               alt="Global Sources"
               width={200}
               height={20}
@@ -61,8 +61,8 @@ export default function Navbar() {
               href="/event"
               className={`text-sm font-semibold transition-colors ${
                 isExhibitionsTabActive
-                  ? "text-red-600"
-                  : "text-gray-800 hover:text-red-600"
+                  ? "text-[#FF131C]"
+                  : "text-gray-800 hover:text-[#FF131C]"
               }`}
             >
               Exhibitions
@@ -72,8 +72,8 @@ export default function Navbar() {
               href="/organizer-signup"
               className={`text-sm font-semibold transition-colors ${
                 isOrganizersTabActive
-                  ? "text-red-600"
-                  : "text-gray-800 hover:text-red-600"
+                  ? "text-[#FF131C]"
+                  : "text-gray-800 hover:text-[#FF131C]"
               }`}
             >
               Buyer Services
@@ -83,8 +83,8 @@ export default function Navbar() {
               href="/venues"
               className={`text-sm font-semibold transition-colors ${
                 isVenuesTabActive
-                  ? "text-red-600"
-                  : "text-gray-800 hover:text-red-600"
+                  ? "text-[#FF131C]"
+                  : "text-gray-800 hover:text-[#FF131C]"
               }`}
             >
               Supplier Services
@@ -92,7 +92,7 @@ export default function Navbar() {
 
             <Link
               href="/about"
-              className="text-sm font-semibold text-gray-800 hover:text-red-600 transition-colors"
+              className="text-sm font-semibold text-gray-800 hover:text-[#FF131C] transition-colors"
             >
               About Us
             </Link>
@@ -100,14 +100,14 @@ export default function Navbar() {
 
           {/* RIGHT SIDE */}
           <div className="flex items-center gap-3">
-            <button className="relative flex items-center gap-1 text-sm font-semibold text-gray-700 hover:text-red-600 transition-colors">
+            <button className="relative flex items-center gap-1 text-sm font-semibold text-gray-700 hover:text-[#FF131C] transition-colors">
               <span>EN</span>
               <ChevronDown className="h-3 w-3" />
             </button>
 
             <Link
               href="/login"
-              className="text-sm font-semibold text-gray-700 hover:text-red-600 transition-colors"
+              className="text-sm font-semibold text-gray-700 hover:text-[#FF131C] transition-colors"
             >
               Sign in
             </Link>
@@ -120,13 +120,13 @@ export default function Navbar() {
   href="/"
   className={`relative text-[28px] leading-none font-semibold px-4 py-0 ${
     !pathname.startsWith("/event")
-      ? "text-[#FF8C35]"
-      : "text-gray-600 hover:text-red-600"
+      ? "text-[#FF131C]"
+      : "text-gray-600 hover:text-[#FF131C]"
   }`}
 >
   Online Sourcing
   {!pathname.startsWith("/event") && (
-    <span className="absolute left-0 -bottom-1 w-full h-[2px] bg-red-600"></span>
+    <span className="absolute left-0 -bottom-1 w-full h-[2px] bg-[#FF131C]"></span>
   )}
 </Link>
 
@@ -134,13 +134,13 @@ export default function Navbar() {
   href="/event"
   className={`relative text-[28px] leading-none font-semibold px-4 py-0 ${
     pathname.startsWith("/event")
-      ? "text-[#FF8C35]"
-      : "text-gray-600 hover:text-red-600"
+      ? "text-[#FF131C]"
+      : "text-gray-600 hover:text-[#FF131C]"
   }`}
 >
   Exhibitions
   {pathname.startsWith("/event") && (
-    <span className="absolute left-0 bottom-0 w-full h-[2px] bg-red-600"></span>
+    <span className="absolute left-0 bottom-0 w-full h-[2px] bg-[#FF131C]"></span>
   )}
 </Link>
         </div>
@@ -148,7 +148,7 @@ export default function Navbar() {
         {/* Third Row - Search Bar */}
         <div className="hidden lg:flex justify-center py-3 mt-1">
           <div className="w-full max-w-7xl">
-            <div className="border-2 border-[#FF8C35] rounded p-1 bg-white">
+            <div className="border-2 border-[#FF131C] rounded p-1 bg-white">
               <div className="flex w-full bg-white h-11 items-center">
                 {/* Dropdown */}
                 <div className="relative h-full" ref={dropdownRef}>
@@ -196,7 +196,7 @@ export default function Navbar() {
                 {/* Search Button */}
                 <button
                   type="button"
-                  className="bg-[#FF8C35] h-full px-14 text-sm font-semibold text-white hover:bg-[#FF8C35]/90 transition-colors whitespace-nowrap"
+                  className="bg-[#FF131C] h-full px-14 text-sm font-semibold text-white hover:bg-[#FF131C]/90 transition-colors whitespace-nowrap"
                 >
                   Search
                 </button>
@@ -233,35 +233,35 @@ export default function Navbar() {
           <div ref={mobileMenuRef} className="lg:hidden border-t border-gray-200 py-2 space-y-1">
             <Link
               href="/event"
-              className="block px-4 py-1.5 text-sm font-semibold text-gray-800 hover:text-red-600"
+              className="block px-4 py-1.5 text-sm font-semibold text-gray-800 hover:text-[#FF131C]"
               onClick={() => setMobileMenuOpen(false)}
             >
               Exhibitions
             </Link>
             <Link
               href="/organizer-signup"
-              className="block px-4 py-1.5 text-sm font-semibold text-gray-800 hover:text-red-600"
+              className="block px-4 py-1.5 text-sm font-semibold text-gray-800 hover:text-[#FF131C]"
               onClick={() => setMobileMenuOpen(false)}
             >
               Buyer Services
             </Link>
             <Link
               href="/venues"
-              className="block px-4 py-1.5 text-sm font-semibold text-gray-800 hover:text-red-600"
+              className="block px-4 py-1.5 text-sm font-semibold text-gray-800 hover:text-[#FF131C]"
               onClick={() => setMobileMenuOpen(false)}
             >
               Supplier Services
             </Link>
             <Link
               href="/about"
-              className="block px-4 py-1.5 text-sm font-semibold text-gray-800 hover:text-red-600"
+              className="block px-4 py-1.5 text-sm font-semibold text-gray-800 hover:text-[#FF131C]"
               onClick={() => setMobileMenuOpen(false)}
             >
               About Us
             </Link>
             <Link
               href="/login"
-              className="block px-4 py-1.5 text-sm font-semibold text-gray-800 hover:text-red-600"
+              className="block px-4 py-1.5 text-sm font-semibold text-gray-800 hover:text-[#FF131C]"
               onClick={() => setMobileMenuOpen(false)}
             >
               Sign in
