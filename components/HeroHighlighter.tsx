@@ -456,7 +456,7 @@ export default function HeroHighlighter() {
       className="relative bg-cover bg-center bg-no-repeat py-8 sm:py-10 px-4 sm:px-6"
       style={{
         backgroundImage:
-          " url('/logo/bgTop.png')",
+          " url('/logo/bgtop.png')",
       }}
       aria-label="Featured shows and verified exhibitors"
     >
