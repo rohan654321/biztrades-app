@@ -145,7 +145,7 @@ function FeaturedEventCard({ event }: { event: FeaturedListEvent }) {
 const CATEGORY_LIST_MAX_H = "max-h-[20rem] sm:max-h-[20rem] lg:max-h-[20rem]"
 
 const categoryScrollAreaClass =
-  "min-h-0 min-w-0 overflow-y-hidden hover:overflow-y-auto overscroll-y-contain " +
+  "min-h-0 min-w-0 overflow-visible hover:overflow-y-auto overscroll-y-contain " +
   CATEGORY_LIST_MAX_H +
   " px-0 py-0 [scrollbar-gutter:stable] [scrollbar-width:none] hover:[scrollbar-width:thin] [scrollbar-color:transparent_transparent] hover:[scrollbar-color:rgb(203,213,225)_transparent] " +
   "[&::-webkit-scrollbar]:w-0 hover:[&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent " +
@@ -304,20 +304,40 @@ function ShowOpeningCountdown({ startDateIso }: { startDateIso: string }) {
 
 function CategoryLinkDb({ cat }: { cat: BrowseCategory }) {
   const href = `/event?category=${encodeURIComponent(cat.name)}`
+
   return (
     <Link
       href={href}
-      className="group flex items-center justify-between gap-3 px-3 py-2.5 text-left text-sm text-gray-800 transition-all duration-200 hover:bg-gray-100 hover:shadow-md hover:text-red-600 rounded-md"
+className="
+  group flex items-center justify-between
+  w-full
+
+  px-6 py-3
+  text-[15px] font-normal text-gray-700
+
+  transition-all duration-200
+
+  hover:bg-[#e9e9e9]
+  hover:text-red-600
+  hover:font-semibold
+"
     >
-      <span className="block min-w-0 truncate font-normal leading-snug group-hover:font-medium">
+      {/* TEXT */}
+      <span className="truncate">
         {cat.name}
       </span>
-      <span
-        aria-hidden
-        className="shrink-0 text-base leading-none text-gray-400 transition-all duration-200 group-hover:text-red-600 group-hover:font-bold group-hover:scale-110"
-      >
-        &rsaquo;
-      </span>
+
+      {/* ARROW */}
+     <span
+  className="
+    text-[18px] font-bold text-gray-400
+    transition-all duration-200
+
+    group-hover:text-red-600
+  "
+>
+  ›
+</span>
     </Link>
   )
 }
@@ -543,8 +563,7 @@ const visibleFeatured = featuredEvents.slice(
               </div>
             ) : (
               <>
-                <div
-                  className="flex flex-wrap gap-2 border-b border-gray-100 bg-gray-50/80 px-3 pt-3 sm:px-4 sm:pt-3"
+                <div className="flex flex-wrap gap-2 bg-gray-50/80 px-3 pt-3 sm:px-4 sm:pt-3"
                   role="tablist"
                   aria-label="VIP events"
                 >
@@ -572,11 +591,9 @@ const visibleFeatured = featuredEvents.slice(
                       >
                         <div className="flex flex-col items-center justify-center gap-1">
                           {/* TITLE */}
-                          <span className="text-sm font-semibold truncate">
-                            {e.title.trim().length > 30
-                              ? `${e.title.trim().slice(0, 30)}...`
-                              : e.title.trim()}
-                          </span>
+                         <span className="text-sm font-semibold truncate">
+  {e.title.split(" ").slice(0, 3).join(" ")}
+</span>
 
                           {/* DATE */}
                           <span className={`text-xs ${
