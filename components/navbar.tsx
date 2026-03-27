@@ -147,7 +147,7 @@ export default function Navbar() {
       : "text-gray-600 hover:text-[#FF131C]"
   }`}
 >
-  Online Sourcing
+  Exhibitions
   {!pathname.startsWith("/event") && (
     <span className="absolute left-0 -bottom-1 w-full h-[2px] bg-[#FF131C]"></span>
   )}
@@ -161,7 +161,7 @@ export default function Navbar() {
       : "text-gray-600 hover:text-[#FF131C]"
   }`}
 >
-  Exhibitions
+  Conferences
   {pathname.startsWith("/event") && (
     <span className="absolute left-0 bottom-0 w-full h-[2px] bg-[#FF131C]"></span>
   )}

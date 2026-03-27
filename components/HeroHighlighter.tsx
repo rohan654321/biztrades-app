@@ -572,56 +572,52 @@ export default function HeroHighlighter() {
                   })}
                 </div>
 
-                {panel && (
-                  <div className="relative flex-1 min-h-[245px] overflow-hidden p-3 sm:min-h-[290px] sm:p-4">
-                    {/* Sliding Animation Container */}
-                    <div 
-                      className="absolute inset-0 transition-all duration-500 ease-in-out"
-                      key={activeTab}
-                      style={{
-                        opacity: 1,
-                        transform: 'translateX(0)',
-                      }}
-                    >
-                      <img
-                        src={heroImage(panel)}
-                        alt=""
-                        className="absolute inset-3 h-[calc(100%-1.5rem)] w-[calc(100%-1.5rem)] rounded-sm object-cover sm:inset-4 sm:h-[calc(100%-2rem)] sm:w-[calc(100%-2rem)]"
-                      />
-                      <div
-                        className="absolute inset-3 rounded-sm sm:inset-4"
-                        style={{ background: activeVipTheme.overlayCss }}
-                        aria-hidden
-                      />
-                    </div>
+{panel && (
+  <div className="relative flex-1 min-h-[245px] overflow-hidden p-3 sm:min-h-[290px] sm:p-4">
+    {/* Fixed aspect ratio container for image */}
+    <div className="absolute inset-0 transition-all duration-500 ease-in-out" key={activeTab}>
+      {/* Image container with fixed aspect ratio and object-fit cover */}
+      <div className="absolute inset-3 sm:inset-4">
+        <img
+          src={heroImage(panel)}
+          alt=""
+          className="w-full h-full rounded-sm object-cover"
+          style={{ objectPosition: "center" }}
+        />
+      </div>
+      <div
+        className="absolute inset-3 rounded-sm sm:inset-4"
+        style={{ background: activeVipTheme.overlayCss }}
+        aria-hidden
+      />
+    </div>
 
-                    <div className="relative z-[1] h-full flex flex-col justify-end p-4 sm:justify-center sm:p-6 lg:p-8 max-w-2xl">
-                      <h2 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-white tracking-tight leading-tight mb-3">
-                        {panel.title.toUpperCase()}
-                      </h2>
-                      <p className="text-sm sm:text-base text-white/85 mb-6 max-w-lg">{formatSubline(panel)}</p>
-                      <div className="flex flex-col gap-3 w-full max-w-md">
-                    
-                        <div className="grid grid-cols-2 gap-3">
-                          <Link
-                            href={eventBasePath(panel)}
-                            className="text-center px-4 py-3 rounded-sm bg-white text-gray-900 text-sm font-semibold hover:bg-gray-100"
-                          >
-                            Show Info
-                          </Link>
-                          <Link
-                            href={`${eventBasePath(panel)}/exhibit`}
-                            className="text-center px-4 py-3 rounded-sm bg-white text-gray-900 text-sm font-semibold hover:bg-gray-100"
-                          >
-                            Exhibitor List
-                          </Link>
-                        </div>
-                      </div>
-                    </div>
+    <div className="relative z-[1] h-full flex flex-col justify-end p-4 sm:justify-center sm:p-6 lg:p-8 max-w-2xl">
+      <h2 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-white tracking-tight leading-tight mb-3">
+        {panel.title.toUpperCase()}
+      </h2>
+      <p className="text-sm sm:text-base text-white/85 mb-6 max-w-lg">{formatSubline(panel)}</p>
+      <div className="flex flex-col gap-3 w-full max-w-md">
+        <div className="grid grid-cols-2 gap-3">
+          <Link
+            href={eventBasePath(panel)}
+            className="text-center px-4 py-3 rounded-sm bg-white text-gray-900 text-sm font-semibold hover:bg-gray-100"
+          >
+            Show Info
+          </Link>
+          <Link
+            href={`${eventBasePath(panel)}/exhibit`}
+            className="text-center px-4 py-3 rounded-sm bg-white text-gray-900 text-sm font-semibold hover:bg-gray-100"
+          >
+            Exhibitor List
+          </Link>
+        </div>
+      </div>
+    </div>
 
-                    <ShowOpeningCountdown startDateIso={panel.startDate} />
-                  </div>
-                )}
+    <ShowOpeningCountdown startDateIso={panel.startDate} />
+  </div>
+)}
               </>
             )}
           </div>
