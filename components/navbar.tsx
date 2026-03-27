@@ -47,7 +47,7 @@ export default function Navbar() {
           {/* Logo */}
           <Link href="/" className="block flex-shrink-0">
             <Image
-              src="/logo/bizlogo.png"
+              src="/logo/biztradefairsLOGO.png"
               alt="Global Sources"
               width={110}
               height={20}
