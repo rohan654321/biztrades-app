@@ -528,7 +528,7 @@ const visibleFeatured = featuredEvents.slice(
 
         </div>
         <div className="bg-white rounded-[8px] shadow-[0_10px_40px_rgba(0,0,0,0.12)] overflow-hidden flex flex-col lg:flex-row lg:items-stretch min-h-0 lg:min-h-[410px]">
-          <aside className="grid min-h-0 w-full grid-rows-[auto_minmax(0,1fr)] overflow-hidden border-b border-gray-100 bg-white p-5 sm:p-6 lg:h-full lg:w-[26%] lg:min-h-0 lg:shrink-0 lg:border-b-0 lg:border-r xl:w-[24%]">
+          <aside className="grid min-h-0 w-full grid-rows-[auto_minmax(0,1fr)] overflow-hidden border-b border-gray-100 bg-white p-5 sm:p-6 lg:h-full lg:w-[26%] lg:min-h-0 lg:shrink-0 lg:border-b-0  xl:w-[24%]">
             <h3 className="mb-3 shrink-0 text-base font-bold text-gray-900">Show Categories</h3>
             <div
               role="navigation"
@@ -662,7 +662,7 @@ const visibleFeatured = featuredEvents.slice(
           </div>
         </div>
 
-        <div className="relative overflow-hidden rounded-sm border border-white/10 shadow-xl">
+        <div className="relative overflow-hidden rounded-sm shadow-xl">
           <div
             className="absolute inset-0 bg-cover bg-center"
             style={{ backgroundImage: "url('/logo/bg_Featured.jpg (1).jpeg')" }}
