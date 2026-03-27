@@ -453,7 +453,7 @@ export default function HeroHighlighter() {
 
   return (
     <section
-      className="relative bg-cover bg-center bg-no-repeat py-8 sm:py-10 px-4 sm:px-6"
+      className="relative bg-cover bg-center bg-no-repeat py-8 sm:py-4 px-4 sm:px-6"
       style={{
         backgroundImage:
           " url('/logo/newbg.png')",
