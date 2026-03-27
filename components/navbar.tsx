@@ -45,7 +45,7 @@ export default function Navbar() {
         {/* Desktop Navigation - First Row */}
         <div className="hidden items-center justify-between lg:flex">
           {/* Logo */}
-          <Link href="/" className="block flex-shrink-0">
+          <Link href="/" className="block flex-shrink-0 mt-2">
             <Image
               src="/logo/biztradefairs_Logo2.png"
               alt="Global Sources"
@@ -105,12 +105,35 @@ export default function Navbar() {
               <ChevronDown className="h-3 w-3" />
             </button>
 
-            <Link
-              href="/login"
-              className="text-sm font-semibold text-gray-700 hover:text-[#FF131C] transition-colors"
-            >
-              Sign in
-            </Link>
+           <div className="relative group inline-block">
+  <Link
+    href="/login"
+    className="block px-4 py-1.5 text-sm font-semibold text-gray-800 hover:text-[#FF131C]"
+  >
+    Sign in / Register
+  </Link>
+
+  {/* Dropdown */}
+  <div className="absolute left-0 mt-2 w-48 bg-white shadow-lg rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+    
+    <div className="p-3 flex flex-col gap-2">
+      <Link
+        href="/login"
+        className="bg-gradient-to-r from-red-500 to-orange-400 text-white text-center py-2 rounded-md font-semibold hover:opacity-90"
+      >
+        Sign in
+      </Link>
+
+      <Link
+        href="/signup"
+        className="border border-red-500 text-red-500 text-center py-2 rounded-md font-semibold hover:bg-red-50"
+      >
+        Register
+      </Link>
+    </div>
+
+  </div>
+</div>
           </div>
         </div>
 
@@ -259,13 +282,35 @@ export default function Navbar() {
             >
               About Us
             </Link>
-            <Link
-              href="/login"
-              className="block px-4 py-1.5 text-sm font-semibold text-gray-800 hover:text-[#FF131C]"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Sign in
-            </Link>
+         <div className="relative group inline-block">
+  <Link
+    href="/login"
+    className="block px-4 py-1.5 text-sm font-semibold text-gray-800 hover:text-[#FF131C]"
+  >
+    Sign in / Register
+  </Link>
+
+  {/* Dropdown */}
+  <div className="absolute left-0 mt-2 w-48 bg-white shadow-lg rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+    
+    <div className="p-3 flex flex-col gap-2">
+      <Link
+        href="/login"
+        className="bg-gradient-to-r from-red-500 to-orange-400 text-white text-center py-2 rounded-md font-semibold hover:opacity-90"
+      >
+        Sign in
+      </Link>
+
+      <Link
+        href="/register"
+        className="border border-red-500 text-red-500 text-center py-2 rounded-md font-semibold hover:bg-red-50"
+      >
+        Register for free
+      </Link>
+    </div>
+
+  </div>
+</div>
           </div>
         )}
       </div>
