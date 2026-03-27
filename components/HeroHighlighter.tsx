@@ -307,20 +307,17 @@ function CategoryLinkDb({ cat }: { cat: BrowseCategory }) {
   return (
     <Link
       href={href}
-      className="group flex items-center justify-between gap-3 px-3 py-2.5 text-left text-sm text-gray-800 transition-colors hover:bg-white hover:text-red-600"
+      className="group flex items-center justify-between gap-3 px-3 py-2.5 text-left text-sm text-gray-800 transition-all duration-200 hover:bg-gray-100 hover:shadow-md hover:text-red-600 rounded-md"
     >
-      <span className="block min-w-0 truncate font-normal leading-snug">
-  {cat.name}
-</span>
+      <span className="block min-w-0 truncate font-normal leading-snug group-hover:font-medium">
+        {cat.name}
+      </span>
       <span
         aria-hidden
-        className="shrink-0 text-base leading-none text-gray-400 transition-colors group-hover:text-red-600"
+        className="shrink-0 text-base leading-none text-gray-400 transition-all duration-200 group-hover:text-red-600 group-hover:font-bold group-hover:scale-110"
       >
         &rsaquo;
       </span>
-      {/* <span className="mt-0.5 block text-xs text-gray-500">
-        {cat.eventCount} event{cat.eventCount === 1 ? "" : "s"}
-      </span> */}
     </Link>
   )
 }
@@ -339,6 +336,17 @@ export default function HeroHighlighter() {
   const [featuredEvents, setFeaturedEvents] = useState<FeaturedListEvent[]>([])
   const [featuredLoading, setFeaturedLoading] = useState(true)
   const [featuredError, setFeaturedError] = useState<string | null>(null)
+
+  // Auto-rotate tabs every 5 seconds
+  useEffect(() => {
+    if (vipEvents.length === 0) return
+    
+    const interval = setInterval(() => {
+      setActiveTab((current) => (current + 1) % vipEvents.length)
+    }, 5000)
+    
+    return () => clearInterval(interval)
+  }, [vipEvents.length])
 
   useEffect(() => {
     let cancelled = false
@@ -430,18 +438,18 @@ export default function HeroHighlighter() {
   const panel = vipEvents[activeTab]
   const activeVipTheme = getVipTheme(activeTab)
   function formatTabDate(e: VipEvent): string {
-  const start = new Date(e.startDate)
-  const end = new Date(e.endDate)
+    const start = new Date(e.startDate)
+    const end = new Date(e.endDate)
 
-  const month = start.toLocaleString("en-GB", { month: "short" })
-  const year = start.getFullYear()
+    const month = start.toLocaleString("en-GB", { month: "short" })
+    const year = start.getFullYear()
 
-  if (start.toDateString() === end.toDateString()) {
-    return `${start.getDate()} ${month} ${year}`
+    if (start.toDateString() === end.toDateString()) {
+      return `${start.getDate()} ${month} ${year}`
+    }
+
+    return `${start.getDate()}-${end.getDate()} ${month} ${year}`
   }
-
-  return `${start.getDate()}-${end.getDate()} ${month} ${year}`
-}
 
   return (
     <section
@@ -453,34 +461,34 @@ export default function HeroHighlighter() {
       aria-label="Featured shows and verified exhibitors"
     >
       <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8">
-        {/* 🔥 TOP PROMO BANNER */}
-<div className="flex items-center justify-between px-6">
+        {/* 🔥 TOP PROMO BANNER - Removed top gap */}
+        <div className="flex items-center justify-between px-6 -mt-2">
 
-  {/* LEFT EMPTY (for perfect center alignment) */}
-  <div className="w-[180px]" />
+          {/* LEFT EMPTY (for perfect center alignment) */}
+          <div className="w-[180px]" />
 
-  {/* CENTER TEXT */}
-  <div className="text-center">
-    <h2 className="text-2xl sm:text-3xl font-bold text-white leading-tight">
-      April 2026 Global Sources Hong Kong Shows
-    </h2>
+          {/* CENTER TEXT */}
+          <div className="text-center">
+            <h2 className="text-2xl sm:text-3xl font-bold text-white leading-tight">
+              April 2026 Global Sources Hong Kong Shows
+            </h2>
 
-    <p className="mt-1 text-base sm:text-xl text-white/90 leading-tight">
-      The Top Destination for Global Sourcing in AI-Integrated Consumer & Mobile Electronics ...
-    </p>
-  </div>
+            <p className="mt-1 text-base sm:text-xl text-white/90 leading-tight">
+              The Top Destination for Global Sourcing in AI-Integrated Consumer & Mobile Electronics ...
+            </p>
+          </div>
 
-  {/* RIGHT BUTTON */}
-  <div className="w-[180px] flex justify-end">
-    <Link
-      href="/event"
-      className="bg-gray-200 text-blue-700 px-6 py-2 rounded-full font-semibold hover:bg-white transition"
-    >
-      Register Now
-    </Link>
-  </div>
+          {/* RIGHT BUTTON */}
+          <div className="w-[180px] flex justify-end">
+            <Link
+              href="/event"
+              className="bg-gray-200 text-blue-700 px-6 py-2 rounded-full font-semibold hover:bg-white transition"
+            >
+              Register Now
+            </Link>
+          </div>
 
-</div>
+        </div>
         <div className="bg-white rounded-[8px] shadow-[0_10px_40px_rgba(0,0,0,0.12)] overflow-hidden flex flex-col lg:flex-row lg:items-stretch min-h-0 lg:min-h-[410px]">
           <aside className="grid min-h-0 w-full grid-rows-[auto_minmax(0,1fr)] overflow-hidden border-b border-gray-100 bg-white p-5 sm:p-6 lg:h-full lg:w-[26%] lg:min-h-0 lg:shrink-0 lg:border-b-0 lg:border-r xl:w-[24%]">
             <h3 className="mb-3 shrink-0 text-base font-bold text-gray-900">Show Categories</h3>
@@ -517,108 +525,108 @@ export default function HeroHighlighter() {
               </div>
             ) : (
               <>
-<div
-  className="flex flex-wrap gap-2 border-b border-gray-100 bg-gray-50/80 px-3 pt-3 sm:px-4 sm:pt-3"
-  role="tablist"
-  aria-label="VIP events"
->
-  {vipEvents.map((e, i) => {
-    const isActive = activeTab === i
-    return (
-     <button
-  key={e.id}
-  type="button"
-  role="tab"
-  aria-selected={isActive}
-  onClick={() => setActiveTab(i)}
-  className={`
-    relative flex-1 min-w-[130px] h-[58px] px-4 py-2
-    rounded-md text-center
-    transition-all duration-500 ease-in-out
-    transform-gpu
+                <div
+                  className="flex flex-wrap gap-2 border-b border-gray-100 bg-gray-50/80 px-3 pt-3 sm:px-4 sm:pt-3"
+                  role="tablist"
+                  aria-label="VIP events"
+                >
+                  {vipEvents.map((e, i) => {
+                    const isActive = activeTab === i
+                    return (
+                      <button
+                        key={e.id}
+                        type="button"
+                        role="tab"
+                        aria-selected={isActive}
+                        onClick={() => setActiveTab(i)}
+                        className={`
+                          relative flex-1 min-w-[130px] h-[58px] px-4 py-2
+                          rounded-md text-center
+                          transition-all duration-500 ease-in-out
+                          transform-gpu
 
-    ${
-      isActive
-        ? "bg-gradient-to-r from-red-600 to-orange-500 text-white scale-110 shadow-xl z-20"
-        : "bg-white text-gray-600 scale-95 hover:scale-100 hover:text-red-600"
-    }
-  `}
->
-  <div className="flex flex-col items-center justify-center gap-1">
-    
-    {/* TITLE */}
-    <span className="text-sm font-semibold truncate">
-      {e.title.trim().length > 30
-        ? `${e.title.trim().slice(0, 30)}...`
-        : e.title.trim()}
-    </span>
+                          ${
+                            isActive
+                              ? "bg-gradient-to-r from-red-600 to-orange-500 text-white scale-110 shadow-xl z-20"
+                              : "bg-white text-gray-600 scale-95 hover:scale-100 hover:text-red-600"
+                          }
+                        `}
+                      >
+                        <div className="flex flex-col items-center justify-center gap-1">
+                          {/* TITLE */}
+                          <span className="text-sm font-semibold truncate">
+                            {e.title.trim().length > 30
+                              ? `${e.title.trim().slice(0, 30)}...`
+                              : e.title.trim()}
+                          </span>
 
-    {/* DATE */}
-    <span className={`text-xs ${
-      isActive ? "text-white/90" : "text-gray-500"
-    }`}>
-      {formatTabDate(e)}
-    </span>
+                          {/* DATE */}
+                          <span className={`text-xs ${
+                            isActive ? "text-white/90" : "text-gray-500"
+                          }`}>
+                            {formatTabDate(e)}
+                          </span>
+                        </div>
+                      </button>
+                    )
+                  })}
+                </div>
 
-  </div>
-</button>
-    )
-  })}
-</div>
+                {panel && (
+                  <div className="relative flex-1 min-h-[245px] overflow-hidden p-3 sm:min-h-[290px] sm:p-4">
+                    {/* Sliding Animation Container */}
+                    <div 
+                      className="absolute inset-0 transition-all duration-500 ease-in-out"
+                      key={activeTab}
+                      style={{
+                        opacity: 1,
+                        transform: 'translateX(0)',
+                      }}
+                    >
+                      <img
+                        src={heroImage(panel)}
+                        alt=""
+                        className="absolute inset-3 h-[calc(100%-1.5rem)] w-[calc(100%-1.5rem)] rounded-xl object-cover sm:inset-4 sm:h-[calc(100%-2rem)] sm:w-[calc(100%-2rem)]"
+                      />
+                      <div
+                        className="absolute inset-3 rounded-xl sm:inset-4"
+                        style={{ background: activeVipTheme.overlayCss }}
+                        aria-hidden
+                      />
+                    </div>
 
-{panel && (
-  <div className="relative flex-1 min-h-[245px] overflow-hidden p-3 sm:min-h-[290px] sm:p-4">
-    {/* Sliding Animation Container */}
-    <div 
-      className="absolute inset-0 transition-transform duration-500 ease-in-out"
-      style={{
-        transform: `translateX(0)`,
-      }}
-    >
-      <img
-        src={heroImage(panel)}
-        alt=""
-        className="absolute inset-3 h-[calc(100%-1.5rem)] w-[calc(100%-1.5rem)] rounded-xl object-cover sm:inset-4 sm:h-[calc(100%-2rem)] sm:w-[calc(100%-2rem)]"
-      />
-      <div
-        className="absolute inset-3 rounded-xl sm:inset-4"
-        style={{ background: activeVipTheme.overlayCss }}
-        aria-hidden
-      />
-    </div>
+                    <div className="relative z-[1] h-full flex flex-col justify-end p-4 sm:justify-center sm:p-6 lg:p-8 max-w-2xl">
+                      <h2 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-white tracking-tight leading-tight mb-3">
+                        {panel.title.toUpperCase()}
+                      </h2>
+                      <p className="text-sm sm:text-base text-white/85 mb-6 max-w-lg">{formatSubline(panel)}</p>
+                      <div className="flex flex-col gap-3 w-full max-w-md">
+                        <Link
+                          href={`${eventBasePath(panel)}/register`}
+                          className={`w-full text-center px-6 py-3 rounded-sm text-sm font-semibold text-white ${activeVipTheme.registerClass}`}
+                        >
+                          Register Now
+                        </Link>
+                        <div className="grid grid-cols-2 gap-3">
+                          <Link
+                            href={eventBasePath(panel)}
+                            className="text-center px-4 py-3 rounded-sm bg-white text-gray-900 text-sm font-semibold hover:bg-gray-100"
+                          >
+                            Show Info
+                          </Link>
+                          <Link
+                            href={`${eventBasePath(panel)}/exhibit`}
+                            className="text-center px-4 py-3 rounded-sm bg-white text-gray-900 text-sm font-semibold hover:bg-gray-100"
+                          >
+                            Exhibitor List
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
 
-    <div className="relative z-[1] h-full flex flex-col justify-end p-4 sm:justify-center sm:p-6 lg:p-8 max-w-2xl">
-      <h2 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-white tracking-tight leading-tight mb-3">
-        {panel.title.toUpperCase()}
-      </h2>
-      <p className="text-sm sm:text-base text-white/85 mb-6 max-w-lg">{formatSubline(panel)}</p>
-      <div className="flex flex-col gap-3 w-full max-w-md">
-        <Link
-          href={`${eventBasePath(panel)}/register`}
-          className={`w-full text-center px-6 py-3 rounded-sm text-sm font-semibold text-white ${activeVipTheme.registerClass}`}
-        >
-          Register Now
-        </Link>
-        <div className="grid grid-cols-2 gap-3">
-          <Link
-            href={eventBasePath(panel)}
-            className="text-center px-4 py-3 rounded-sm bg-white text-gray-900 text-sm font-semibold hover:bg-gray-100"
-          >
-            Show Info
-          </Link>
-          <Link
-            href={`${eventBasePath(panel)}/exhibit`}
-            className="text-center px-4 py-3 rounded-sm bg-white text-gray-900 text-sm font-semibold hover:bg-gray-100"
-          >
-            Exhibitor List
-          </Link>
-        </div>
-      </div>
-    </div>
-
-    <ShowOpeningCountdown startDateIso={panel.startDate} />
-  </div>
-)}
+                    <ShowOpeningCountdown startDateIso={panel.startDate} />
+                  </div>
+                )}
               </>
             )}
           </div>
