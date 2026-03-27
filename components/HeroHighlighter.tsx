@@ -577,7 +577,7 @@ const visibleFeatured = featuredEvents.slice(
                         aria-selected={isActive}
                         onClick={() => setActiveTab(i)}
                         className={`
-                          relative flex-1 min-w-[130px] h-[58px] px-4 py-2
+                          relative flex-1 min-w-[160px] max-w-[180px] h-[58px] px-4 py-2
                           rounded-[4px] text-center
                           transition-all duration-500 ease-in-out
                           transform-gpu
@@ -591,8 +591,8 @@ const visibleFeatured = featuredEvents.slice(
                       >
                         <div className="flex flex-col items-center justify-center gap-1">
                           {/* TITLE */}
-                         <span className="text-sm font-semibold truncate">
-  {e.title.split(" ").slice(0, 3).join(" ")}
+                        <span className="text-sm font-semibold leading-tight text-center line-clamp-1">
+  {e.title}
 </span>
 
                           {/* DATE */}
