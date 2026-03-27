@@ -107,7 +107,7 @@ export default function CategoryGrid() {
               className="group block"
             >
               {/* CARD */}
-              <div className="bg-gray-200 rounded-sm px-5 py-4 flex items-center justify-between hover:bg-gray-300 transition-all duration-200 hover:scale-[1.02]">
+              <div className="bg-[#f1f7fb] rounded-sm px-5 py-4 flex items-center justify-between hover:bg-gray-300 transition-all duration-200 hover:scale-[1.02]">
 
                 {/* TEXT */}
                 <h3 className="text-base font-semibold text-gray-800">

@@ -5,7 +5,7 @@ import Link from "next/link"
 import { apiFetch } from "@/lib/api"
 
 const FALLBACK_IMAGE = "/herosection-images/food.jpg"
-const FEATURED_EVENTS_LIMIT = 4
+const FEATURED_EVENTS_LIMIT = 12
 
 /** Per–VIP-event visuals (cycles by index): tabs, hero overlay, Register CTA — inspired by multi-show references. */
 type VipEventVisualTheme = {
@@ -324,6 +324,7 @@ function CategoryLinkDb({ cat }: { cat: BrowseCategory }) {
 
 export default function HeroHighlighter() {
   const [activeTab, setActiveTab] = useState(0)
+  const [featuredIndex, setFeaturedIndex] = useState(0)
 
   const [vipEvents, setVipEvents] = useState<VipEvent[]>([])
   const [vipLoading, setVipLoading] = useState(true)
@@ -347,6 +348,23 @@ export default function HeroHighlighter() {
     
     return () => clearInterval(interval)
   }, [vipEvents.length])
+  useEffect(() => {
+  if (featuredEvents.length <= 3) return
+
+  const interval = setInterval(() => {
+    setFeaturedIndex((prev) => {
+      const next = prev + 3
+      return next >= featuredEvents.length ? 0 : next
+    })
+  }, 20000) // 20 sec
+
+  return () => clearInterval(interval)
+}, [featuredEvents.length])
+
+const visibleFeatured = featuredEvents.slice(
+  featuredIndex,
+  featuredIndex + 3
+)
 
   useEffect(() => {
     let cancelled = false
@@ -655,11 +673,11 @@ export default function HeroHighlighter() {
               ) : featuredEvents.length === 0 ? (
                 <p className="py-6 text-sm text-white/70">No featured events right now. Check back soon.</p>
               ) : (
-                <div className="grid grid-cols-2 gap-2.5 sm:gap-3 lg:grid-cols-4">
-                  {featuredEvents.map((ev) => (
-                    <FeaturedEventCard key={ev.id} event={ev} />
-                  ))}
-                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+  {visibleFeatured.map((ev) => (
+    <FeaturedEventCard key={ev.id} event={ev} />
+  ))}
+</div>
               )}
             </div>
           </div>

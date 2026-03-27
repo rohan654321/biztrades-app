@@ -45,7 +45,7 @@ export default function ExploreVenues() {
             <div
   key={venue.id}
   onClick={() => router.push(`/venue/${venue.id}`)}
-  className="min-w-[300px] bg-[#EBF0F7] rounded-[4px] p-3 cursor-pointer"
+  className="min-w-[300px] bg-[#F1F7FB] rounded-[4px] p-3 cursor-pointer"
 >
   <img
     src={

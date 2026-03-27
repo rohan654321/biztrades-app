@@ -216,7 +216,7 @@ return (
               <div
                 key={event.id || index}
                 onClick={() => handleCardClick(event)}
-                className="bg-gray-100 rounded-[6px] p-2 cursor-pointer"
+                className="bg-[#F1F7FB] rounded-[6px] p-2 cursor-pointer"
               >
                 {/* Image */}
                 <img
