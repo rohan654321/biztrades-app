@@ -541,7 +541,7 @@ export default function HeroHighlighter() {
                         onClick={() => setActiveTab(i)}
                         className={`
                           relative flex-1 min-w-[130px] h-[58px] px-4 py-2
-                          rounded-sm text-center
+                          rounded-[4px] text-center
                           transition-all duration-500 ease-in-out
                           transform-gpu
 
@@ -586,10 +586,10 @@ export default function HeroHighlighter() {
                       <img
                         src={heroImage(panel)}
                         alt=""
-                        className="absolute inset-3 h-[calc(100%-1.5rem)] w-[calc(100%-1.5rem)] rounded-xl object-cover sm:inset-4 sm:h-[calc(100%-2rem)] sm:w-[calc(100%-2rem)]"
+                        className="absolute inset-3 h-[calc(100%-1.5rem)] w-[calc(100%-1.5rem)] rounded-sm object-cover sm:inset-4 sm:h-[calc(100%-2rem)] sm:w-[calc(100%-2rem)]"
                       />
                       <div
-                        className="absolute inset-3 rounded-xl sm:inset-4"
+                        className="absolute inset-3 rounded-sm sm:inset-4"
                         style={{ background: activeVipTheme.overlayCss }}
                         aria-hidden
                       />
@@ -601,12 +601,7 @@ export default function HeroHighlighter() {
                       </h2>
                       <p className="text-sm sm:text-base text-white/85 mb-6 max-w-lg">{formatSubline(panel)}</p>
                       <div className="flex flex-col gap-3 w-full max-w-md">
-                        <Link
-                          href={`${eventBasePath(panel)}/register`}
-                          className={`w-full text-center px-6 py-3 rounded-sm text-sm font-semibold text-white ${activeVipTheme.registerClass}`}
-                        >
-                          Register Now
-                        </Link>
+                    
                         <div className="grid grid-cols-2 gap-3">
                           <Link
                             href={eventBasePath(panel)}
