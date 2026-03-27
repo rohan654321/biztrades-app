@@ -592,28 +592,40 @@ export default function HeroHighlighter() {
       />
     </div>
 
-    <div className="relative z-[1] h-full flex flex-col justify-end p-4 sm:justify-center sm:p-6 lg:p-8 max-w-2xl">
-      <h2 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-white tracking-tight leading-tight mb-3">
-        {panel.title.toUpperCase()}
-      </h2>
-      <p className="text-sm sm:text-base text-white/85 mb-6 max-w-lg">{formatSubline(panel)}</p>
-      <div className="flex flex-col gap-3 w-full max-w-md">
-        <div className="grid grid-cols-2 gap-3">
-          <Link
-            href={eventBasePath(panel)}
-            className="text-center px-4 py-3 rounded-sm bg-white text-gray-900 text-sm font-semibold hover:bg-gray-100"
-          >
-            Show Info
-          </Link>
-          <Link
-            href={`${eventBasePath(panel)}/exhibit`}
-            className="text-center px-4 py-3 rounded-sm bg-white text-gray-900 text-sm font-semibold hover:bg-gray-100"
-          >
-            Exhibitor List
-          </Link>
-        </div>
-      </div>
-    </div>
+  <div className="relative z-[1] h-full flex flex-col justify-center px-6 sm:px-10 lg:px-14 max-w-3xl">
+
+  {/* SMALL TOP LINE (optional from DB or static) */}
+  <p className="text-sm sm:text-base text-white/80 mb-2 font-medium">
+    {panel?.category?.[0] || "Global Sources Exhibitions"}
+  </p>
+
+  {/* MAIN TITLE (FROM DB) */}
+  <h1 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold text-white leading-tight">
+    {panel?.title?.toUpperCase()}
+  </h1>
+
+  {/* SUB TEXT (FROM DB) */}
+  <p className="mt-4 text-sm sm:text-lg text-white/90 leading-relaxed max-w-2xl">
+    {panel?.shortDescription || formatSubline(panel)}
+  </p>
+
+  {/* BUTTONS */}
+  <div className="mt-6 flex flex-wrap gap-4">
+    <Link
+      href={eventBasePath(panel)}
+      className="bg-[#FF2D2D] hover:bg-red-600 text-white px-6 py-3 rounded-md font-semibold"
+    >
+     Show Info
+    </Link>
+
+    <Link
+      href={eventBasePath(panel)}
+      className="bg-gray-200 hover:bg-white text-gray-900 px-6 py-3 rounded-md font-semibold"
+    >
+      Exhibitor List
+    </Link>
+  </div>
+</div>
 
     <ShowOpeningCountdown startDateIso={panel.startDate} />
   </div>
