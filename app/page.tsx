@@ -17,7 +17,7 @@ import CategoryGrid from "@/components/catagories";
 export default function Home() {
   return (
     <div>
-    <div className="bg-[#E4EBFB] min-h-screen">
+    <div className="bg-[#d4e5f2] min-h-screen">
        <HeroHighlighter />
         <div className="px-6 py-6 border-b border-gray-200 max-w-7xl mx-auto">
         <PageBanner page="homepage" height={150} autoplay={true} autoplayInterval={5000} showControls={true} />

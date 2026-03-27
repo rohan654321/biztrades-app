@@ -10,13 +10,28 @@ export default function BrowseByCountry() {
 
   useEffect(() => {
     const load = async () => {
-      const res = await apiFetch("/api/location/countries", { auth: false })
+      try {
+        const res = await apiFetch("/api/location/countries", { auth: false })
 
-      // ✅ FILTER ONLY PUBLIC COUNTRIES
-      const publicCountries =
-        res?.data?.filter((c: any) => c.isPublic === true) || []
+        console.log("Countries API Response:", res?.data) // ✅ DEBUG
 
-      setCountries(publicCountries)
+        // ✅ UNIVERSAL PUBLIC FILTER
+        const publicCountries =
+          res?.data?.filter((c: any) => {
+            return (
+              c.isPublic === true ||
+              c.is_public === true ||
+              c.public === true ||
+              c.status === "public" ||
+              c.visibility === "PUBLIC"
+            )
+          }) || []
+
+        // ✅ FALLBACK (if no public field exists)
+        setCountries(publicCountries.length ? publicCountries : res?.data || [])
+      } catch (error) {
+        console.error("Error loading countries:", error)
+      }
     }
 
     load()
@@ -33,13 +48,13 @@ export default function BrowseByCountry() {
   return (
     <div className="max-w-7xl mx-auto px-4 py-6">
       
-      {/* Outer Card Container (IMPORTANT FOR DESIGN) */}
+      {/* Outer Container */}
       <div className="bg-gray-100 rounded-[4px] p-6">
 
         {/* Header */}
         <div className="mb-6">
           <h2 className="text-lg font-semibold text-gray-900">
-            Source by Region
+            Source by Country
           </h2>
           <p className="text-sm text-gray-600 mt-1">
             Facilitate world wholesale, retail and E-commerce businesses. Global sourcing is easy!

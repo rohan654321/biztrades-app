@@ -10,13 +10,28 @@ export default function BrowseByCity() {
 
   useEffect(() => {
     const load = async () => {
-      const res = await apiFetch("/api/location/cities", { auth: false })
+      try {
+        const res = await apiFetch("/api/location/cities", { auth: false })
 
-      // ✅ FILTER ONLY PUBLIC CITIES
-      const publicCities =
-        res?.data?.filter((c: any) => c.isPublic === true) || []
+        console.log("Cities API Response:", res?.data) // ✅ DEBUG
 
-      setCities(publicCities)
+        // ✅ UNIVERSAL PUBLIC FILTER (handles all cases)
+        const publicCities =
+          res?.data?.filter((c: any) => {
+            return (
+              c.isPublic === true ||
+              c.is_public === true ||
+              c.public === true ||
+              c.status === "public" ||
+              c.visibility === "PUBLIC"
+            )
+          }) || []
+
+        // ⚠️ If no public field exists, fallback to show all
+        setCities(publicCities.length ? publicCities : res?.data || [])
+      } catch (error) {
+        console.error("Error loading cities:", error)
+      }
     }
 
     load()
@@ -75,7 +90,7 @@ export default function BrowseByCity() {
                   {city.name}
                 </p>
                 <p className="text-xs text-gray-600">
-                  {city.country?.name}
+                  {city.country?.name || "Unknown"}
                 </p>
               </div>
             </button>

@@ -456,7 +456,7 @@ export default function HeroHighlighter() {
       className="relative bg-cover bg-center bg-no-repeat py-8 sm:py-10 px-4 sm:px-6"
       style={{
         backgroundImage:
-          " url('/logo/bg1.png')",
+          " url('/logo/bgTop.png')",
       }}
       aria-label="Featured shows and verified exhibitors"
     >
@@ -635,7 +635,7 @@ export default function HeroHighlighter() {
         <div className="relative overflow-hidden rounded-2xl border border-white/10 shadow-xl">
           <div
             className="absolute inset-0 bg-cover bg-center"
-            style={{ backgroundImage: "url('/images/featured.jpg')" }}
+            style={{ backgroundImage: "url('/logo/bg_Featured.jpg.jpeg')" }}
             aria-hidden
           />
           <div className="absolute inset-0 " aria-hidden />
