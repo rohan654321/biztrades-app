@@ -120,7 +120,7 @@ export default function Navbar() {
   href="/"
   className={`relative text-[28px] leading-none font-semibold px-4 py-0 ${
     !pathname.startsWith("/event")
-      ? "text-red-600"
+      ? "text-[#FF8C35]"
       : "text-gray-600 hover:text-red-600"
   }`}
 >
@@ -134,7 +134,7 @@ export default function Navbar() {
   href="/event"
   className={`relative text-[28px] leading-none font-semibold px-4 py-0 ${
     pathname.startsWith("/event")
-      ? "text-red-600"
+      ? "text-[#FF8C35]"
       : "text-gray-600 hover:text-red-600"
   }`}
 >
@@ -148,7 +148,7 @@ export default function Navbar() {
         {/* Third Row - Search Bar */}
         <div className="hidden lg:flex justify-center py-3 mt-1">
           <div className="w-full max-w-7xl">
-            <div className="border-2 border-red-500 rounded p-1 bg-white">
+            <div className="border-2 border-[#FF8C35] rounded p-1 bg-white">
               <div className="flex w-full bg-white h-11 items-center">
                 {/* Dropdown */}
                 <div className="relative h-full" ref={dropdownRef}>
@@ -196,7 +196,7 @@ export default function Navbar() {
                 {/* Search Button */}
                 <button
                   type="button"
-                  className="bg-red-600 h-full px-14 text-sm font-semibold text-white hover:bg-red-700 transition-colors whitespace-nowrap"
+                  className="bg-[#FF8C35] h-full px-14 text-sm font-semibold text-white hover:bg-[#FF8C35]/90 transition-colors whitespace-nowrap"
                 >
                   Search
                 </button>

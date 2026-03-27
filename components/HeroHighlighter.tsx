@@ -547,7 +547,7 @@ export default function HeroHighlighter() {
 
                           ${
                             isActive
-                              ? "bg-gradient-to-r from-red-600 to-orange-500 text-white scale-110 shadow-xl z-20"
+                              ? "bg-[#FF8C35] text-white scale-110 shadow-xl z-20"
                               : "bg-white text-gray-600 scale-95 hover:scale-100 hover:text-red-600"
                           }
                         `}
