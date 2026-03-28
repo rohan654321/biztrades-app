@@ -646,10 +646,23 @@ const visibleFeatured = featuredEvents.slice(
 >
   {panel.title.toUpperCase()}
 </h2>
-                      <p className="text-sm sm:text-base text-white/85 mb-6 max-w-lg">{formatSubline(panel)}</p>
+                      <p
+  className="
+    text-sm sm:text-base
+    text-white/85
+    mb-6
+    text-center
+    max-w-lg
+    mx-auto
+    leading-[1.4]
+  "
+  style={{ textWrap: "balance" }}
+>
+  {formatSubline(panel)}
+</p>
                       <div className="flex flex-col gap-3 w-full max-w-md">
                     
-                        <div className="grid grid-cols-2 gap-3">
+                        <div className="grid grid-cols-2 gap-3 max-w-md mx-auto">
                           <Link
                             href={eventBasePath(panel)}
                             className="text-center px-4 py-3 rounded-sm bg-[#FF131C] text-white text-sm font-semibold hover:bg-gray-100"
