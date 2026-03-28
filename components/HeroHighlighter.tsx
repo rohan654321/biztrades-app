@@ -591,8 +591,8 @@ const visibleFeatured = featuredEvents.slice(
                       >
                         <div className="flex flex-col items-center justify-center gap-1">
                           {/* TITLE */}
-<span className="text-sm font-semibold leading-tight line-clamp-2 text-center px-1">
-  {e.title}
+                         <span className="text-sm font-semibold truncate">
+  {e.title.split(" ").slice(0, 3).join(" ")}
 </span>
 
                           {/* DATE */}
@@ -631,9 +631,15 @@ const visibleFeatured = featuredEvents.slice(
                     </div>
 
                     <div className="relative z-[1] h-full flex flex-col justify-end p-4 sm:justify-center sm:p-6 lg:p-8 max-w-2xl">
-                      <h2 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-white tracking-tight leading-tight mb-3">
-                        {panel.title.toUpperCase()}
-                      </h2>
+                     <h2 className="
+  text-xl sm:text-2xl lg:text-3xl
+  font-extrabold text-white
+  tracking-tight leading-[1.2]
+  mb-3
+  line-clamp-3
+">
+  {panel.title.toUpperCase()}
+</h2>
                       <p className="text-sm sm:text-base text-white/85 mb-6 max-w-lg">{formatSubline(panel)}</p>
                       <div className="flex flex-col gap-3 w-full max-w-md">
                     
