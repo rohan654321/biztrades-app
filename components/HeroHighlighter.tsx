@@ -662,7 +662,7 @@ const visibleFeatured = featuredEvents.slice(
 </p>
                       <div className="flex flex-col gap-3 w-full max-w-md">
                     
-                        <div className="grid grid-cols-2 gap-3 max-w-md mx-auto">
+                        <div className="grid grid-cols-2 gap-3">
                           <Link
                             href={eventBasePath(panel)}
                             className="text-center px-4 py-3 rounded-sm bg-[#FF131C] text-white text-sm font-semibold hover:bg-gray-100"
