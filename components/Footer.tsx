@@ -223,32 +223,38 @@ const Footer: React.FC = () => {
         </div>
 
         <div className="border-t border-gray-200 pt-8">
-          <div className="mb-6">
+          <div className="mb-6 flex gap-80">
              <Link href="/" className="inline-block shrink-0 self-start sm:self-end">
               <Image
-                src="/logo/logo.png"
+                src="/logo/biztradefairs_Logo2.png"
                 alt="BZ Trade Fairs Logo"
-                width={150}
+                width={300}
                 height={60}
-                className="object-contain"
+                className="object-contain mb-5"
               />
             </Link>
+            <div className="flex flex-col">
+                 <h5 className="mb-2 text-sm font-bold text-gray-900">Registered Office:</h5>
+            <p className="text-sm leading-relaxed text-gray-600">
+              Maxx Business Media Pvt Ltd | # T9, 3rd Floor, <br/>Swastik Manandi Arcade, SC Road, Seshadripuram,<br />
+              Bengaluru – 560020, India, Support-+91-9148319993 | CIN: U74999KA2019PTC123194
+            </p>
+
+            </div>
+             
           
           </div>
 
           <div className="mb-8">
-            <p className="text-xs leading-relaxed text-gray-500">
-              ** All event names, logos, and brands are property of their respective owners. All company, event and
-              service names used in this website are for identification purposes only. Use of these names, logos, and
-              brands does not imply endorsement.
-            </p>
+           
           </div>
 
           <div className="flex flex-col gap-6 border-t border-gray-200 pt-8 ">
-              <h5 className="mb-2 text-sm font-bold text-gray-900">Registered Office:</h5>
-            <p className="text-sm leading-relaxed text-gray-600">
-              Maxx Business Media Pvt Ltd | # T9, 3rd Floor, Swastik Manandi Arcade, SC Road, Seshadripuram,
-              Bengaluru – 560020, India, Support-+91-9148319993 | CIN: U74999KA2019PTC123194
+          
+             <p className="text-xs leading-relaxed text-gray-500">
+              ** All event names, logos, and brands are property of their respective owners. All company, event and
+              service names used in this website are for identification purposes only. Use of these names, logos, and
+              brands does not imply endorsement.
             </p>
             <p className="text-sm text-gray-600">Copyright © 2025 Maxx Business Media Pvt Ltd All rights reserved</p>
            
