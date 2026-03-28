@@ -224,11 +224,16 @@ const Footer: React.FC = () => {
 
         <div className="border-t border-gray-200 pt-8">
           <div className="mb-6">
-            <h5 className="mb-2 text-sm font-bold text-gray-900">Registered Office:</h5>
-            <p className="text-sm leading-relaxed text-gray-600">
-              Maxx Business Media Pvt Ltd | # T9, 3rd Floor, Swastik Manandi Arcade, SC Road, Seshadripuram,
-              Bengaluru – 560020, India, Support-+91-9148319993 | CIN: U74999KA2019PTC123194
-            </p>
+             <Link href="/" className="inline-block shrink-0 self-start sm:self-end">
+              <Image
+                src="/logo/logo.png"
+                alt="BZ Trade Fairs Logo"
+                width={150}
+                height={60}
+                className="object-contain"
+              />
+            </Link>
+          
           </div>
 
           <div className="mb-8">
@@ -239,17 +244,14 @@ const Footer: React.FC = () => {
             </p>
           </div>
 
-          <div className="flex flex-col gap-6 border-t border-gray-200 pt-8 sm:flex-row sm:items-end sm:justify-between">
+          <div className="flex flex-col gap-6 border-t border-gray-200 pt-8 ">
+              <h5 className="mb-2 text-sm font-bold text-gray-900">Registered Office:</h5>
+            <p className="text-sm leading-relaxed text-gray-600">
+              Maxx Business Media Pvt Ltd | # T9, 3rd Floor, Swastik Manandi Arcade, SC Road, Seshadripuram,
+              Bengaluru – 560020, India, Support-+91-9148319993 | CIN: U74999KA2019PTC123194
+            </p>
             <p className="text-sm text-gray-600">Copyright © 2025 Maxx Business Media Pvt Ltd All rights reserved</p>
-            <Link href="/" className="inline-block shrink-0 self-start sm:self-end">
-              <Image
-                src="/logo/logo.png"
-                alt="BZ Trade Fairs Logo"
-                width={150}
-                height={60}
-                className="object-contain"
-              />
-            </Link>
+           
           </div>
         </div>
       </div>

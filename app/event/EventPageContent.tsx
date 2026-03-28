@@ -1058,7 +1058,7 @@ export default function EventPageContent({ event, session: _session, router, toa
             </Card>
 
             {/* Featured Hotels Card */}
-            <div className="hover:shadow-md transition-shadow border border-gray-200 rounded-lg">
+            {/* <div className="hover:shadow-md transition-shadow border border-gray-200 rounded-lg">
               <CardHeader className="pb-2">
                 <CardTitle className="text-lg font-semibold">Featured Hotels</CardTitle>
               </CardHeader>
@@ -1081,7 +1081,7 @@ export default function EventPageContent({ event, session: _session, router, toa
                       >
                         <div className="flex flex-col sm:flex-row">
                           {/* Image Section */}
-                          <div className="sm:w-1/3 relative h-40 sm:h-32">
+                          {/* <div className="sm:w-1/3 relative h-40 sm:h-32">
                             <Image
                               src={h.image || "/api/placeholder/200/128?text=Hotel"}
                               alt={h.name || "Featured Hotel"}
@@ -1094,20 +1094,20 @@ export default function EventPageContent({ event, session: _session, router, toa
                                 {h.badgeText}
                               </span>
                             )}
-                          </div>
+                          </div> */}
 
                           {/* Content Section */}
-                          <div className="sm:w-2/3 p-3">
+                          {/* <div className="sm:w-2/3 p-3">
                             <div className="flex flex-col h-full">
                               {/* Header */}
-                              <div className="flex justify-between items-start gap-2 mb-2">
+                              {/* <div className="flex justify-between items-start gap-2 mb-2">
                                 <div className="flex-1 min-w-0">
                                   <h3 className="text-sm font-semibold text-gray-900 line-clamp-2 mb-1">
                                     {h.name}
-                                  </h3>
+                                  </h3> */} 
 
                                   {/* Rating and Location */}
-                                  <div className="flex items-center gap-1 text-xs text-gray-600 mb-2">
+                                  {/* <div className="flex items-center gap-1 text-xs text-gray-600 mb-2">
                                     <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
                                     <span className="font-medium">{(h.rating ?? 0).toFixed(1)}</span>
                                     <span>({(h.reviews || 0).toLocaleString()})</span>
@@ -1115,10 +1115,10 @@ export default function EventPageContent({ event, session: _session, router, toa
                                     <span className="truncate">{h.locationNote || "Excellent Location"}</span>
                                   </div>
                                 </div>
-                              </div>
+                              </div> */}
 
                               {/* Amenities */}
-                              <div className="flex flex-wrap gap-1 mb-3">
+                              {/* <div className="flex flex-wrap gap-1 mb-3">
                                 {h.amenities?.includes("Free Wifi") || h.amenities?.includes("wifi") ? (
                                   <span className="inline-flex items-center gap-1 bg-gray-50 px-2 py-1 rounded text-xs text-gray-600">
                                     <Wifi className="h-3 w-3" />
@@ -1137,10 +1137,10 @@ export default function EventPageContent({ event, session: _session, router, toa
                                     Parking
                                   </span>
                                 ) : null}
-                              </div>
+                              </div> */}
 
                               {/* Price and Booking */}
-                              <div className="flex items-center justify-between gap-2 mt-auto">
+                              {/* <div className="flex items-center justify-between gap-2 mt-auto">
                                 <div className="flex items-center gap-2">
                                   <span className="rounded-full bg-[#004A96] px-2 py-1 text-xs font-semibold text-white">
                                     {h.dealLabel || "Deal"}
@@ -1170,8 +1170,8 @@ export default function EventPageContent({ event, session: _session, router, toa
                     ))}
                   </div>
                 )}
-              </CardContent>
-            </div>
+              </CardContent> */}
+            {/* </div>  */}
 
 
 
