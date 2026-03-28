@@ -591,8 +591,8 @@ const visibleFeatured = featuredEvents.slice(
                       >
                         <div className="flex flex-col items-center justify-center gap-1">
                           {/* TITLE */}
-                         <span className="text-sm font-semibold truncate">
-  {e.title.split(" ").slice(0, 3).join(" ")}
+<span className="text-sm font-semibold leading-tight line-clamp-2 text-center px-1">
+  {e.title}
 </span>
 
                           {/* DATE */}
