@@ -221,58 +221,56 @@ export default function EventHero({ event }: EventHeroProps) {
     }
   }
 
-  return (
-    <div>
-      {/* SIMPLIFIED Dynamic Hero Banner Section - Only image */}
-      <div className="relative h-[100px] md:h-[250px] lg:h-[170px] overflow-hidden">
-        {heroBannersLoading ? (
-          // Loading skeleton
-          <div className="w-full h-full bg-white animate-pulse"></div>
-        ) : heroBanners.length > 0 ? (
-          <>
-            {/* Banner Slider - Only images without title */}
-            <div ref={bannerSliderRef} className="keen-slider h-full w-full">
-              {heroBanners.map((banner, index) => (
-                <div key={banner.id} className="keen-slider__slide relative h-full w-full">
-                  <Link 
-                    href={banner.link || "#"}
-                    onClick={() => handleBannerClick(banner.id)}
-                    target={banner.link?.startsWith('http') ? '_blank' : '_self'}
-                    className="block w-full h-full"
-                  >
-                    <Image
-                      src={banner.imageUrl || "/placeholder.svg"}
-                      alt={banner.title}
-                      fill
-                      className="object-cover"
-                      priority={index === 0}
-                      sizes="100vw"
-                    />
-                    {/* REMOVED title overlay */}
-                  </Link>
-                </div>
+ return (
+  <div className="relative">
+    {/* SIMPLIFIED Dynamic Hero Banner Section - Full width, no fixed height */}
+    <div className="relative h-[100px] md:h-[250px] lg:h-[170px] overflow-hidden">
+      {heroBannersLoading ? (
+        // Loading skeleton
+        <div className="w-full bg-white animate-pulse" style={{ aspectRatio: "21/9" }}></div>
+      ) : heroBanners.length > 0 ? (
+        <>
+          {/* Banner Slider - Only images without title */}
+          <div ref={bannerSliderRef} className="keen-slider h-full w-full">
+            {heroBanners.map((banner, index) => (
+              <div key={banner.id} className="keen-slider__slide relative w-full" style={{ aspectRatio: "21/9" }}>
+                <Link 
+                  href={banner.link || "#"}
+                  onClick={() => handleBannerClick(banner.id)}
+                  target={banner.link?.startsWith('http') ? '_blank' : '_self'}
+                  className="block w-full h-full"
+                >
+                  <Image
+                    src={banner.imageUrl || "/placeholder.svg"}
+                    alt={banner.title}
+                    fill
+                    className="object-cover"
+                    priority={index === 0}
+                    sizes="100vw"
+                  />
+                </Link>
+              </div>
+            ))}
+          </div>
+
+          {/* Banner indicators if multiple banners */}
+          {heroBanners.length > 1 && (
+            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
+              {heroBanners.map((_, idx) => (
+                <button
+                  key={idx}
+                  className={`w-2 h-2 rounded-full transition-colors ${
+                    idx === currentBannerIndex ? "bg-white" : "bg-white/50"
+                  }`}
+                  onClick={() => bannerInstanceRef.current?.moveToIdx(idx)}
+                />
               ))}
             </div>
-
-            {/* Banner indicators if multiple banners */}
-            {heroBanners.length > 1 && (
-              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
-                {heroBanners.map((_, idx) => (
-                  <button
-                    key={idx}
-                    className={`w-2 h-2 rounded-full transition-colors ${
-                      idx === currentBannerIndex ? "bg-white" : "bg-white/50"
-                    }`}
-                    onClick={() => bannerInstanceRef.current?.moveToIdx(idx)}
-                  />
-                ))}
-              </div>
-            )}
-            
-            {/* REMOVED Sponsored badge */}
-          </>
-        ) : (
-          // Fallback to default banner if no banners found
+          )}
+        </>
+      ) : (
+        // Fallback to default banner if no banners found
+        <div className="relative w-full" style={{ aspectRatio: "21/9" }}>
           <Image
             src="/banners/banner1.jpg"
             alt={event.title}
@@ -281,114 +279,114 @@ export default function EventHero({ event }: EventHeroProps) {
             sizes="100vw"
             priority
           />
+        </div>
+      )}
+    </div>
+
+    {/* Main Card - Positioned to overlap the bottom of the hero banner */}
+    <div className="relative w-full max-w-7xl mx-auto bg-white overflow-hidden shadow-md flex flex-col md:flex-row mt-[-80px] md:mt-[-100px] z-10 rounded-sm">
+      {/* Slider Section */}
+      <div className="md:w-2/3 w-full h-[220px] sm:h-[280px] md:h-[320px] lg:h-[250px] relative">
+        <div ref={sliderRef} className="keen-slider h-full w-full">
+          {images.length > 0 ? (
+            <>
+              {images.map((img, index) => (
+                <div key={`image-${index}`} className="keen-slider__slide relative h-full w-full">
+                  <Image
+                    src={img || "/placeholder.svg"}
+                    alt={`${event.title} Image ${index + 1}`}
+                    fill
+                    className="object-cover"
+                    priority={index === 0}
+                  />
+                </div>
+              ))}
+
+              {event.videos?.map((vid: string, index: number) => (
+                <div key={`video-${index}`} className="keen-slider__slide relative h-full w-full">
+                  <video className="w-full h-full object-cover" autoPlay loop muted playsInline>
+                    <source src={vid} type="video/mp4" />
+                  </video>
+                </div>
+              ))}
+            </>
+          ) : (
+            <div className="keen-slider__slide relative h-full w-full">
+              <Image 
+                src="/herosection-images/test.jpeg" 
+                alt="Default Image" 
+                fill 
+                className="object-cover" 
+                priority
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Slide Indicators */}
+        {images.length > 1 && (
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
+            {images.map((_, idx) => (
+              <button
+                key={idx}
+                className={`w-2 h-2 rounded-full transition-colors ${
+                  idx === currentSlide ? "bg-white" : "bg-white/50"
+                }`}
+                onClick={() => instanceRef.current?.moveToIdx(idx)}
+              />
+            ))}
+          </div>
         )}
       </div>
 
-      {/* Main Card */}
-      {/* Main Card */}
-<div className="relative w-full max-w-7xl mx-auto bg-white overflow-hidden shadow-md flex flex-col md:flex-row mt-[-50px] md:mt-[-60px] z-10 left-1/2 lg:left-160 -translate-x-1/2 rounded-sm">
-        {/* Slider Section */}
-        <div className="md:w-2/3 w-full h-[220px] sm:h-[280px] md:h-[320px] lg:h-[250px] relative">
-          <div ref={sliderRef} className="keen-slider h-full w-full">
-            {images.length > 0 ? (
-              <>
-                {images.map((img, index) => (
-                  <div key={`image-${index}`} className="keen-slider__slide relative h-full w-full">
-                    <Image
-                      src={img || "/placeholder.svg"}
-                      alt={`${event.title} Image ${index + 1}`}
-                      fill
-                      className="object-cover"
-                      priority={index === 0}
-                    />
-                  </div>
-                ))}
+      {/* Info Section */}
+      <div className="md:w-1/3 w-full bg-white p-4 sm:p-6 lg:p-8 flex flex-col justify-center space-y-3">
+        <h2 className="text-lg sm:text-xl lg:text-2xl font-semibold text-black leading-snug line-clamp-2">
+          {event.title}
+        </h2>
 
-                {event.videos?.map((vid: string, index: number) => (
-                  <div key={`video-${index}`} className="keen-slider__slide relative h-full w-full">
-                    <video className="w-full h-full object-cover" autoPlay loop muted playsInline>
-                      <source src={vid} type="video/mp4" />
-                    </video>
-                  </div>
-                ))}
-              </>
-            ) : (
-              <div className="keen-slider__slide relative h-full w-full">
-                <Image 
-                  src="/herosection-images/test.jpeg" 
-                  alt="Default Image" 
-                  fill 
-                  className="object-cover" 
-                  priority
-                />
-              </div>
-            )}
+        <div className="space-y-3 text-xs sm:text-sm text-gray-800 py-2">
+          {/* Date */}
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-black flex-shrink-0" />
+            <p className="leading-tight">{formatDateRange()}</p>
           </div>
 
-          {/* Slide Indicators */}
-          {images.length > 1 && (
-            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
-              {images.map((_, idx) => (
-                <button
-                  key={idx}
-                  className={`w-2 h-2 rounded-full transition-colors ${
-                    idx === currentSlide ? "bg-white" : "bg-white/50"
-                  }`}
-                  onClick={() => instanceRef.current?.moveToIdx(idx)}
-                />
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Info Section */}
-        <div className="md:w-1/3 w-full bg-white p-4 sm:p-6 lg:p-8 flex flex-col justify-center space-y-3">
-          <h2 className="text-lg sm:text-xl lg:text-2xl font-semibold text-black leading-snug line-clamp-2">
-            {event.title}
-          </h2>
-
-          <div className="space-y-3 text-xs sm:text-sm text-gray-800 py-2">
-            {/* Date */}
-            <div className="flex items-center gap-2 sm:gap-3">
-              <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-black flex-shrink-0" />
-              <p className="leading-tight">{formatDateRange()}</p>
-            </div>
-
-            {/* Time */}
-            <div className="flex items-center gap-2 sm:gap-3">
-              <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-black flex-shrink-0" />
-              <span className="leading-tight">{formatTimeRange()}</span>
-            </div>
-
-            {/* Ticket Price */}
-            <div className="flex items-center gap-2 sm:gap-3">
-              <Ticket className="w-4 h-4 sm:w-5 sm:h-5 text-black flex-shrink-0" />
-              <span className="leading-tight font-medium">
-                {getTicketPriceDisplay()}
-              </span>
-            </div>
-
-            {/* Followers - ONLY SHOW IF WE HAVE FOLLOWERS */}
-            {followersCount !== null && followersCount > 0 && (
-              <div className="flex items-center gap-2 sm:gap-3">
-                <Users className="w-4 h-4 sm:w-5 sm:h-5 text-black flex-shrink-0" />
-                <span className="leading-tight">
-                  {followersCount.toLocaleString()} {followersCount === 1 ? 'Follower' : 'Followers'}
-                </span>
-              </div>
-            )}
+          {/* Time */}
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-black flex-shrink-0" />
+            <span className="leading-tight">{formatTimeRange()}</span>
           </div>
 
-          {/* Status Badge if postponed */}
-          {event.postponedReason && (
-            <div className="mt-2">
-              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                Postponed: {event.postponedReason}
+          {/* Ticket Price */}
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Ticket className="w-4 h-4 sm:w-5 sm:h-5 text-black flex-shrink-0" />
+            <span className="leading-tight font-medium">
+              {getTicketPriceDisplay()}
+            </span>
+          </div>
+
+          {/* Followers - ONLY SHOW IF WE HAVE FOLLOWERS */}
+          {followersCount !== null && followersCount > 0 && (
+            <div className="flex items-center gap-2 sm:gap-3">
+              <Users className="w-4 h-4 sm:w-5 sm:h-5 text-black flex-shrink-0" />
+              <span className="leading-tight">
+                {followersCount.toLocaleString()} {followersCount === 1 ? 'Follower' : 'Followers'}
               </span>
             </div>
           )}
         </div>
+
+        {/* Status Badge if postponed */}
+        {event.postponedReason && (
+          <div className="mt-2">
+            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+              Postponed: {event.postponedReason}
+            </span>
+          </div>
+        )}
       </div>
     </div>
-  )
+  </div>
+)
 }
