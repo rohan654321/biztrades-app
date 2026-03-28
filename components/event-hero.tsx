@@ -286,8 +286,8 @@ export default function EventHero({ event }: EventHeroProps) {
     {/* Main Card - Positioned to overlap the bottom of the hero banner */}
     <div className="relative w-full max-w-7xl mx-auto bg-white overflow-hidden shadow-md flex flex-col md:flex-row mt-[-80px] md:mt-[-100px] z-10 rounded-sm">
       {/* Slider Section */}
-    {/* Slider Section */}
-<div className="md:w-2/3 w-full h-[220px] sm:h-[280px] md:h-[320px] lg:h-[250px] relative overflow-hidden">
+{/* Slider Section */}
+<div className="md:w-2/3 w-full h-[220px] sm:h-[280px] md:h-[320px] lg:h-[250px] relative overflow-hidden bg-gray-100">
   <div ref={sliderRef} className="keen-slider h-full w-full">
     {images.length > 0 ? (
       <>
@@ -297,10 +297,9 @@ export default function EventHero({ event }: EventHeroProps) {
               src={img || "/placeholder.svg"}
               alt={`${event.title} Image ${index + 1}`}
               fill
-              className="object-cover"
+              className="object-contain"
               priority={index === 0}
               sizes="(max-width: 768px) 100vw, 50vw"
-              style={{ objectFit: "cover" }}
             />
           </div>
         ))}
@@ -308,12 +307,11 @@ export default function EventHero({ event }: EventHeroProps) {
         {event.videos?.map((vid: string, index: number) => (
           <div key={`video-${index}`} className="keen-slider__slide relative h-full w-full">
             <video 
-              className="w-full h-full object-cover" 
+              className="w-full h-full object-contain" 
               autoPlay 
               loop 
               muted 
               playsInline
-              style={{ objectFit: "cover" }}
             >
               <source src={vid} type="video/mp4" />
             </video>
@@ -326,8 +324,7 @@ export default function EventHero({ event }: EventHeroProps) {
           src="/herosection-images/test.jpeg" 
           alt="Default Image" 
           fill 
-          className="object-cover"
-          style={{ objectFit: "cover" }}
+          className="object-contain"
           priority
         />
       </div>
