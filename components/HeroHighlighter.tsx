@@ -630,15 +630,14 @@ const visibleFeatured = featuredEvents.slice(
                       />
                     </div>
 
-                    <div className="relative z-[1] h-full flex flex-col items-start justify-center text-center px-4 sm:px-6 lg:px-8 max-w-3xl mx-auto">
-                    <h2
+                    <div className="relative z-[1] h-full flex flex-col justify-center px-6 sm:px-8 lg:px-12 max-w-2xl">
+                   <h2
   className="
     text-xl sm:text-2xl lg:text-3xl
     font-extrabold text-white
     tracking-tight
     leading-[1.15]
     mb-4
-    max-w-[700px]
   "
   style={{ textWrap: "balance" }}
 >
@@ -649,7 +648,6 @@ const visibleFeatured = featuredEvents.slice(
     text-sm sm:text-base
     text-white/85
     mb-6
-    max-w-[650px]
     leading-[1.5]
   "
   style={{ textWrap: "balance" }}
@@ -658,7 +656,7 @@ const visibleFeatured = featuredEvents.slice(
 </p>
                       <div className="flex flex-col gap-3 w-full max-w-md">
                     
-                        <div className="flex gap-4 justify-center w-full max-w-md">
+                        <div className="flex gap-4">
                          <Link
   href={eventBasePath(panel)}
   className="flex-1 text-center px-5 py-3 rounded-md bg-[#FF131C] text-white text-sm font-semibold hover:opacity-90"
