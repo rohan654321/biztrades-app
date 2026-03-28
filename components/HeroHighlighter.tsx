@@ -631,12 +631,14 @@ const visibleFeatured = featuredEvents.slice(
                     </div>
 
                     <div className="relative z-[1] h-full flex flex-col justify-end p-4 sm:justify-center sm:p-6 lg:p-8 max-w-2xl">
-                     <h2 className="
+                    <h2 className="
   text-xl sm:text-2xl lg:text-3xl
   font-extrabold text-white
-  tracking-tight leading-[1.2]
+  tracking-tight
+  leading-[1.2]
   mb-3
-  line-clamp-3
+
+  max-w-[22ch]
 ">
   {panel.title.toUpperCase()}
 </h2>
