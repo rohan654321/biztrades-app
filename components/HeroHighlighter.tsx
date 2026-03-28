@@ -630,17 +630,15 @@ const visibleFeatured = featuredEvents.slice(
                       />
                     </div>
 
-                    <div className="relative z-[1] h-full flex flex-col justify-end p-4 sm:justify-center sm:p-6 lg:p-8 max-w-2xl">
+                    <div className="relative z-[1] h-full flex flex-col items-center justify-center text-center px-4 sm:px-6 lg:px-8 max-w-3xl mx-auto">
                     <h2
   className="
     text-xl sm:text-2xl lg:text-3xl
     font-extrabold text-white
     tracking-tight
-    leading-[1.2]
-    mb-3
-    text-center
-    max-w-2xl
-    mx-auto
+    leading-[1.15]
+    mb-4
+    max-w-[700px]
   "
   style={{ textWrap: "balance" }}
 >
@@ -651,10 +649,8 @@ const visibleFeatured = featuredEvents.slice(
     text-sm sm:text-base
     text-white/85
     mb-6
-    text-center
-    max-w-lg
-    mx-auto
-    leading-[1.4]
+    max-w-[650px]
+    leading-[1.5]
   "
   style={{ textWrap: "balance" }}
 >
@@ -662,19 +658,20 @@ const visibleFeatured = featuredEvents.slice(
 </p>
                       <div className="flex flex-col gap-3 w-full max-w-md">
                     
-                        <div className="grid grid-cols-2 gap-3">
-                          <Link
-                            href={eventBasePath(panel)}
-                            className="text-center px-4 py-3 rounded-sm bg-[#FF131C] text-white text-sm font-semibold hover:bg-gray-100"
-                          >
-                            Show Info
-                          </Link>
-                          <Link
-                            href={`${eventBasePath(panel)}/exhibit`}
-                            className="text-center px-4 py-3 rounded-sm bg-white text-gray-900 text-sm font-semibold hover:bg-gray-100"
-                          >
-                            Exhibitor List
-                          </Link>
+                        <div className="flex gap-4 justify-center w-full max-w-md">
+                         <Link
+  href={eventBasePath(panel)}
+  className="flex-1 text-center px-5 py-3 rounded-md bg-[#FF131C] text-white text-sm font-semibold hover:opacity-90"
+>
+  Show Info
+</Link>
+
+<Link
+  href={`${eventBasePath(panel)}/exhibit`}
+  className="flex-1 text-center px-5 py-3 rounded-md bg-gray-200 text-gray-900 text-sm font-semibold hover:bg-gray-300"
+>
+  Exhibitor List
+</Link>
                         </div>
                       </div>
                     </div>
