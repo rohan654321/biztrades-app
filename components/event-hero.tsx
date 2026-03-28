@@ -227,7 +227,7 @@ export default function EventHero({ event }: EventHeroProps) {
       <div className="relative h-[200px] md:h-[300px] lg:h-[200px] overflow-hidden">
         {heroBannersLoading ? (
           // Loading skeleton
-          <div className="w-full h-full bg-gray-200 animate-pulse"></div>
+          <div className="w-full h-full bg-white animate-pulse"></div>
         ) : heroBanners.length > 0 ? (
           <>
             {/* Banner Slider - Only images without title */}
@@ -341,7 +341,7 @@ export default function EventHero({ event }: EventHeroProps) {
         </div>
 
         {/* Info Section */}
-        <div className="md:w-1/3 w-full bg-blue-50 p-4 sm:p-6 lg:p-8 flex flex-col justify-center space-y-3">
+        <div className="md:w-1/3 w-full bg-white p-4 sm:p-6 lg:p-8 flex flex-col justify-center space-y-3">
           <h2 className="text-lg sm:text-xl lg:text-2xl font-semibold text-black leading-snug line-clamp-2">
             {event.title}
           </h2>

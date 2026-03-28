@@ -232,7 +232,7 @@ export default function Navbar() {
         <div className="flex h-11 items-center justify-between lg:hidden">
           <Link href="/" className="block flex-shrink-0">
             <Image
-              src="/logo/bizlogo.png"
+              src="/logo/biztradefairs_Logo2.png"
               alt="Global Sources"
               width={100}
               height={32}

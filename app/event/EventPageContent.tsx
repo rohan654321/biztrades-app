@@ -353,7 +353,8 @@ export default function EventPageContent({ event, session: _session, router, toa
   const showActionButtons = !isOrganizer
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-[#f1f7fb]">
+      {/* Removed py-8 to eliminate gap after navbar */}
       <EventHero event={event} />
 
       <div className="max-w-7xl mx-auto py-4">
@@ -362,7 +363,7 @@ export default function EventPageContent({ event, session: _session, router, toa
 
             {/* LEFT SECTION */}
             <div className="flex-1">
-              <h1 className="text-2xl sm:text-3xl font-bold text-blue-900 mb-3">
+              <h1 className="text-2xl sm:text-3xl font-bold text-[#004A96] mb-3">
                 {event.title || "Event Title"}
               </h1>
 
@@ -375,7 +376,7 @@ export default function EventPageContent({ event, session: _session, router, toa
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="flex items-center gap-2 text-blue-600 hover:text-blue-700"
+                  className="flex items-center gap-2 text-[#004A96] hover:text-[#003a75]"
                   onClick={() => {
                     const address = getMapAddress()
                     window.open(
@@ -405,7 +406,7 @@ export default function EventPageContent({ event, session: _session, router, toa
                   size="sm"
                   onClick={handleSaveEvent}
                   disabled={saving}
-                  className={`flex items-center gap-2 ${isSaved ? "text-blue-600" : ""}`}
+                  className={`flex items-center gap-2 ${isSaved ? "text-[#FF131C]" : ""}`}
                 >
                   <Bookmark className={`w-4 h-4 ${isSaved ? "fill-current" : ""}`} />
                   {isSaved ? "Saved" : "Save"}
@@ -453,7 +454,7 @@ export default function EventPageContent({ event, session: _session, router, toa
 
                   <Button
                     variant="outline"
-                    className="sm:w-[180px] w-full border-blue-300 bg-transparent text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                    className="sm:w-[180px] w-full border-[#FF131C] bg-transparent text-[#FF131C] hover:text-[#FF131C] hover:bg-red-50"
                     onClick={handleExhibitClick}
                   >
                     Exhibit
@@ -470,65 +471,65 @@ export default function EventPageContent({ event, session: _session, router, toa
           {/* Main Content - Left Side */}
           <div className="flex-1 min-w-0">
             <Tabs defaultValue="about" className="w-full">
-              <div className="bg-white rounded-lg mb-6 shadow-sm border border-gray-200">
-                <TabsList className="grid w-full grid-cols-10 h-auto p-0 bg-transparent">
+              <div className="bg-white rounded-lg mb-6 shadow-sm border border-gray-200 overflow-hidden">
+                <TabsList className="grid w-full grid-cols-10 h-auto p-0 bg-transparent rounded-none">
                   <TabsTrigger
                     value="about"
-                    className="data-[state=active]:bg-red-600 data-[state=active]:text-white rounded-none py-3 px-2 sm:px-4 text-xs sm:text-sm font-medium truncate"
+                    className="data-[state=active]:bg-[#FF131C] data-[state=active]:text-white rounded-none py-3 px-2 sm:px-4 text-xs sm:text-sm font-medium truncate first:rounded-l-lg last:rounded-r-lg"
                   >
                     About
                   </TabsTrigger>
                   <TabsTrigger
                     value="exhibitors"
-                    className="data-[state=active]:bg-red-600 data-[state=active]:text-white rounded-none py-3 px-2 sm:px-4 text-xs sm:text-sm font-medium truncate"
+                    className="data-[state=active]:bg-[#FF131C] data-[state=active]:text-white rounded-none py-3 px-2 sm:px-4 text-xs sm:text-sm font-medium truncate"
                   >
                     Exhibitors
                   </TabsTrigger>
                   <TabsTrigger
                     value="space-cost"
-                    className="data-[state=active]:bg-red-600 data-[state=active]:text-white rounded-none py-3 px-2 sm:px-4 text-xs sm:text-sm font-medium truncate"
+                    className="data-[state=active]:bg-[#FF131C] data-[state=active]:text-white rounded-none py-3 px-2 sm:px-4 text-xs sm:text-sm font-medium truncate"
                   >
                     Space Cost
                   </TabsTrigger>
                   <TabsTrigger
                     value="layout"
-                    className="data-[state=active]:bg-red-600 data-[state=active]:text-white rounded-none py-3 px-2 sm:px-4 text-xs sm:text-sm font-medium truncate"
+                    className="data-[state=active]:bg-[#FF131C] data-[state=active]:text-white rounded-none py-3 px-2 sm:px-4 text-xs sm:text-sm font-medium truncate"
                   >
                     Layout Plan
                   </TabsTrigger>
                   <TabsTrigger
                     value="brochure"
-                    className="data-[state=active]:bg-red-600 data-[state=active]:text-white rounded-none py-3 px-2 sm:px-4 text-xs sm:text-sm font-medium truncate"
+                    className="data-[state=active]:bg-[#FF131C] data-[state=active]:text-white rounded-none py-3 px-2 sm:px-4 text-xs sm:text-sm font-medium truncate"
                   >
                     Brochure
                   </TabsTrigger>
                   <TabsTrigger
                     value="venue"
-                    className="data-[state=active]:bg-red-600 data-[state=active]:text-white rounded-none py-3 px-2 sm:px-4 text-xs sm:text-sm font-medium truncate"
+                    className="data-[state=active]:bg-[#FF131C] data-[state=active]:text-white rounded-none py-3 px-2 sm:px-4 text-xs sm:text-sm font-medium truncate"
                   >
                     Venue
                   </TabsTrigger>
                   <TabsTrigger
                     value="speakers"
-                    className="data-[state=active]:bg-red-600 data-[state=active]:text-white rounded-none py-3 px-2 sm:px-4 text-xs sm:text-sm font-medium truncate"
+                    className="data-[state=active]:bg-[#FF131C] data-[state=active]:text-white rounded-none py-3 px-2 sm:px-4 text-xs sm:text-sm font-medium truncate"
                   >
                     Speakers
                   </TabsTrigger>
                   <TabsTrigger
                     value="organizer"
-                    className="data-[state=active]:bg-red-600 data-[state=active]:text-white rounded-none py-3 px-2 sm:px-4 text-xs sm:text-sm font-medium truncate"
+                    className="data-[state=active]:bg-[#FF131C] data-[state=active]:text-white rounded-none py-3 px-2 sm:px-4 text-xs sm:text-sm font-medium truncate"
                   >
                     Organizer
                   </TabsTrigger>
                   <TabsTrigger
                     value="followers"
-                    className="data-[state=active]:bg-red-600 data-[state=active]:text-white rounded-none py-3 px-2 sm:px-4 text-xs sm:text-sm font-medium truncate"
+                    className="data-[state=active]:bg-[#FF131C] data-[state=active]:text-white rounded-none py-3 px-2 sm:px-4 text-xs sm:text-sm font-medium truncate"
                   >
                     Followers
                   </TabsTrigger>
                   <TabsTrigger
                     value="reviews"
-                    className="data-[state=active]:bg-red-600 data-[state=active]:text-white rounded-none py-3 px-2 sm:px-4 text-xs sm:text-sm font-medium truncate"
+                    className="data-[state=active]:bg-[#FF131C] data-[state=active]:text-white rounded-none py-3 px-2 sm:px-4 text-xs sm:text-sm font-medium truncate last:rounded-r-lg"
                   >
                     Review
                   </TabsTrigger>
@@ -564,18 +565,18 @@ export default function EventPageContent({ event, session: _session, router, toa
 
                     {/* Listed In Section */}
                     <div>
-                      <h3 className="font-semibold text-blue-700 mb-2">Listed In</h3>
+                      <h3 className="font-semibold text-[#004A96] mb-2">Listed In</h3>
                       <div className="flex flex-wrap gap-2">
                         {event.tags?.map((tag: string) => (
                           <span
                             key={tag}
-                            className="inline-flex items-center px-3 py-1 text-sm font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-full hover:bg-blue-100 transition-colors duration-200"
+                            className="inline-flex items-center px-3 py-1 text-sm font-medium text-[#004A96] bg-red-50 border border-red-200 rounded-full hover:bg-red-100 transition-colors duration-200"
                           >
                             #{tag}
                           </span>
                         )) || (
                           <>
-                            <span className="inline-flex items-center px-3 py-1 text-sm font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-full">
+                            <span className="inline-flex items-center px-3 py-1 text-sm font-medium text-[#004A96] bg-red-50 border border-red-200 rounded-full">
                               #{event.category || "Event"}
                             </span>
                           </>
@@ -598,14 +599,14 @@ export default function EventPageContent({ event, session: _session, router, toa
 
                     <div>
                       <p className="font-medium text-gray-900">Timezone:</p>
-                      <p className="text-blue-600 font-medium">{event.timezone || "Asia/Kolkata"}</p>
+                      <p className="text-[#004A96] font-medium">{event.timezone || "Asia/Kolkata"}</p>
                     </div>
 
                     <div className="mt-4">
                       <h3 className="font-semibold text-gray-800 mb-1">Editions</h3>
                       <p className="text-gray-700">
                         {event.edition || "2nd"} Edition
-                        <span className="text-blue-600 ml-2">({event.edition || "2nd"} time organized)</span>
+                        <span className="text-[#004A96] ml-2">({event.edition || "2nd"} time organized)</span>
                       </p>
                     </div>
                   </div>
@@ -640,7 +641,7 @@ export default function EventPageContent({ event, session: _session, router, toa
                         {event.website && (
                           <a
                             href={event.website}
-                            className="px-3 py-1 border border-blue-200 bg-blue-50 text-blue-700 rounded-md text-xs font-medium hover:bg-blue-100"
+                            className="px-3 py-1 border border-[#004A96] bg-red-50 text-[#FF131C] rounded-md text-xs font-medium hover:bg-red-100"
                             target="_blank"
                             rel="noopener noreferrer"
                           >
@@ -649,7 +650,7 @@ export default function EventPageContent({ event, session: _session, router, toa
                         )}
                         <a
                           href="#contact"
-                          className="px-3 py-1 border border-pink-200 bg-pink-50 text-pink-700 rounded-md text-xs font-medium hover:bg-pink-100"
+                          className="px-3 py-1 border border-[#004A96] bg-red-50 text-[#004A96] rounded-md text-xs font-medium hover:bg-red-100"
                         >
                           Contact
                         </a>
@@ -677,7 +678,7 @@ export default function EventPageContent({ event, session: _session, router, toa
                               className="object-cover"
                             />
                           ) : (
-                            <span className="text-lg font-semibold text-blue-600">
+                            <span className="text-lg font-semibold text-[#004A96]">
                               {getCompanyInitials(event.organizer?.company)}
                             </span>
                           )}
@@ -688,7 +689,7 @@ export default function EventPageContent({ event, session: _session, router, toa
                             <h3 className="font-semibold text-gray-900 text-lg">
                               {event.organizer?.company || "Event Organizer"}
                             </h3>
-                            <span className="bg-blue-100 text-blue-700 text-[11px] font-medium px-2 py-[2px] rounded">
+                            <span className="bg-[#004A96] text-white text-[11px] font-medium px-2 py-[2px] rounded">
                               Top Rated
                             </span>
                           </div>
@@ -705,7 +706,7 @@ export default function EventPageContent({ event, session: _session, router, toa
                       {showActionButtons && (
                         <div className="flex flex-col items-center text-center">
                           <button
-                            className="bg-red-600 hover:bg-red-700 text-white text-sm font-medium px-4 py-2 rounded-md shadow"
+                            className="bg-[#FF131C] hover:bg-red-700 text-white text-sm font-medium px-4 py-2 rounded-md shadow"
                             onClick={(e) => {
                               e.preventDefault();
                               e.stopPropagation();
@@ -745,7 +746,7 @@ export default function EventPageContent({ event, session: _session, router, toa
                         {/* Venue Info */}
                         <div>
                           <Link href={`/venue/${event?.venue?.id}`}>
-                            <h3 className="font-semibold text-blue-700 text-base hover:underline cursor-pointer">
+                            <h3 className="font-semibold text-[#004A96] text-base hover:underline cursor-pointer">
                               {event?.venue?.venueName || "Venue Name Unavailable"}
                             </h3>
                           </Link>
@@ -807,7 +808,7 @@ export default function EventPageContent({ event, session: _session, router, toa
                   <CardContent className="space-y-4">
                     {spaceCosts.length > 0 ? (
                       spaceCosts.map((space, index) => (
-                        <div key={index} className="p-4 bg-gradient-to-r from-gray-50 to-blue-50 rounded-lg border">
+                        <div key={index} className="p-4 bg-gradient-to-r from-gray-50 to-red-50 rounded-lg border">
                           <div className="flex justify-between items-center">
                             <div>
                               <span className="font-medium">{space.type}</span>
@@ -817,7 +818,7 @@ export default function EventPageContent({ event, session: _session, router, toa
                               </p>
                             </div>
                             <div className="text-right">
-                              <span className="font-bold text-lg text-blue-600">
+                              <span className="font-bold text-lg text-[#004A96]">
                                 {space.currency ?? "USD"} {(Number(space.price) || 0).toLocaleString()}
                               </span>
                               {space.pricePerSqm != null && Number(space.pricePerSqm) > 0 && (
@@ -878,8 +879,8 @@ export default function EventPageContent({ event, session: _session, router, toa
                         <>
                           <div className="bg-gray-50 rounded-lg border border-gray-200 min-h-[280px] flex flex-col items-center justify-center p-8">
                             <div className="flex flex-col items-center gap-4 max-w-sm text-center">
-                              <div className="rounded-full bg-primary/10 p-4">
-                                <FileText className="h-12 w-12 text-primary" />
+                              <div className="rounded-full bg-[#FF131C]/10 p-4">
+                                <FileText className="h-12 w-12 text-[#FF131C]" />
                               </div>
                               <div>
                                 <p className="font-medium text-gray-900">Event Brochure</p>
@@ -891,7 +892,7 @@ export default function EventPageContent({ event, session: _session, router, toa
                                 href={event.brochure}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+                                className="inline-flex items-center justify-center gap-2 rounded-md bg-[#FF131C] px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
                               >
                                 <ExternalLink className="h-4 w-4" />
                                 View / Download PDF
@@ -934,7 +935,7 @@ export default function EventPageContent({ event, session: _session, router, toa
                         {/* Venue Info */}
                         <div>
                           <Link href={`/venue/${event?.venue?.id}`}>
-                            <h3 className="font-semibold text-blue-700 text-base hover:underline cursor-pointer">
+                            <h3 className="font-semibold text-[#FF131C] text-base hover:underline cursor-pointer">
                               {event?.venue?.venueName || "Venue Name Unavailable"}
                             </h3>
                           </Link>
@@ -1007,12 +1008,12 @@ export default function EventPageContent({ event, session: _session, router, toa
                             src={event.organizer?.avatar || event.organizer?.companyLogo}
                             alt={event.organizer?.company || "Organizer"}
                           />
-                          <AvatarFallback className="bg-blue-50 text-blue-600 text-lg font-semibold">
+                          <AvatarFallback className="bg-red-50 text-[#FF131C] text-lg font-semibold">
                             {getCompanyInitials(event.organizer?.company)}
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex-1">
-                          <h4 className="font-semibold text-lg">
+                          <h4 className="font-semibold text-lg text-gray-900">
                             {event.organizer?.company || "Event Organizer"}
                           </h4>
                           <p className="text-gray-600 mb-3">
@@ -1089,7 +1090,7 @@ export default function EventPageContent({ event, session: _session, router, toa
                               sizes="(max-width: 640px) 100vw, 33vw"
                             />
                             {h.badgeText && (
-                              <span className="absolute bottom-2 left-2 rounded-full bg-green-500 px-2 py-1 text-xs font-semibold text-white">
+                              <span className="absolute bottom-2 left-2 rounded-full bg-[#004A96] px-2 py-1 text-xs font-semibold text-white">
                                 {h.badgeText}
                               </span>
                             )}
@@ -1141,7 +1142,7 @@ export default function EventPageContent({ event, session: _session, router, toa
                               {/* Price and Booking */}
                               <div className="flex items-center justify-between gap-2 mt-auto">
                                 <div className="flex items-center gap-2">
-                                  <span className="rounded-full bg-blue-50 px-2 py-1 text-xs font-semibold text-blue-700">
+                                  <span className="rounded-full bg-[#004A96] px-2 py-1 text-xs font-semibold text-white">
                                     {h.dealLabel || "Deal"}
                                   </span>
                                   <div className="flex items-baseline gap-1">
@@ -1156,7 +1157,7 @@ export default function EventPageContent({ event, session: _session, router, toa
                                 </div>
 
                                 <Button
-                                  className="rounded-full bg-blue-600 px-3 py-1 text-white hover:bg-blue-700 text-xs font-medium whitespace-nowrap flex-shrink-0"
+                                  className="rounded-full bg-[#004A96] px-3 py-1 text-white hover:bg-[#003a75] text-xs font-medium whitespace-nowrap flex-shrink-0"
                                   size="sm"
                                 >
                                   Book Now
@@ -1172,17 +1173,7 @@ export default function EventPageContent({ event, session: _session, router, toa
               </CardContent>
             </div>
 
-            {/* Featured Travel Partners */}
-            <Card className="hover:shadow-md transition-shadow border border-gray-200 rounded-lg">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg font-semibold">Featured Travel Partners</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-4">
-                  <p className="text-gray-600 text-sm">No travel partners available.</p>
-                </div>
-              </CardContent>
-            </Card>
+
 
             {/* Places to Visit */}
             <Card className="border border-gray-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all">
@@ -1223,7 +1214,7 @@ export default function EventPageContent({ event, session: _session, router, toa
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                        className="text-[#004A96] hover:text-[#003a75] hover:bg-[#f0f0f0]"
                         aria-label={`More details about ${place.name}`}
                       >
                         More details →
