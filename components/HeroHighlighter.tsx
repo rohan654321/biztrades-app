@@ -630,7 +630,7 @@ const visibleFeatured = featuredEvents.slice(
                       />
                     </div>
 
-                    <div className="relative z-[1] h-full flex flex-col items-center justify-center text-center px-4 sm:px-6 lg:px-8 max-w-3xl mx-auto">
+                    <div className="relative z-[1] h-full flex flex-col items-start justify-center text-center px-4 sm:px-6 lg:px-8 max-w-3xl mx-auto">
                     <h2
   className="
     text-xl sm:text-2xl lg:text-3xl
