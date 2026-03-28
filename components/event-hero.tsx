@@ -285,7 +285,8 @@ export default function EventHero({ event }: EventHeroProps) {
       </div>
 
       {/* Main Card */}
-      <div className="relative w-full max-w-7xl mx-auto bg-white overflow-hidden shadow-md flex flex-col md:flex-row mt-[-150px] md:mt-[-120px] z-10 left-1/2 lg:left-160 -translate-x-1/2 rounded-sm">
+      {/* Main Card */}
+<div className="relative w-full max-w-7xl mx-auto bg-white overflow-hidden shadow-md flex flex-col md:flex-row mt-[-50px] md:mt-[-60px] z-10 left-1/2 lg:left-160 -translate-x-1/2 rounded-sm">
         {/* Slider Section */}
         <div className="md:w-2/3 w-full h-[220px] sm:h-[280px] md:h-[320px] lg:h-[250px] relative">
           <div ref={sliderRef} className="keen-slider h-full w-full">
